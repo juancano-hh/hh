@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Cursos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Calculadora de Costos</h1>
+            <p class="text-gray-500 text-sm mt-1">Consulta el valor de tu curso al instante</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Selecciona tu Curso</label>
+                <select id="curso" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    <option value="0" disabled selected>-- Elige un curso --</option>
+                    <option value="1500">Curso Sabatino ($1,500)</option>
+                    <option value="2200">Curso Intensivo ($2,200)</option>
+                    <option value="1200">Curso Semanal ($1,200)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">¿Tienes algún descuento?</label>
+                <select id="descuento" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    <option value="0">Sin descuento</option>
+                    <option value="0.10">Descuento Pronto Pago (10%)</option>
+                    <option value="0.20">Beca Colaborador (20%)</option>
+                </select>
+            </div>
+
+            <button onclick="calcularCosto()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-xl transition duration-200 shadow-md hover:shadow-lg mt-2">
+                Calcular Total
+            </button>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultado-box" class="hidden mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-center animate-fade-in">
+            <p class="text-sm text-blue-700 font-medium">Total a pagar:</p>
+            <p id="total" class="text-3xl font-black text-blue-900 mt-1">$0.00</p>
+            <p class="text-xs text-gray-400 mt-2">*Sujeto a términos y condiciones del plantel.</p>
+        </div>
+    </div>
+
+    <script>
+        function calcularCosto() {
+            const costoCurso = parseFloat(document.getElementById('curso').value);
+            const porcentajeDescuento = parseFloat(document.getElementById('descuento').value);
+            
+            if (costoCurso === 0 || isNaN(costoCurso)) {
+                alert('Por favor, selecciona un curso válido.');
+                return;
+            }
+
+            // Lógica del cálculo
+            const ahorro = costoCurso * porcentajeDescuento;
+            const totalFinal = costoCurso - ahorro;
+
+            // Mostrar resultado con formato de moneda
+            document.getElementById('total').innerText = new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(totalFinal);
+
+            // Desplegar la caja de resultado
+            document.getElementById('resultado-box').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Cursos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">Calculadora de Costos</h1>
+            <p class="text-gray-500 text-sm mt-1">Consulta el valor de tu curso al instante</p>
+        </div>
+
+        <!-- Formulario -->
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Selecciona tu Curso</label>
+                <select id="curso" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    <option value="0" disabled selected>-- Elige un curso --</option>
+                    <option value="1500">Curso Sabatino ($1,500)</option>
+                    <option value="2200">Curso Intensivo ($2,200)</option>
+                    <option value="1200">Curso Semanal ($1,200)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">¿Tienes algún descuento?</label>
+                <select id="descuento" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    <option value="0">Sin descuento</option>
+                    <option value="0.10">Descuento Pronto Pago (10%)</option>
+                    <option value="0.20">Beca Colaborador (20%)</option>
+                </select>
+            </div>
+
+            <button onclick="calcularCosto()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-xl transition duration-200 shadow-md hover:shadow-lg mt-2">
+                Calcular Total
+            </button>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultado-box" class="hidden mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-center animate-fade-in">
+            <p class="text-sm text-blue-700 font-medium">Total a pagar:</p>
+            <p id="total" class="text-3xl font-black text-blue-900 mt-1">$0.00</p>
+            <p class="text-xs text-gray-400 mt-2">*Sujeto a términos y condiciones del plantel.</p>
+        </div>
+    </div>
+
+    <script>
+        function calcularCosto() {
+            const costoCurso = parseFloat(document.getElementById('curso').value);
+            const porcentajeDescuento = parseFloat(document.getElementById('descuento').value);
+            
+            if (costoCurso === 0 || isNaN(costoCurso)) {
+                alert('Por favor, selecciona un curso válido.');
+                return;
+            }
+
+            // Lógica del cálculo
+            const ahorro = costoCurso * porcentajeDescuento;
+            const totalFinal = costoCurso - ahorro;
+
+            // Mostrar resultado con formato de moneda
+            document.getElementById('total').innerText = new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(totalFinal);
+
+            // Desplegar la caja de resultado
+            document.getElementById('resultado-box').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
