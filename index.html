@@ -3,74 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador de Cursos</title>
+    <title>Portal de Costos - Alumnos</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
 
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Calculadora de Costos</h1>
-            <p class="text-gray-500 text-sm mt-1">Consulta el valor de tu curso al instante</p>
+            <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
+            <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
         </div>
 
-        <!-- Formulario -->
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Selecciona tu Curso</label>
-                <select id="curso" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
-                    <option value="0" disabled selected>-- Elige un curso --</option>
-                    <option value="1500">Curso Sabatino ($1,500)</option>
-                    <option value="2200">Curso Intensivo ($2,200)</option>
-                    <option value="1200">Curso Semanal ($1,200)</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID</label>
+                <div class="flex gap-2">
+                    <input type="text" id="alumno-id" placeholder="Ej. 1024" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase">
+                    <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200">
+                        Buscar
+                    </button>
+                </div>
             </div>
+        </div>
 
+        <div id="ficha-alumno" class="hidden mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+            <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
+            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
+            <p class="text-sm text-gray-700"><strong>Tipo de Curso:</strong> <span id="lbl-tipo" class="text-gray-900 font-medium"></span></p>
+            <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
+        </div>
+
+        <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">¿Tienes algún descuento?</label>
-                <select id="descuento" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
-                    <option value="0">Sin descuento</option>
-                    <option value="0.10">Descuento Pronto Pago (10%)</option>
-                    <option value="0.20">Beca Colaborador (20%)</option>
-                </select>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
+                    <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
+                </div>
+                <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="actualizarCalculos()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
             </div>
 
-            <button onclick="calcularCosto()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-xl transition duration-200 shadow-md hover:shadow-lg mt-2">
-                Calcular Total
-            </button>
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1 text-xs text-gray-600">
+                <p class="font-bold text-gray-700 uppercase tracking-wider mb-1 text-[10px]">Costo base por curso:</p>
+                <div class="flex justify-between">
+                    <span>Precio de lista unitario:</span>
+                    <span id="uni-lista" class="font-semibold text-gray-800">$0.00</span>
+                </div>
+                <div class="flex justify-between text-green-700">
+                    <span id="lbl-uni-desc">Precio con dto unitario:</span>
+                    <span id="uni-desc" class="font-bold">$0.00</span>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div id="contenedor-lista" class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex justify-between items-center">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Precio de Lista</p>
+                        <p class="text-xs text-gray-400">Pago fuera de fechas / extemporáneo</p>
+                    </div>
+                    <span id="res-lista" class="text-xl font-bold text-gray-700">$0.00</span>
+                </div>
+
+                <div class="bg-green-50 p-5 rounded-xl border border-green-200 flex justify-between items-center relative overflow-hidden">
+                    <div id="tag-promo" class="absolute top-0 right-0 bg-green-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-bl uppercase tracking-wide">
+                        Promo Activa
+                    </div>
+                    <div>
+                        <p id="lbl-tipo-descuento" class="text-xs font-bold text-green-700 uppercase tracking-wider">Total con Descuento</p>
+                        <p class="text-xs text-green-600">Beneficio exclusivo por periodo vigente</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="res-descuento-total" class="text-2xl font-black text-green-950">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="enviarSolicitudWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition duration-200 flex items-center justify-center gap-2">
+                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397 0 12.008 0c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 12.004-11.952 12.004-.003 0-.005 0-.007 0-2.005-.001-3.973-.5-5.732-1.451L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.742.002-2.602-1.01-5.05-2.85-6.892-1.84-1.841-4.29-2.853-6.893-2.855-5.441 0-9.867 4.371-9.87 9.743-.001 1.714.457 3.39 1.321 4.869l-.974 3.557 3.653-.947zM17.82 14.9c-.283-.141-1.677-.815-1.936-.909-.258-.094-.446-.141-.634.141-.188.282-.727.909-.89 1.096-.164.188-.328.212-.612.071-.283-.141-1.197-.435-2.28-1.39-1.014-.895-1.516-1.554-1.714-1.836-.197-.283-.021-.436.12-.577.127-.127.283-.329.424-.494.141-.165.188-.283.283-.47.094-.189.047-.353-.024-.495-.071-.141-.634-1.503-.868-2.067-.228-.548-.46-.473-.634-.482-.164-.008-.353-.01-.542-.01-.188 0-.495.071-.754.353-.258.282-1 .977-1 2.383 0 1.406 1.022 2.764 1.163 2.953.141.188 2.011 3.033 4.873 4.254.68.29 1.21.464 1.625.594.684.215 1.306.184 1.799.111.549-.082 1.678-.681 1.916-1.341.237-.659.237-1.221.164-1.341-.071-.118-.258-.188-.541-.329z"/>
+                    </svg>
+                    Solicitar Fichas de Pago
+                </button>
+            </div>
         </div>
 
-        <!-- Resultado -->
-        <div id="resultado-box" class="hidden mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100 text-center animate-fade-in">
-            <p class="text-sm text-blue-700 font-medium">Total a pagar:</p>
-            <p id="total" class="text-3xl font-black text-blue-900 mt-1">$0.00</p>
-            <p class="text-xs text-gray-400 mt-2">*Sujeto a términos y condiciones del plantel.</p>
-        </div>
+        <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
     </div>
 
     <script>
-        function calcularCosto() {
-            const costoCurso = parseFloat(document.getElementById('curso').value);
-            const porcentajeDescuento = parseFloat(document.getElementById('descuento').value);
-            
-            if (costoCurso === 0 || isNaN(costoCurso)) {
-                alert('Por favor, selecciona un curso válido.');
+        const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E'; 
+        
+        const URL_LAYOUT = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LAYOUT`;
+        const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
+        const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
+
+        let baseAlumnos = {};
+        let tablaPrecios = {}; 
+        let promosVolumen = []; 
+        let alumnoActual = null;
+        let porcentajeDescuentoActual = 0;
+        let totalPagarActual = 0;
+
+        const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
+
+        async function cargarPromosVolumen() {
+            try {
+                const res = await fetch(URL_VOLUMEN);
+                const txt = await res.text();
+                const json = JSON.parse(txt.substring(47, txt.length - 2));
+                const filas = json.table.rows;
+
+                promosVolumen = [];
+                filas.forEach(f => {
+                    if (f.c[0] && f.c[1]) {
+                        const cantidad = parseInt(f.c[0].v);
+                        const dcto = parseFloat(f.c[1].v);
+                        const dctoProcesado = dcto > 1 ? dcto / 100 : dcto;
+
+                        promosVolumen.push({
+                            cantidadMinima: cantidad,
+                            descuento: dctoProcesado
+                        });
+                    }
+                });
+                promosVolumen.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
+            } catch (e) {
+                console.error("Error cargando pestaña VOLUMEN:", e);
+            }
+        }
+
+        async function cargarPrecios() {
+            try {
+                const res = await fetch(URL_PRECIOS);
+                const txt = await res.text();
+                const json = JSON.parse(txt.substring(47, txt.length - 2));
+                const filas = json.table.rows;
+
+                tablaPrecios = {};
+                filas.forEach(f => {
+                    if (f.c[0]) {
+                        const mod = String(f.c[0].v).trim().toUpperCase();
+                        const prog = f.c[1] ? String(f.c[1].v).trim().padStart(2, '0') : '';
+                        const nivel = f.c[2] && f.c[2].v ? String(f.c[2].v).trim() : 'BAJO';
+                        const precio = f.c[3] ? parseFloat(f.c[3].v) : 0;
+
+                        tablaPrecios[`${mod}${prog}${nivel}`] = precio;
+                    }
+                });
+            } catch (e) {
+                console.error("Error procesando matriz de precios:", e);
+            }
+        }
+
+        async function cargarAlumnos() {
+            const errorBox = document.getElementById('error-box');
+            try {
+                const respuesta = await fetch(URL_LAYOUT);
+                const texto = await respuesta.text();
+                const jsonPuro = JSON.parse(texto.substring(47, texto.length - 2));
+                const filas = jsonPuro.table.rows;
+                
+                baseAlumnos = {};
+                filas.forEach(fila => {
+                    // Columna D (Índice 3)
+                    if(fila.c[3] && fila.c[3].v) {
+                        const id = String(fila.c[3].v).trim().toUpperCase();
+                        
+                        let tieneServicio = false;
+                        let esPrecioMoradoEspecial = false;
+
+                        // Leer columna AR (Índice 43)
+                        if (fila.c[43] && fila.c[43].v) {
+                            const condicionTexto = String(fila.c[43].v).trim().toUpperCase();
+                            
+                            if (condicionTexto === "MORADO") {
+                                esPrecioMoradoEspecial = true;
+                            } else if (condicionTexto === "SERVICIO") {
+                                tieneServicio = true;
+                            }
+                        }
+
+                        // Columna G: Nombre (Índice 6)
+                        const nombreAlumno = fila.c[6] ? String(fila.c[6].v).trim() : 'Sin nombre';
+
+                        // Columna I: Correo (Índice 8)
+                        let correoAlumno = 'No registrado';
+                        if (fila.c[8]) {
+                            correoAlumno = fila.c[8].f ? String(fila.c[8].f).trim() : String(fila.c[8].v).trim();
+                        }
+
+                        // Columna J: Número (Índice 9)
+                        let celularAlumno = 'No registrado';
+                        if (fila.c[9]) {
+                            celularAlumno = fila.c[9].f ? String(fila.c[9].f).trim() : String(fila.c[9].v).trim();
+                        }
+
+                        // Columna K: Tipo de Curso (Índice 10)
+                        const txtColumnaK = fila.c[10] ? String(fila.c[10].v).trim().toUpperCase() : '';
+                        let tipoCursoText = "Presencial";
+                        if (txtColumnaK.includes("SI") || txtColumnaK.includes("SINC") || txtColumnaK.includes("LÍNEA") || txtColumnaK.includes("LINEA")) {
+                            tipoCursoText = "Síncrono (En Línea)";
+                        }
+
+                        // Columna L: Programa (Índice 11)
+                        const txtColumnaL = fila.c[11] ? String(fila.c[11].v).trim().toUpperCase() : '';
+                        let programaCalculado = "04"; 
+                        if (txtColumnaL.includes("PTEEN") || txtColumnaL.includes("TEENS") || txtColumnaL.includes("KIDS")) {
+                            programaCalculado = "08";
+                        }
+
+                        // Columna O: Curso Siguiente (Índice 14)
+                        const cursoSiguienteText = fila.c[14] ? String(fila.c[14].v).trim() : '';
+                        let nivelCelda = 1;
+                        const numeroMatch = cursoSiguienteText.match(/\d+/);
+                        if (numeroMatch) {
+                            nivelCelda = parseInt(numeroMatch[0]);
+                        }
+                        const nivelVisualReal = Math.max(0, nivelCelda - 1);
+                        const textoCursoVisualizado = cursoSiguienteText.replace(/\d+/, nivelVisualReal);
+
+                        // Columna P: Horario largo / corto para saber si es SA o DO (Índice 15)
+                        const txtColumnaP = fila.c[15] ? String(fila.c[15].v).trim().toUpperCase() : '';
+                        let modalidadCalculada = "FFI"; 
+                        if (txtColumnaP.includes("SA") || txtColumnaP.includes("SM") || txtColumnaP.includes("SV")) {
+                            modalidadCalculada = "SA";
+                        } else if (txtColumnaP.includes("DO") || txtColumnaP.includes("DOM")) {
+                            modalidadCalculada = "DO";
+                        }
+
+                        // Columna AO: Beca (Índice 40)
+                        let becaVal = 0;
+                        if (fila.c[40] && fila.c[40].v) {
+                            becaVal = parseFloat(fila.c[40].v);
+                            if (becaVal > 1) becaVal = becaVal / 100;
+                        }
+
+                        baseAlumnos[id] = {
+                            idOriginal: id,
+                            nombre: nombreAlumno,
+                            correo: correoAlumno,
+                            celular: celularAlumno,
+                            tipoCurso: tipoCursoText,
+                            prefijoMod: modalidadCalculada,
+                            programa: programaCalculado, 
+                            nivelActual: nivelCelda, 
+                            cursoVisual: textoCursoVisualizado, 
+                            horario: fila.c[15] ? String(fila.c[15].v).trim() : 'Sin horario',
+                            beca: becaVal, 
+                            cargoServicio: tieneServicio ? 90 : 0,
+                            precioFijoMorado: esPrecioMoradoEspecial
+                        };
+                    }
+                });
+            } catch (error) {
+                console.error("Error cargando LAYOUT:", error);
+                errorBox.innerText = "Error al conectar con Google Sheets.";
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        function buscarAlumno() {
+            const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
+            const ficha = document.getElementById('ficha-alumno');
+            const calculos = document.getElementById('seccion-calculos');
+            const errorBox = document.getElementById('error-box');
+
+            if (Object.keys(baseAlumnos).length === 0) {
+                errorBox.innerText = "Sincronizando datos... intenta de nuevo en un segundo.";
+                errorBox.classList.remove('hidden');
                 return;
             }
 
-            // Lógica del cálculo
-            const ahorro = costoCurso * porcentajeDescuento;
-            const totalFinal = costoCurso - ahorro;
+            if (baseAlumnos[idInput]) {
+                alumnoActual = baseAlumnos[idInput];
+                errorBox.classList.add('hidden');
 
-            // Mostrar resultado con formato de moneda
-            document.getElementById('total').innerText = new Intl.NumberFormat('es-MX', {
-                style: 'currency',
-                currency: 'MXN'
-            }).format(totalFinal);
+                document.getElementById('lbl-nombre').innerText = alumnoActual.nombre;
+                document.getElementById('lbl-celular').innerText = alumnoActual.celular;
+                document.getElementById('lbl-correo').innerText = alumnoActual.correo;
+                document.getElementById('lbl-curso').innerText = alumnoActual.cursoVisual; 
+                document.getElementById('lbl-tipo').innerText = alumnoActual.tipoCurso;
+                document.getElementById('lbl-horario').innerText = alumnoActual.horario;
+                document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
 
-            // Desplegar la caja de resultado
-            document.getElementById('resultado-box').classList.remove('hidden');
+                ficha.classList.remove('hidden');
+                calculos.classList.remove('hidden');
+
+                const slider = document.getElementById('cursos-slider');
+                const nivelCelda = alumnoActual.nivelActual; 
+                
+                const maxCursosPermitidos = Math.max(1, 24 - nivelCelda + 1); 
+
+                slider.max = maxCursosPermitidos; 
+                slider.value = 1; 
+                
+                document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible para tu plan: ${maxCursosPermitidos} niveles.`;
+
+                actualizarCalculos();
+            } else {
+                alumnoActual = null;
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
+                errorBox.innerText = "ID no encontrado. Verifica de nuevo.";
+                errorBox.classList.remove('hidden');
+            }
         }
+
+        function actualizarCalculos() {
+            if (!alumnoActual) return;
+
+            const cantCursos = parseInt(document.getElementById('cursos-slider').value);
+            document.getElementById('cursos-val').innerText = cantCursos;
+
+            const contenedorLista = document.getElementById('contenedor-lista');
+
+            if (alumnoActual.precioFijoMorado) {
+                contenedorLista.classList.add('hidden'); 
+                totalPagarActual = 354 * cantCursos;
+                porcentajeDescuentoActual = 0;
+
+                document.getElementById('lbl-uni-desc').innerText = `Precio Fijo por Curso:`;
+                document.getElementById('uni-lista').innerText = "$354";
+                document.getElementById('uni-desc').innerText = "$354";
+
+                document.getElementById('lbl-tipo-descuento').innerText = "Total Pago Especial";
+                document.getElementById('tag-promo').innerText = "Tarifa Fija";
+                document.getElementById('res-descuento-total').innerText = `$${totalPagarActual}`;
+                return;
+            }
+
+            contenedorLista.classList.remove('hidden');
+            const proximoNivelAComprar = alumnoActual.nivelActual; 
+            const ultimoNivelAComprar = proximoNivelAComprar + cantCursos - 1;
+
+            let cursosBajos = 0;
+            let cursosAltos = 0;
+
+            for (let i = proximoNivelAComprar; i <= ultimoNivelAComprar; i++) {
+                if (i >= 21) {
+                    cursosAltos++;
+                } else {
+                    cursosBajos++;
+                }
+            }
+
+            const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
+            const llaveAlta = `${alumnoActual.prefijoMod}${alumnoActual.programa}21`;
+
+            const precioListaBajo = tablaPrecios[llaveBaja] || 3500; 
+            const precioListaAlto = tablaPrecios[llaveAlta] || 3500;
+
+            const extraServicioPorCurso = alumnoActual.cargoServicio; 
+
+            let descAAplicar = alumnoActual.beca; 
+            let nombreDescuentoVisual = "Total con Beca";
+            let etiquetaTag = "Semana de Descuento";
+
+            const promoEncontrada = promosVolumen.find(p => cantCursos >= p.cantidadMinima);
+            if (promoEncontrada && promoEncontrada.descuento > descAAplicar) {
+                descAAplicar = promoEncontrada.descuento;
+                nombreDescuentoVisual = "Total Promo por Volumen";
+                etiquetaTag = "¡Precio de Paquete!";
+            } else if (alumnoActual.beca > 0) {
+                nombreDescuentoVisual = `Total con Beca (${Math.round(alumnoActual.beca * 100)}%)`;
+            }
+
+            porcentajeDescuentoActual = Math.round(descAAplicar * 100);
+
+            const esProximoAlto = proximoNivelAComprar >= 21;
+            const precioBaseUnitarioFijo = esProximoAlto ? precioListaAlto : precioListaBajo;
+
+            const unitarioListaFijo = precioBaseUnitarioFijo + extraServicioPorCurso;
+            const unitarioDescFijo = Math.round(precioBaseUnitarioFijo * (1 - descAAplicar)) + extraServicioPorCurso;
+
+            const unitarioListaBajo = precioListaBajo + extraServicioPorCurso;
+            const unitarioListaAlto = precioListaAlto + extraServicioPorCurso;
+            const totalLista = (unitarioListaBajo * cursosBajos) + (unitarioListaAlto * cursosAltos);
+
+            const unitarioDescBajo = Math.round(precioListaBajo * (1 - descAAplicar)) + extraServicioPorCurso;
+            const unitarioDescAlto = Math.round(precioListaAlto * (1 - descAAplicar)) + extraServicioPorCurso;
+            
+            totalPagarActual = (unitarioDescBajo * cursosBajos) + (unitarioDescAlto * cursosAltos);
+
+            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+
+            document.getElementById('lbl-uni-desc').innerText = `Precio con dto (${porcentajeDescuentoActual}%):`;
+            document.getElementById('uni-lista').innerText = formatoMoneda.format(unitarioListaFijo);
+            document.getElementById('uni-desc').innerText = formatoMoneda.format(unitarioDescFijo);
+
+            document.getElementById('lbl-tipo-descuento').innerText = nombreDescuentoVisual;
+            document.getElementById('tag-promo').innerText = etiquetaTag;
+            document.getElementById('res-lista').innerText = formatoMoneda.format(totalLista);
+            document.getElementById('res-descuento-total').innerText = formatoMoneda.format(totalPagarActual);
+        }
+
+        function enviarSolicitudWhatsApp() {
+            if (!alumnoActual) return;
+
+            let indiceActual = parseInt(localStorage.getItem('ultimo_indice_wa')) || 0;
+            let indiceSiguiente = (indiceActual + 1) % NUMEROS_ATENCION.length;
+            localStorage.setItem('ultimo_indice_wa', indiceSiguiente);
+
+            const numeroDestino = NUMEROS_ATENCION[indiceSiguiente];
+            const cantCursos = document.getElementById('cursos-slider').value;
+
+            let stringDescuento = `${porcentajeDescuentoActual}%`;
+            if (alumnoActual.precioFijoMorado) {
+                stringDescuento = "Tarifa Fija";
+            }
+
+            const mensaje = `Hola, solicito mis fichas de pago por favor.
+      
+*Mis Datos:*
+• *ID:* ${alumnoActual.idOriginal}
+• *Nombre:* ${alumnoActual.nombre}
+• *Curso Registrado:* ${alumnoActual.cursoVisual}
+• *Tipo:* ${alumnoActual.tipoCurso}
+• *Horario:* ${alumnoActual.horario}
+
+*Detalle de la Solicitud:*
+• *Niveles a pagar:* ${cantCursos} curso(s)
+• *Descuento/Condición:* ${stringDescuento}
+• *Total a pagar:* $${totalPagarActual.toLocaleString('es-MX')} MXN`;
+
+            const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
+            window.open(urlWhatsApp, '_blank');
+        }
+
+        async function inicializarTodo() {
+            await cargarPromosVolumen();
+            await cargarPrecios();
+            await cargarAlumnos();
+        }
+
+        document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
 </body>
 </html>
