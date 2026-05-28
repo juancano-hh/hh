@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Alumnos</title>
+    <title>Portal de Costos - Alumnos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
@@ -11,15 +11,15 @@
 
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Solicita tu ficha</h1>
-            <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para solicitar tu ficha y calcular costos</p>
+            <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
+            <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
         </div>
 
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID</label>
                 <div class="flex gap-2">
-                    <input type="text" id="alumno-id" placeholder="Ej. 991122" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase">
+                    <input type="text" id="alumno-id" placeholder="Ej. 991122 (sin los 00)" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase">
                     <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200">
                         Buscar
                     </button>
@@ -120,10 +120,7 @@
 
     <script>
         // ==================== CONFIGURACIÓN DE URLs ====================
-        // CSV público de la hoja LAYOUT (alumnos)
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
-        
-        // Las demás hojas se mantienen con gviz (mismo spreadsheet)
         const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E'; 
         const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
@@ -391,7 +388,7 @@
             return promosAplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev, promosAplicables[0]);
         }
 
-        // ==================== CARGA DE LIBROS Y PROMOS DE LIBROS (gviz) ====================
+        // ==================== CARGA DE LIBROS Y PROMOS DE LIBROS (mejorada) ====================
         async function cargarLibros() {
             try {
                 const res = await fetch(URL_LIBROS);
@@ -400,26 +397,35 @@
                 const filas = json.table.rows;
                 librosMap.clear();
                 promosLibros = [];
+                console.log("=== Cargando LIBROS ===");
+                
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
                     if (!fila.c) continue;
+                    
+                    // ---------- Libros por nivel (columnas A-D) ----------
                     const nivelRaw = fila.c[0] ? fila.c[0].v : null;
                     const programaRaw = fila.c[1] ? String(fila.c[1].v).trim().toUpperCase() : "";
                     const libroRaw = fila.c[2] ? String(fila.c[2].v).trim() : "";
                     const precioRaw = fila.c[3] ? fila.c[3].v : null;
+                    
                     if (nivelRaw !== null && programaRaw && libroRaw && precioRaw !== null) {
                         let nivel = parseInt(nivelRaw);
                         if (!isNaN(nivel)) {
                             let precio = parseFloat(precioRaw);
                             if (!isNaN(precio)) {
-                                librosMap.set(`${programaRaw}_${nivel}`, { nombre: libroRaw, precio: precio });
+                                const key = `${programaRaw}_${nivel}`;
+                                librosMap.set(key, { nombre: libroRaw, precio: precio });
                             }
                         }
                     }
-                    const cantRaw = fila.c[6] ? fila.c[6].v : null;
-                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;
-                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "";
-                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;
+                    
+                    // ---------- Promociones de libros (columnas G-J: índices 6,7,8,9) ----------
+                    const cantRaw = fila.c[6] ? fila.c[6].v : null;      // col G
+                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;      // col H
+                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : ""; // col I
+                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;      // col J
+                    
                     if (cantRaw !== null && dctoRaw !== null) {
                         let cantidad = parseInt(cantRaw);
                         if (!isNaN(cantidad)) {
@@ -427,34 +433,63 @@
                             if (isNaN(descuento)) continue;
                             if (descuento > 1) descuento = descuento / 100;
                             let fechaFin = parseFecha(fechaRaw);
-                            promosLibros.push({ cantidadMinima: cantidad, descuento: descuento, motivo: motivoRaw, fechaFin: fechaFin });
+                            promosLibros.push({
+                                cantidadMinima: cantidad,
+                                descuento: descuento,
+                                motivo: motivoRaw || "Promoción especial",
+                                fechaFin: fechaFin
+                            });
+                            console.log(`📦 Promo libro leída: ${cantidad} cursos → ${Math.round(descuento*100)}% (${motivoRaw}) hasta ${fechaFin}`);
+                        } else {
+                            console.warn(`Fila ${i+1}: cantidad no numérica = ${cantRaw}`);
                         }
                     }
                 }
+                
+                // Ordenar promociones de libros (mayor cantidad mínima primero)
                 promosLibros.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Libros cargados:", librosMap.size);
-            } catch (e) { console.error(e); }
+                console.log(`Total promos libros cargadas: ${promosLibros.length}`);
+                console.log("Lista de promos:", promosLibros.map(p => `${p.cantidadMinima} cursos → ${p.descuento*100}%`).join(", "));
+            } catch (e) {
+                console.error("Error cargando LIBROS:", e);
+            }
         }
 
         function aplicarDescuentoLibros(cantidadCursos, libros) {
             if (!libros || libros.length === 0) return { totalOriginal: 0, totalFinal: 0 };
-            let librosConDescuento = 0;
-            let descuentoAplicable = 0;
+            
+            // Buscar la mejor promoción que aplique según la cantidad de cursos
+            let mejorPromo = null;
             for (let promo of promosLibros) {
                 if (cantidadCursos >= promo.cantidadMinima) {
-                    librosConDescuento = promo.cantidadMinima / 4;
-                    descuentoAplicable = promo.descuento;
-                    break;
+                    mejorPromo = promo;
+                    break; // Como están ordenadas de mayor a menor, la primera que cumple es la mejor
                 }
             }
+            
+            if (!mejorPromo) {
+                console.log(`No hay promoción de libros para ${cantidadCursos} cursos. Se pagan todos a precio normal.`);
+                const totalOriginal = libros.reduce((sum, l) => sum + l.precio, 0);
+                return { totalOriginal, totalFinal: totalOriginal };
+            }
+            
+            // Calcular cuántos libros tienen descuento: cantidadMinima / 4 (porque cada 4 cursos un libro)
+            let librosConDescuento = mejorPromo.cantidadMinima / 4;
             librosConDescuento = Math.min(librosConDescuento, libros.length);
-            let totalOriginal = 0, totalFinal = 0;
+            const descuento = mejorPromo.descuento;
+            
+            console.log(`Aplicando promoción: ${mejorPromo.cantidadMinima} cursos → ${Math.round(descuento*100)}% de descuento en ${librosConDescuento} libro(s).`);
+            
+            let totalOriginal = 0;
+            let totalFinal = 0;
             for (let i = 0; i < libros.length; i++) {
-                totalOriginal += libros[i].precio;
+                const precio = libros[i].precio;
+                totalOriginal += precio;
                 if (i < librosConDescuento) {
-                    totalFinal += Math.round(libros[i].precio * (1 - descuentoAplicable));
+                    const precioFinal = Math.round(precio * (1 - descuento));
+                    totalFinal += precioFinal;
                 } else {
-                    totalFinal += libros[i].precio;
+                    totalFinal += precio;
                 }
             }
             return { totalOriginal, totalFinal };
@@ -622,21 +657,17 @@
             }
             
             // ====== 4. Totales dinámicos según el switch ======
-            // Total Precio de Lista: cursos + (librosOriginal solo si libroActivo)
             const totalListaGeneral = totalListaCursosCalc + (libroActivo ? librosOriginal : 0);
-            // Total con Descuento: cursos con dto + (librosFinal solo si libroActivo)
             const totalConDescuentoGeneral = totalConDescuentoCursosCalc + (libroActivo ? librosFinal : 0);
             
-            // Guardar para WhatsApp (usaremos librosOriginal y librosFinal con el estado actual)
-            totalListaLibrosOriginal = librosOriginal;
-            totalListaLibrosFinal = librosFinal;
             totalListaCursos = totalListaCursosCalc;
             totalConDescuentoCursos = totalConDescuentoCursosCalc;
+            totalListaLibrosOriginal = librosOriginal;
+            totalListaLibrosFinal = librosFinal;
             
             // ====== 5. Mostrar en interfaz ======
             const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
             
-            // Precio unitario de ejemplo (primer nivel a pagar)
             const primerNivelEsAlto = primerNivel >= 21;
             const precioBaseEjemplo = primerNivelEsAlto ? precioBaseAlto : precioBaseBajo;
             const unitarioListaEjemplo = precioBaseEjemplo + extraServicio;
@@ -650,7 +681,6 @@
             document.getElementById('res-lista').innerHTML = formatoMoneda.format(totalListaGeneral);
             document.getElementById('res-descuento-total').innerHTML = formatoMoneda.format(totalConDescuentoGeneral);
             
-            // Ahorro
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
             if (ahorro > 0) {
                 ahorroContainer.classList.remove('hidden');
@@ -688,7 +718,6 @@
             console.log("TOTAL FINAL:", totalConDescuentoGeneral);
         }
 
-        // Evento para el toggle del libro
         document.addEventListener('change', function(e) {
             if (e.target && e.target.id === 'libro-toggle') {
                 libroActivo = e.target.checked;
