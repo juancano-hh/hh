@@ -81,6 +81,21 @@
                 <div id="lista-libros-desglose" class="hidden space-y-2 border-t border-blue-100 pt-2"></div>
             </div>
 
+            <!-- Control de Cargo de Servicio (solo visible en vista cobrador) -->
+            <div id="servicio-override-container" class="hidden bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio</p>
+                    <p class="text-xs text-gray-600">Aplicar cargo extra de $90 por curso.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-600">Cobrar</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="servicio-toggle" class="sr-only peer" onchange="actualizarCalculos()">
+                        <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                    </label>
+                </div>
+            </div>
+
             <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1 text-xs text-gray-600">
                 <p class="font-bold text-gray-700 uppercase tracking-wider mb-1 text-[10px]">Costo base por curso:</p>
                 <div class="flex justify-between">
@@ -684,6 +699,7 @@
             const btnAlumno = document.getElementById('btn-vista-alumno');
             const btnCobrador = document.getElementById('btn-vista-cobrador');
             const compServicios = document.getElementById('comparativa-servicios');
+            const servicioOverride = document.getElementById('servicio-override-container');
             const lblBusqueda = document.getElementById('lbl-busqueda');
             const inputBusqueda = document.getElementById('alumno-id');
             
@@ -693,12 +709,14 @@
                 lblBusqueda.innerText = "Ingresa tu ID";
                 inputBusqueda.placeholder = "Ej. 991122";
                 if (compServicios) compServicios.classList.add('hidden');
+                if (servicioOverride) servicioOverride.classList.add('hidden');
             } else {
                 btnAlumno.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 text-gray-500 hover:text-gray-800";
                 btnCobrador.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 bg-white text-gray-800 shadow-sm";
                 lblBusqueda.innerText = "Buscar Alumno (ID, Nombre o Celular)";
                 inputBusqueda.placeholder = "Escribe para buscar...";
                 if (compServicios) compServicios.classList.remove('hidden');
+                if (servicioOverride) servicioOverride.classList.remove('hidden');
             }
             
             actualizarCalculos();
@@ -779,6 +797,12 @@
                 if (toggle) toggle.checked = true;
                 libroActivo = true;
                 
+                // Sincronizar el toggle de servicio de cobrador con el cargo real del alumno
+                const servicioToggle = document.getElementById('servicio-toggle');
+                if (servicioToggle) {
+                    servicioToggle.checked = alumnoActual.cargoServicio > 0;
+                }
+                
                 actualizarCalculos();
             } else {
                 alumnoActual = null;
@@ -817,8 +841,12 @@
             let precioBaseBajo = tablaPrecios[llaveBaja] || 3500;
             let precioBaseAlto = tablaPrecios[llaveAlta] || 3500;
             
-            // Cargo de servicio real según el registro del alumno
-            const extraServicio = alumnoActual.cargoServicio;
+            // Cargo de servicio: En Vista Cobrador, depende del toggle manual. En Vista Alumno, del cargo base del alumno.
+            let extraServicio = alumnoActual.cargoServicio;
+            if (vistaActual === 'cobrador') {
+                const servicioToggle = document.getElementById('servicio-toggle');
+                extraServicio = (servicioToggle && servicioToggle.checked) ? 90 : 0;
+            }
             
             const unitarioListaBajo = precioBaseBajo + extraServicio;
             const unitarioListaAlto = precioBaseAlto + extraServicio;
@@ -1037,11 +1065,26 @@
             localStorage.setItem('ultimo_indice_wa', indiceSiguiente);
             const numeroDestino = NUMEROS_ATENCION[indiceSiguiente];
             const cantCursos = document.getElementById('cursos-slider').value;
+            
+            // Cargo de servicio para WhatsApp
+            let extraServicio = alumnoActual.cargoServicio;
+            if (vistaActual === 'cobrador') {
+                const servicioToggle = document.getElementById('servicio-toggle');
+                extraServicio = (servicioToggle && servicioToggle.checked) ? 90 : 0;
+            }
+            
             const totalFinal = totalConDescuentoCursos + totalListaLibrosFinal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             if (promoActiva && promoActiva.descuento > alumnoActual.beca) stringDescuento += ` (${promoActiva.motivo})`;
             else if (alumnoActual.beca > 0) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
+            
+            let servicioDetalle = "";
+            if (extraServicio > 0) {
+                servicioDetalle = `\n• *Servicio:* Sí ($${(extraServicio * cantCursos).toLocaleString('es-MX')} MXN)`;
+            } else {
+                servicioDetalle = `\n• *Servicio:* No`;
+            }
             
             let mensajeLibro = "";
             if (infoLibros.cantidad > 0 && libroActivo) {
@@ -1069,7 +1112,7 @@
 
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
-• *Descuento/Condición:* ${stringDescuento}${mensajeLibro}
+• *Descuento/Condición:* ${stringDescuento}${servicioDetalle}${mensajeLibro}
 • *Total a pagar:* $${totalFinal.toLocaleString('es-MX')} MXN`;
 
             const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
