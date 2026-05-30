@@ -50,6 +50,9 @@
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
+            <!-- Nuevo campo: Cargo por servicio SI/NO (base del alumno) -->
+            <p class="text-sm text-gray-700"><strong>Cargo por servicio:</strong> <span id="lbl-cargo-servicio" class="font-bold"></span></p>
+            <p class="text-sm text-gray-700"><strong>Servicio Base:</strong> <span id="lbl-servicio-base" class="font-bold"></span></p>
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -84,7 +87,7 @@
             <!-- Control de Cargo de Servicio (solo visible en vista cobrador) -->
             <div id="servicio-override-container" class="hidden bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio</p>
+                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio (anulación)</p>
                     <p class="text-xs text-gray-600">Aplicar cargo extra de $90 por curso.</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -774,6 +777,21 @@
                 document.getElementById('lbl-modalidad').innerText = alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
+                
+                // Mostrar Cargo por servicio: SI / NO (base del alumno)
+                const cargoServicioSpan = document.getElementById('lbl-cargo-servicio');
+                if (alumnoActual.cargoServicio > 0) {
+                    cargoServicioSpan.innerHTML = '<span class="text-red-600 font-bold">SI</span>';
+                } else {
+                    cargoServicioSpan.innerHTML = '<span class="text-green-600 font-bold">NO</span>';
+                }
+                
+                const lblServicioBase = document.getElementById('lbl-servicio-base');
+                if (lblServicioBase) {
+                    lblServicioBase.innerHTML = alumnoActual.cargoServicio > 0 
+                        ? '<span class="text-red-600">Sí (+$90 por curso)</span>' 
+                        : '<span class="text-green-600">No ($0)</span>';
+                }
 
                 ficha.classList.remove('hidden');
                 calculos.classList.remove('hidden');
@@ -966,7 +984,7 @@
                     // Calcular con todos activos para la vista de alumno
                     const resLibrosAlumno = aplicarDescuentoLibros(cantCursos, infoLibros.libros, infoLibros.libros.map((_, i) => i));
                     
-                    document.getElementById('libro-mensaje').innerHTML = `Necesitas ${infoLibros.cantidad} libro(s): ${librosTexto}. Precio original $${resLibrosAlumno.totalOriginal.toLocaleString('es-MX')} → <strong>$${resLibrosAlumno.totalFinal.toLocaleString('es-MX')}</strong>.`;
+                    document.getElementById('libro-mensaje').innerHTML = `Necesitas ${infoLibros.cantidad} libro(s): ${librosTexto}. Precio original $${resLibrosAlumno.totalOriginal.toLocaleString('es-MX')} → <strong>$$${resLibrosAlumno.totalFinal.toLocaleString('es-MX')}</strong>.`;
                 }
             } else {
                 libroContainer.classList.add('hidden');
