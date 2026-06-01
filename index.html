@@ -681,15 +681,15 @@
 *Mis Datos:*
 • *ID:* ${alumnoActual.idOriginal}
 • *Nombre:* ${alumnoActual.nombre}
-• *Curso Registrado:* ${alumnoActual.cursoVisual}
+• *Curso:* ${alumnoActual.cursoVisual}
 • *Programa:* ${alumnoActual.programaTexto}
 • *Modalidad:* ${alumnoActual.modalidad}
 • *Horario:* ${alumnoActual.horario}
 
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
-• *Descuento/Condición:* ${stringDescuento}
-• *Subtotal (cursos + libros):* ${subtotalStr}${mensajeLibro}
+• *Descuento:* ${stringDescuento}
+• *Subtotal:* ${subtotalStr}${mensajeLibro}
 • *Total a pagar:* ${totalStr}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
