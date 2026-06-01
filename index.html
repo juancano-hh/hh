@@ -37,7 +37,8 @@
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
-            <p class="text-sm text-gray-700"><strong>Beca:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
+            <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
+            <!-- Línea de Servicio Base eliminada -->
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -137,13 +138,13 @@
         let tablaPrecios = {}; 
         let promosVolumen = [];
         let textoPromocionalF1 = "";
-        let fechaVigenciaBecaBase = null;   // Fecha hasta la cual aplica la beca base
+        let fechaVigenciaBecaBase = null;
         let librosMap = new Map();
         let promosLibros = [];
 
         let alumnoActual = null;
         let porcentajeDescuentoActual = 0;
-        let totalConDescuentoSinServicio = 0;   // subtotal cursos sin servicio
+        let totalConDescuentoSinServicio = 0;   // subtotal cursos sin servicio (interno)
         let totalListaLibrosFinal = 0;
         let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0 };
         let librosSeleccionadosIndices = [];
@@ -154,16 +155,13 @@
         // ==================== FUNCIÓN ROBUSTA DE PARSEO DE FECHAS ====================
         function parseFecha(valor) {
             if (!valor) return null;
-            // Si ya es un objeto Date válido
             if (valor instanceof Date && !isNaN(valor)) return valor;
-            // Si es número (serial de Excel)
             if (typeof valor === 'number') {
                 const fechaBase = new Date(1899, 11, 30);
                 return new Date(fechaBase.getTime() + valor * 86400000);
             }
             if (typeof valor === 'string') {
                 let str = valor.trim();
-                // Formato "Date(año, mes, día)"
                 if (str.startsWith("Date(") && str.endsWith(")")) {
                     let contenido = str.substring(5, str.length - 1);
                     let partes = contenido.split(',');
@@ -171,22 +169,16 @@
                         let anio = parseInt(partes[0], 10);
                         let mes = parseInt(partes[1], 10);
                         let dia = parseInt(partes[2], 10);
-                        if (!isNaN(anio) && !isNaN(mes) && !isNaN(dia)) {
-                            return new Date(anio, mes, dia);
-                        }
+                        if (!isNaN(anio) && !isNaN(mes) && !isNaN(dia)) return new Date(anio, mes, dia);
                     }
                 }
-                // Formato dd/mm/yyyy o dd-mm-yyyy
                 let partes = str.split(/[-/]/);
                 if (partes.length === 3) {
                     let dia = parseInt(partes[0], 10);
                     let mes = parseInt(partes[1], 10) - 1;
                     let anio = parseInt(partes[2], 10);
-                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
-                        return new Date(anio, mes, dia);
-                    }
+                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) return new Date(anio, mes, dia);
                 }
-                // Intentar con Date nativo
                 let d = new Date(str);
                 if (!isNaN(d.getTime())) return d;
             }
@@ -314,12 +306,7 @@
                     if (isNaN(descuento)) continue;
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
-                    // Si la fecha no es válida (pero hay un valor en la celda), ignoramos esta promo
-                    if (fechaRaw !== null && fechaFin === null) {
-                        console.warn(`Promo ignorada: fecha inválida para ${motivoRaw}`);
-                        continue;
-                    }
-                    // Guardar la fecha de vigencia de la beca base (la primera que contenga "SEMANA" y tenga fecha válida)
+                    if (fechaRaw !== null && fechaFin === null) continue;
                     if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) {
                         fechaVigenciaBecaBase = fechaFin;
                     }
@@ -366,10 +353,7 @@
                             if (isNaN(descuento)) continue;
                             if (descuento > 1) descuento = descuento / 100;
                             let fechaFin = parseFecha(fechaRaw);
-                            if (fechaRaw !== null && fechaFin === null) {
-                                console.warn(`Promo libro ignorada: fecha inválida para ${motivoRaw}`);
-                                continue;
-                            }
+                            if (fechaRaw !== null && fechaFin === null) continue;
                             promosLibros.push({ cantidadMinima: cantidad, descuento: descuento, motivo: motivoRaw, fechaFin: fechaFin });
                         }
                     }
@@ -487,7 +471,7 @@
                 document.getElementById('lbl-modalidad').innerText = alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
-                document.getElementById('lbl-servicio-base').innerHTML = alumnoActual.cargoServicio > 0 ? '<span class="text-red-600">Sí (+$90 por curso)</span>' : '<span class="text-green-600">No ($0)</span>';
+                // No se muestra servicio base
                 ficha.classList.remove('hidden');
                 calculos.classList.remove('hidden');
                 if (textoPromocionalF1 && textoPromocionalF1 !== "") {
@@ -550,18 +534,13 @@
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             
-            // Determinar si la beca base del alumno está vigente
             let becaBaseVigente = 0;
             if (fechaVigenciaBecaBase) {
                 const fechaLimite = new Date(fechaVigenciaBecaBase);
                 fechaLimite.setHours(23,59,59,999);
                 if (fechaLimite >= hoy) {
                     becaBaseVigente = alumnoActual.beca;
-                } else {
-                    console.log(`Beca base expirada (fecha: ${fechaLimite})`);
                 }
-            } else {
-                console.log("No hay fecha de vigencia para la beca base, se ignora.");
             }
             
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
@@ -586,7 +565,7 @@
             if (fechaTexto) { fechaVigenciaSpan.innerText = fechaTexto; fechaVigenciaSpan.classList.remove('hidden'); } 
             else { fechaVigenciaSpan.classList.add('hidden'); }
             
-            // Subtotal cursos SIN servicio
+            // Subtotal cursos SIN servicio (para el cálculo interno del mensaje)
             const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
             const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - descuentoAplicar));
             const totalCursosSinServicio = (unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos);
@@ -637,6 +616,7 @@
             totalConDescuentoSinServicio = totalCursosSinServicio;
             totalListaLibrosFinal = librosFinal;
             
+            // Totales con servicio para mostrar en pantalla (el alumno ve el total final ya incluido)
             const totalCursosConServicio = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
             const totalConDescuentoGeneral = totalCursosConServicio + librosFinal;
             const totalListaGeneral = ( (precioBaseBajo+extraServicio)*cursosBajos + (precioBaseAlto+extraServicio)*cursosAltos ) + (infoLibros.cantidad ? infoLibros.libros.reduce((s,l)=>s+l.precio,0) : 0);
@@ -684,13 +664,7 @@
             else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
             
-            let servicioDetalle = "";
-            if (extraServicio > 0) {
-                servicioDetalle = `\n• *Servicio:* Sí ($${(extraServicio * cantCursos).toLocaleString('es-MX')} MXN)`;
-            } else {
-                servicioDetalle = `\n• *Servicio:* No`;
-            }
-            
+            // Servicio no se menciona en el mensaje
             let mensajeLibro = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
                 mensajeLibro = `\n• *Libros incluidos:* Sí ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
@@ -715,7 +689,7 @@
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
 • *Descuento/Condición:* ${stringDescuento}
-• *Subtotal (cursos + libros):* ${subtotalStr}${mensajeLibro}${servicioDetalle}
+• *Subtotal (cursos + libros):* ${subtotalStr}${mensajeLibro}
 • *Total a pagar:* ${totalStr}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
