@@ -15,7 +15,7 @@
             <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
         </div>
 
-        <!-- BÚSQUEDA SOLO POR ID -->
+        <!-- BÚSQUEDA SOLO POR ID (sin sugerencias dinámicas) -->
         <div class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID (Matrícula)</label>
@@ -38,7 +38,7 @@
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
-            <!-- Línea de Servicio Base eliminada -->
+            <!-- Servicio base oculto para el alumno -->
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -471,7 +471,6 @@
                 document.getElementById('lbl-modalidad').innerText = alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
-                // No se muestra servicio base
                 ficha.classList.remove('hidden');
                 calculos.classList.remove('hidden');
                 if (textoPromocionalF1 && textoPromocionalF1 !== "") {
@@ -664,12 +663,14 @@
             else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
             
-            // Servicio no se menciona en el mensaje
-            let mensajeLibro = "";
+            // Construir lista de libros seleccionados con nombres
+            let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
-                mensajeLibro = `\n• *Libros incluidos:* Sí ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
+                const librosActivos = infoLibros.libros.filter((_, idx) => librosSeleccionadosIndices.includes(idx));
+                const nombresLibros = librosActivos.map(libro => libro.nombre).join(", ");
+                librosTexto = `\n• *Libros incluidos:* ${nombresLibros} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
             } else if (infoLibros.cantidad > 0) {
-                mensajeLibro = `\n• *Libros incluidos:* No`;
+                librosTexto = `\n• *Libros incluidos:* Ninguno`;
             }
             
             const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
@@ -689,7 +690,7 @@
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
 • *Descuento:* ${stringDescuento}
-• *Subtotal:* ${subtotalStr}${mensajeLibro}
+• *Subtotal:* ${subtotalStr}${librosTexto}
 • *Total a pagar:* ${totalStr}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
