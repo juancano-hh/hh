@@ -550,9 +550,17 @@
                 librosActivosIndices = libros.map((_, idx) => idx);
             }
             
+            // Buscar la mejor promo de libros VIGENTE (que no haya expirado)
+            const hoyLibros = new Date(); hoyLibros.setHours(0, 0, 0, 0);
             let mejorPromo = null;
             for (let promo of promosLibros) {
                 if (cantidadCursos >= promo.cantidadMinima) {
+                    // Verificar si la promo sigue vigente
+                    if (promo.fechaFin) {
+                        const fechaLimite = new Date(promo.fechaFin);
+                        fechaLimite.setHours(23, 59, 59, 999);
+                        if (fechaLimite < hoyLibros) continue; // Promo vencida, saltar
+                    }
                     mejorPromo = promo;
                     break;
                 }
