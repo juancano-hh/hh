@@ -50,8 +50,6 @@
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
-            <!-- Nuevo campo: Cargo por servicio SI/NO (base del alumno) -->
-            <p class="text-sm text-gray-700"><strong>Cargo por servicio:</strong> <span id="lbl-cargo-servicio" class="font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Servicio Base:</strong> <span id="lbl-servicio-base" class="font-bold"></span></p>
         </div>
 
@@ -87,7 +85,7 @@
             <!-- Control de Cargo de Servicio (solo visible en vista cobrador) -->
             <div id="servicio-override-container" class="hidden bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio (anulación)</p>
+                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio</p>
                     <p class="text-xs text-gray-600">Aplicar cargo extra de $90 por curso.</p>
                 </div>
                 <div class="flex items-center gap-2">
@@ -778,14 +776,6 @@
                 document.getElementById('lbl-horario').innerText = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
                 
-                // Mostrar Cargo por servicio: SI / NO (base del alumno)
-                const cargoServicioSpan = document.getElementById('lbl-cargo-servicio');
-                if (alumnoActual.cargoServicio > 0) {
-                    cargoServicioSpan.innerHTML = '<span class="text-red-600 font-bold">SI</span>';
-                } else {
-                    cargoServicioSpan.innerHTML = '<span class="text-green-600 font-bold">NO</span>';
-                }
-                
                 const lblServicioBase = document.getElementById('lbl-servicio-base');
                 if (lblServicioBase) {
                     lblServicioBase.innerHTML = alumnoActual.cargoServicio > 0 
@@ -872,12 +862,26 @@
             
             // ====== 2. Descuento a aplicar ======
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
-            let descuentoAplicar = alumnoActual.beca;
-            let nombreDescuento = `Total con Beca (${Math.round(alumnoActual.beca * 100)}%)`;
-            let etiquetaPromo = "Beca asignada";
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            
+            // Verificar si la beca base del alumno sigue vigente
+            let becaBaseVigente = alumnoActual.beca;
+            if (fechaVigenciaBecaBase) {
+                const fechaLimiteBeca = new Date(fechaVigenciaBecaBase);
+                fechaLimiteBeca.setHours(23, 59, 59, 999);
+                if (fechaLimiteBeca < hoy) {
+                    // La beca base ya venció: no aplicar beca
+                    becaBaseVigente = 0;
+                }
+            }
+            
+            let descuentoAplicar = 0;
+            let nombreDescuento = "Total Precio de Lista";
+            let etiquetaPromo = "Sin promoción";
             let fechaTexto = "";
             
-            if (promoVolumen && promoVolumen.descuento > alumnoActual.beca) {
+            if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
+                // Hay promo de volumen vigente y supera (o iguala) la beca vigente
                 descuentoAplicar = promoVolumen.descuento;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
@@ -885,14 +889,20 @@
                     const fechaLarga = formatearFechaLarga(promoVolumen.fechaFin);
                     if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
                 }
-            } else {
-                if (fechaVigenciaBecaBase && alumnoActual.beca > 0) {
+            } else if (becaBaseVigente > 0) {
+                // La beca base sigue vigente y no hay promo mejor
+                descuentoAplicar = becaBaseVigente;
+                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
+                etiquetaPromo = "Beca asignada";
+                if (fechaVigenciaBecaBase) {
                     const fechaLarga = formatearFechaLarga(fechaVigenciaBecaBase);
                     if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
-                } else if (alumnoActual.beca === 0 && (!promoVolumen || promoVolumen.descuento === 0)) {
-                    nombreDescuento = "Total sin descuento";
-                    etiquetaPromo = "Sin promoción";
                 }
+            } else {
+                // Sin descuento vigente: precio de lista
+                descuentoAplicar = 0;
+                nombreDescuento = "Total Precio de Lista";
+                etiquetaPromo = "Sin promoción activa";
             }
             
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
@@ -922,11 +932,8 @@
                 
                 libroActivo = document.getElementById('libro-toggle').checked;
                 
-                // Si la vista es cobrador y libroActivo es true, calculamos sobre librosSeleccionadosIndices
-                // De lo contrario si libroActivo es true calculamos sobre todos.
-                const indicesAcalcular = libroActivo 
-                    ? (vistaActual === 'cobrador' ? librosSeleccionadosIndices : infoLibros.libros.map((_, i) => i))
-                    : [];
+                // En ambas vistas, calculamos sobre librosSeleccionadosIndices cuando libroActivo
+                const indicesAcalcular = libroActivo ? librosSeleccionadosIndices : [];
                 
                 const resultadoLibros = aplicarDescuentoLibros(cantCursos, infoLibros.libros, indicesAcalcular);
                 librosOriginal = resultadoLibros.totalOriginal;
@@ -940,52 +947,45 @@
                 
                 if (vistaActual === 'cobrador') {
                     labelToggle.innerText = "Incluir todos";
-                    desgloseLibrosDiv.classList.remove('hidden');
-                    desgloseLibrosDiv.innerHTML = '';
-                    
-                    infoLibros.libros.forEach((libro, idx) => {
-                        const estaActivo = librosSeleccionadosIndices.includes(idx);
-                        const libroPriced = resultadoLibros.listaConPrecios[idx];
-                        const precioOriginalStr = `$${libro.precio.toLocaleString('es-MX')}`;
-                        let precioFinalStr = '';
-                        
-                        if (estaActivo) {
-                            if (libroPriced.descuentado) {
-                                precioFinalStr = `<span class="text-gray-400 line-through mr-1">${precioOriginalStr}</span><span class="font-bold text-green-700">$${libroPriced.precioFinal.toLocaleString('es-MX')}</span>`;
-                            } else {
-                                precioFinalStr = `<span class="font-bold text-gray-800">$${libroPriced.precioFinal.toLocaleString('es-MX')}</span>`;
-                            }
-                        } else {
-                            precioFinalStr = `<span class="text-gray-400 italic">Excluido</span>`;
-                        }
-                        
-                        const div = document.createElement('div');
-                        div.className = 'flex items-center justify-between bg-white/70 p-2 rounded-lg border border-blue-100/50';
-                        div.innerHTML = `
-                            <div class="flex items-center gap-2">
-                                <input type="checkbox" id="libro-chk-${idx}" ${estaActivo && libroActivo ? 'checked' : ''} ${!libroActivo ? 'disabled' : ''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                                <label for="libro-chk-${idx}" class="text-gray-700 font-medium cursor-pointer ${!libroActivo ? 'text-gray-400' : ''}">
-                                    ${libro.nombre} <span class="text-[10px] text-gray-400">(Nivel ${libro.nivelCambio})</span>
-                                </label>
-                            </div>
-                            <div class="text-right">
-                                ${precioFinalStr}
-                            </div>
-                        `;
-                        desgloseLibrosDiv.appendChild(div);
-                    });
-                    
-                    document.getElementById('libro-mensaje').innerHTML = `Libros requeridos para este avance:`;
                 } else {
-                    labelToggle.innerText = "Agregar";
-                    desgloseLibrosDiv.classList.add('hidden');
-                    
-                    let librosTexto = infoLibros.libros.map(l => `${l.nombre} (Nivel ${l.nivelCambio})`).join(', ');
-                    // Calcular con todos activos para la vista de alumno
-                    const resLibrosAlumno = aplicarDescuentoLibros(cantCursos, infoLibros.libros, infoLibros.libros.map((_, i) => i));
-                    
-                    document.getElementById('libro-mensaje').innerHTML = `Necesitas ${infoLibros.cantidad} libro(s): ${librosTexto}. Precio original $${resLibrosAlumno.totalOriginal.toLocaleString('es-MX')} → <strong>$$${resLibrosAlumno.totalFinal.toLocaleString('es-MX')}</strong>.`;
+                    labelToggle.innerText = "Incluir todos";
                 }
+                desgloseLibrosDiv.classList.remove('hidden');
+                desgloseLibrosDiv.innerHTML = '';
+                
+                infoLibros.libros.forEach((libro, idx) => {
+                    const estaActivo = librosSeleccionadosIndices.includes(idx);
+                    const libroPriced = resultadoLibros.listaConPrecios[idx];
+                    const precioOriginalStr = `$${libro.precio.toLocaleString('es-MX')}`;
+                    let precioFinalStr = '';
+                    
+                    if (estaActivo) {
+                        if (libroPriced && libroPriced.descuentado) {
+                            precioFinalStr = `<span class="text-gray-400 line-through mr-1">${precioOriginalStr}</span><span class="font-bold text-green-700">$${libroPriced.precioFinal.toLocaleString('es-MX')}</span>`;
+                        } else {
+                            precioFinalStr = `<span class="font-bold text-gray-800">${libroPriced ? '$' + libroPriced.precioFinal.toLocaleString('es-MX') : precioOriginalStr}</span>`;
+                        }
+                    } else {
+                        precioFinalStr = `<span class="text-gray-400 italic">Excluido</span>`;
+                    }
+                    
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-white/70 p-2 rounded-lg border border-blue-100/50';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="libro-chk-${idx}" ${estaActivo && libroActivo ? 'checked' : ''} ${!libroActivo ? 'disabled' : ''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="libro-chk-${idx}" class="text-gray-700 font-medium cursor-pointer ${!libroActivo ? 'text-gray-400' : ''}">
+                                ${libro.nombre} <span class="text-[10px] text-gray-400">(Nivel ${libro.nivelCambio})</span>
+                            </label>
+                        </div>
+                        <div class="text-right">
+                            ${precioFinalStr}
+                        </div>
+                    `;
+                    desgloseLibrosDiv.appendChild(div);
+                });
+                
+                document.getElementById('libro-mensaje').innerHTML = `Libros para este avance (selecciona los que deseas):`;
             } else {
                 libroContainer.classList.add('hidden');
             }
