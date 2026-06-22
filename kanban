@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tablero Kanban - Multiasignación</title>
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* Reset y estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Pantalla de login */
+        #login-container {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        #login-container h1 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        #login-container input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            margin-bottom: 16px;
+        }
+
+        #login-container input:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
+        #login-container button {
+            width: 100%;
+            padding: 14px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #login-container button:hover {
+            background: #357abd;
+        }
+
+        /* Tablero */
+        #app {
+            display: none;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        /* Barra superior */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left h2 {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .header-left span {
+            background: #edf2f7;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #4a90e2;
+            color: white;
+        }
+
+        .header-actions button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+        }
+
+        .header-actions .btn-logout {
+            background: #e53e3e;
+        }
+
+        .header-actions .btn-logout:hover {
+            background: #c53030;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+        }
+
+        /* Columnas */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .column {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
+        }
+
+        .column-header h3 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-header .badge {
+            background: #edf2f7;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #4a5568;
+        }
+
+        .column-tasks {
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 4px 0;
+        }
+
+        /* Tarjeta de tarea */
+        .task-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 6px solid #ccc;
+            cursor: grab;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+            opacity: 0.7;
+        }
+
+        .task-card.dragging {
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .task-desc {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        .task-assignees {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .task-assignee-tag {
+            background: #edf2f7;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 0.8rem;
+        }
+
+        .task-delete {
+            color: #e53e3e;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            transition: color 0.2s;
+            padding: 4px;
+        }
+
+        .task-delete:hover {
+            color: #c53030;
+        }
+
+        /* Colores de borde por estado */
+        .column[data-status="abierta"] .task-card {
+            border-left-color: #e53e3e;
+        }
+        .column[data-status="proceso"] .task-card {
+            border-left-color: #ecc94b;
+        }
+        .column[data-status="terminada"] .task-card {
+            border-left-color: #38a169;
+        }
+
+        /* Modal para nueva tarea */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 32px 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: modalFade 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalFade {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .modal label {
+            display: block;
+            font-weight: 500;
+            margin: 12px 0 4px;
+            color: #4a5568;
+            font-size: 0.95rem;
+        }
+
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            background: #f7fafc;
+        }
+
+        .modal input:focus,
+        .modal textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: white;
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Estilos para el selector de personas múltiple */
+        .assignee-selector {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f7fafc;
+            padding: 8px 12px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .assignee-selector:focus-within {
+            border-color: #4a90e2;
+            background: white;
+        }
+
+        .assignee-tag {
+            background: #4a90e2;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .assignee-tag .remove-tag {
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .assignee-tag .remove-tag:hover {
+            opacity: 1;
+        }
+
+        .assignee-selector input {
+            border: none;
+            background: transparent;
+            padding: 4px 0;
+            flex: 1;
+            min-width: 100px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .assignee-selector input::placeholder {
+            color: #a0aec0;
+        }
+
+        .assignee-suggestions {
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .assignee-suggestions.show {
+            display: block;
+        }
+
+        .assignee-suggestions .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .assignee-suggestions .suggestion-item:hover {
+            background: #edf2f7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-actions .btn-cancel {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .modal-actions .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .modal-actions .btn-submit {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .modal-actions .btn-submit:hover {
+            background: #357abd;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .board {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .header-left {
+                justify-content: center;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+        }
+
+        .empty-column {
+            color: #a0aec0;
+            text-align: center;
+            padding: 30px 10px;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-container">
+    <h1><i class="fas fa-tasks" style="color: #4a90e2; margin-right: 8px;"></i>Kanban</h1>
+    <p style="color: #4a5568; margin-bottom: 20px;">Ingresa tu nombre para continuar</p>
+    <input type="text" id="login-input" placeholder="Ej: María" />
+    <button id="login-btn">Entrar al tablero</button>
+</div>
+
+<!-- TABLERO -->
+<div id="app">
+    <div class="header">
+        <div class="header-left">
+            <h2><i class="fas fa-columns" style="color: #4a90e2; margin-right: 8px;"></i>Mi Kanban</h2>
+            <span id="user-display">👤 Usuario</span>
+        </div>
+        <div class="header-actions">
+            <button id="new-task-btn"><i class="fas fa-plus"></i> Nueva tarea</button>
+            <button id="logout-btn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</button>
+        </div>
+    </div>
+
+    <div class="board" id="board">
+        <!-- Columna Abiertas -->
+        <div class="column" data-status="abierta">
+            <div class="column-header">
+                <h3><span style="color:#e53e3e;">●</span> Abiertas</h3>
+                <span class="badge" id="count-abierta">0</span>
+            </div>
+            <div class="column-tasks" id="column-abierta"></div>
+        </div>
+        <!-- Columna En Proceso -->
+        <div class="column" data-status="proceso">
+            <div class="column-header">
+                <h3><span style="color:#ecc94b;">●</span> En Proceso</h3>
+                <span class="badge" id="count-proceso">0</span>
+            </div>
+            <div class="column-tasks" id="column-proceso"></div>
+        </div>
+        <!-- Columna Terminadas -->
+        <div class="column" data-status="terminada">
+            <div class="column-header">
+                <h3><span style="color:#38a169;">●</span> Terminadas</h3>
+                <span class="badge" id="count-terminada">0</span>
+            </div>
+            <div class="column-tasks" id="column-terminada"></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUEVA TAREA -->
+<div class="modal-overlay" id="task-modal">
+    <div class="modal">
+        <h2><i class="fas fa-plus-circle" style="color: #4a90e2; margin-right: 8px;"></i>Nueva tarea</h2>
+        <form id="task-form">
+            <label for="task-title">Título *</label>
+            <input type="text" id="task-title" placeholder="Ej: Revisar informe" required />
+
+            <label for="task-desc">Descripción</label>
+            <textarea id="task-desc" placeholder="Detalles de la tarea..."></textarea>
+
+            <label>Asignar a (escribe nombres y presiona Enter)</label>
+            <div class="assignee-selector" id="assignee-container">
+                <div id="assignee-tags" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                <input type="text" id="assignee-input" placeholder="Escribe un nombre..." autocomplete="off" />
+                <div class="assignee-suggestions" id="assignee-suggestions"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" id="modal-cancel">Cancelar</button>
+                <button type="submit" class="btn-submit">Crear tarea</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ----- Estado global -----
+        let tasks = [];
+        let currentUser = '';
+        let people = [];
+        let nextId = 1;
+        let selectedAssignees = []; // Para el modal
+
+        // Referencias DOM
+        const loginContainer = document.getElementById('login-container');
+        const app = document.getElementById('app');
+        const loginInput = document.getElementById('login-input');
+        const loginBtn = document.getElementById('login-btn');
+        const userDisplay = document.getElementById('user-display');
+        const logoutBtn = document.getElementById('logout-btn');
+        const newTaskBtn = document.getElementById('new-task-btn');
+        const modalOverlay = document.getElementById('task-modal');
+        const modalCancel = document.getElementById('modal-cancel');
+        const taskForm = document.getElementById('task-form');
+        const taskTitle = document.getElementById('task-title');
+        const taskDesc = document.getElementById('task-desc');
+        const assigneeInput = document.getElementById('assignee-input');
+        const assigneeTags = document.getElementById('assignee-tags');
+        const assigneeSuggestions = document.getElementById('assignee-suggestions');
+        const colAbierta = document.getElementById('column-abierta');
+        const colProceso = document.getElementById('column-proceso');
+        const colTerminada = document.getElementById('column-terminada');
+        const countAbierta = document.getElementById('count-abierta');
+        const countProceso = document.getElementById('count-proceso');
+        const countTerminada = document.getElementById('count-terminada');
+
+        // ----- Funciones auxiliares -----
+        function generateId() {
+            return nextId++;
+        }
+
+        // Actualiza la lista de personas a partir de las tareas + el usuario actual
+        function updatePeopleList() {
+            const fromTasks = [];
+            tasks.forEach(t => {
+                if (t.assignees && Array.isArray(t.assignees)) {
+                    t.assignees.forEach(name => {
+                        if (name && name.trim() !== '') fromTasks.push(name.trim());
+                    });
+                }
+            });
+            const set = new Set(fromTasks);
+            if (currentUser) set.add(currentUser.trim());
+            people = Array.from(set).filter(name => name && name.trim() !== '');
+            people.sort((a, b) => a.localeCompare(b));
+        }
+
+        // Guarda en localStorage
+        function saveToStorage() {
+            const data = {
+                tasks: tasks,
+                nextId: nextId,
+                currentUser: currentUser
+            };
+            localStorage.setItem('kanbanData', JSON.stringify(data));
+        }
+
+        // Carga desde localStorage
+        function loadFromStorage() {
+            const stored = localStorage.getItem('kanbanData');
+            if (!stored) return false;
+            try {
+                const data = JSON.parse(stored);
+                tasks = data.tasks || [];
+                nextId = data.nextId || 1;
+                if (data.currentUser) {
+                    currentUser = data.currentUser;
+                }
+                // Asegurar que todas las tareas tengan assignees como array
+                tasks.forEach(t => {
+                    if (!t.assignees) t.assignees = [];
+                    if (!Array.isArray(t.assignees)) t.assignees = [t.assignees].filter(Boolean);
+                    // Si tiene assignee antiguo, migrar
+                    if (t.assignee && !t.assignees.includes(t.assignee)) {
+                        t.assignees.push(t.assignee);
+                        delete t.assignee;
+                    }
+                });
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Renderiza todas las tareas
+        function renderAll() {
+            renderColumn('abierta', colAbierta, countAbierta);
+            renderColumn('proceso', colProceso, countProceso);
+            renderColumn('terminada', colTerminada, countTerminada);
+            updatePeopleList();
+            saveToStorage();
+        }
+
+        // Renderiza una columna específica
+        function renderColumn(status, container, counter) {
+            const filtered = tasks.filter(t => t.status === status);
+            counter.textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-column"><i class="fas fa-inbox" style="display:block; font-size:2rem; margin-bottom:8px; color:#cbd5e0;"></i>Sin tareas</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(task => {
+                const card = createTaskCard(task);
+                container.appendChild(card);
+            });
+        }
+
+        // Crea el elemento DOM de una tarjeta
+        function createTaskCard(task) {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.draggable = true;
+            card.dataset.id = task.id;
+            card.dataset.status = task.status;
+
+            const title = document.createElement('div');
+            title.className = 'task-title';
+            title.textContent = task.title;
+
+            const desc = document.createElement('div');
+            desc.className = 'task-desc';
+            desc.textContent = task.desc || 'Sin descripción';
+
+            const footer = document.createElement('div');
+            footer.className = 'task-footer';
+
+            const assigneesDiv = document.createElement('div');
+            assigneesDiv.className = 'task-assignees';
+            
+            const assignees = task.assignees || [];
+            if (assignees.length === 0) {
+                const tag = document.createElement('span');
+                tag.className = 'task-assignee-tag';
+                tag.textContent = 'Sin asignar';
+                assigneesDiv.appendChild(tag);
+            } else {
+                assignees.forEach(name => {
+                    const tag = document.createElement('span');
+                    tag.className = 'task-assignee-tag';
+                    tag.textContent = name;
+                    assigneesDiv.appendChild(tag);
+                });
+            }
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'task-delete';
+            deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            deleteBtn.title = 'Eliminar tarea';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`¿Eliminar la tarea "${task.title}"?`)) {
+                    tasks = tasks.filter(t => t.id !== task.id);
+                    renderAll();
+                }
+            });
+
+            footer.appendChild(assigneesDiv);
+            footer.appendChild(deleteBtn);
+
+            card.appendChild(title);
+            card.appendChild(desc);
+            card.appendChild(footer);
+
+            // Eventos drag
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+
+            return card;
+        }
+
+        // ----- Drag & Drop -----
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            draggedElement = null;
+        }
+
+        function setupDropZones() {
+            const columns = document.querySelectorAll('.column-tasks');
+            columns.forEach(col => {
+                col.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                col.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const taskId = parseInt(e.dataTransfer.getData('text/plain'));
+                    if (isNaN(taskId)) return;
+
+                    const column = col.closest('.column');
+                    if (!column) return;
+                    const newStatus = column.dataset.status;
+                    if (!newStatus) return;
+
+                    const task = tasks.find(t => t.id === taskId);
+                    if (!task) return;
+                    if (task.status === newStatus) return;
+
+                    task.status = newStatus;
+                    renderAll();
+                });
+            });
+        }
+
+        // ----- Login / Logout -----
+        function login(username) {
+            if (!username || username.trim() === '') {
+                alert('Por favor ingresa tu nombre.');
+                return;
+            }
+            currentUser = username.trim();
+            loginContainer.style.display = 'none';
+            app.style.display = 'block';
+            userDisplay.textContent = `👤 ${currentUser}`;
+            
+            const loaded = loadFromStorage();
+            if (!loaded) {
+                // Iniciar con tareas vacías
+                tasks = [];
+            }
+            renderAll();
+            setupDropZones();
+        }
+
+        function logout() {
+            if (confirm('¿Cerrar sesión?')) {
+                currentUser = '';
+                loginContainer.style.display = 'block';
+                app.style.display = 'none';
+                loginInput.value = '';
+            }
+        }
+
+        // ----- Modal de nueva tarea con multiasignación -----
+        function openModal() {
+            modalOverlay.classList.add('active');
+            taskTitle.value = '';
+            taskDesc.value = '';
+            selectedAssignees = [];
+            renderAssigneeTags();
+            assigneeInput.value = '';
+            assigneeSuggestions.classList.remove('show');
+            taskTitle.focus();
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            assigneeSuggestions.classList.remove('show');
+        }
+
+        function renderAssigneeTags() {
+            assigneeTags.innerHTML = '';
+            selectedAssignees.forEach(name => {
+                const tag = document.createElement('span');
+                tag.className = 'assignee-tag';
+                tag.innerHTML = `${name} <span class="remove-tag" data-name="${name}">×</span>`;
+                tag.querySelector('.remove-tag').addEventListener('click', (e) => {
+                    const nameToRemove = e.target.dataset.name;
+                    selectedAssignees = selectedAssignees.filter(n => n !== nameToRemove);
+                    renderAssigneeTags();
+                    updateSuggestions();
+                });
+                assigneeTags.appendChild(tag);
+            });
+        }
+
+        function updateSuggestions() {
+            const input = assigneeInput.value.trim().toLowerCase();
+            if (!input) {
+                assigneeSuggestions.classList.remove('show');
+                return;
+            }
+            
+            const allNames = [...people];
+            // Agregar el nombre que se está escribiendo si no existe
+            if (input && !allNames.some(n => n.toLowerCase() === input)) {
+                allNames.push(input);
+            }
+            
+            const suggestions = allNames.filter(name => 
+                name.toLowerCase().includes(input) && 
+                !selectedAssignees.includes(name)
+            );
+            
+            if (suggestions.length === 0) {
+                assigneeSuggestions.classList.remove('show');
+                return;
+            }
+            
+            assigneeSuggestions.innerHTML = '';
+            suggestions.forEach(name => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.textContent = name;
+                item.addEventListener('click', () => {
+                    addAssignee(name);
+                });
+                assigneeSuggestions.appendChild(item);
+            });
+            assigneeSuggestions.classList.add('show');
+        }
+
+        function addAssignee(name) {
+            if (!name || name.trim() === '') return;
+            const trimmed = name.trim();
+            if (!selectedAssignees.includes(trimmed)) {
+                selectedAssignees.push(trimmed);
+                renderAssigneeTags();
+            }
+            assigneeInput.value = '';
+            assigneeSuggestions.classList.remove('show');
+            // Si es un nombre nuevo, agregarlo a people temporalmente
+            if (!people.includes(trimmed)) {
+                people.push(trimmed);
+            }
+        }
+
+        function handleSubmitTask(e) {
+            e.preventDefault();
+            const title = taskTitle.value.trim();
+            const desc = taskDesc.value.trim();
+
+            if (!title) {
+                alert('El título es obligatorio.');
+                return;
+            }
+
+            const newTask = {
+                id: generateId(),
+                title: title,
+                desc: desc || '',
+                assignees: [...selectedAssignees],
+                status: 'abierta'
+            };
+            tasks.push(newTask);
+            renderAll();
+            closeModal();
+        }
+
+        // ----- Inicialización y eventos -----
+        loginBtn.addEventListener('click', () => {
+            login(loginInput.value);
+        });
+
+        loginInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                login(loginInput.value);
+            }
+        });
+
+        logoutBtn.addEventListener('click', logout);
+        newTaskBtn.addEventListener('click', openModal);
+        modalCancel.addEventListener('click', closeModal);
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        taskForm.addEventListener('submit', handleSubmitTask);
+
+        // Eventos del selector de personas
+        assigneeInput.addEventListener('input', updateSuggestions);
+        
+        assigneeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = assigneeInput.value.trim();
+                if (value) {
+                    addAssignee(value);
+                }
+            }
+            if (e.key === 'Backspace' && assigneeInput.value === '' && selectedAssignees.length > 0) {
+                // Eliminar el último tag
+                selectedAssignees.pop();
+                renderAssigneeTags();
+            }
+        });
+
+        assigneeInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                assigneeSuggestions.classList.remove('show');
+            }, 200);
+        });
+
+        // Auto-login
+        (function autoLogin() {
+            const stored = localStorage.getItem('kanbanData');
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    if (data.currentUser && data.currentUser.trim() !== '') {
+                        tasks = data.tasks || [];
+                        nextId = data.nextId || 1;
+                        // Migrar tareas antiguas
+                        tasks.forEach(t => {
+                            if (!t.assignees) t.assignees = [];
+                            if (!Array.isArray(t.assignees)) t.assignees = [t.assignees].filter(Boolean);
+                            if (t.assignee && !t.assignees.includes(t.assignee)) {
+                                t.assignees.push(t.assignee);
+                                delete t.assignee;
+                            }
+                        });
+                        login(data.currentUser);
+                        return;
+                    }
+                } catch (e) {}
+            }
+            loginContainer.style.display = 'block';
+            app.style.display = 'none';
+        })();
+
+    })();
+</script>
+</body>
+</html>
