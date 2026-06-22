@@ -3,196 +3,574 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tablero Kanban</title>
+    <title>Tablero Kanban - Compartido</title>
+    <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        /* ===== RESET Y ESTILOS GENERALES ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f4f6f9; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        /* ===== LOGIN ===== */
+        body {
+            background: #f4f6f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
         #login-container {
-            background: white; padding: 40px 30px; border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
         }
-        #login-container h1 { margin-bottom: 20px; color: #2d3748; font-weight: 600; }
+
+        #login-container h1 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
         #login-container input {
-            width: 100%; padding: 14px 18px; border: 2px solid #e2e8f0; border-radius: 12px;
-            font-size: 1rem; transition: border-color 0.2s; margin-bottom: 16px;
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            margin-bottom: 16px;
         }
-        #login-container input:focus { outline: none; border-color: #4a90e2; }
+
+        #login-container input:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
         #login-container button {
-            width: 100%; padding: 14px; background: #4a90e2; color: white; border: none;
-            border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+            width: 100%;
+            padding: 14px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        #login-container button:hover { background: #357abd; }
 
-        /* ===== TABLERO ===== */
-        #app { display: none; width: 100%; max-width: 1400px; }
+        #login-container button:hover {
+            background: #357abd;
+        }
 
-        /* ===== HEADER ===== */
+        #app {
+            display: none;
+            width: 100%;
+            max-width: 1400px;
+        }
+
         .header {
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-            gap: 16px; margin-bottom: 28px; background: white; padding: 16px 24px;
-            border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .header-left { display: flex; align-items: center; gap: 12px; }
-        .header-left h2 { color: #2d3748; font-weight: 600; }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-left h2 {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
         .header-left span {
-            background: #edf2f7; padding: 4px 12px; border-radius: 30px;
-            font-size: 0.9rem; color: #4a5568;
+            background: #edf2f7;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #4a5568;
         }
-        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
         .header-actions button {
-            padding: 10px 20px; border: none; border-radius: 30px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px;
-            background: #4a90e2; color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #4a90e2;
+            color: white;
         }
-        .header-actions button:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(74,144,226,0.4); }
-        .header-actions .btn-logout { background: #e53e3e; }
-        .header-actions .btn-logout:hover { background: #c53030; box-shadow: 0 4px 12px rgba(229,62,62,0.4); }
-        .header-actions .btn-export { background: #38a169; }
-        .header-actions .btn-export:hover { background: #2f855a; box-shadow: 0 4px 12px rgba(56,161,105,0.4); }
-        .header-actions .btn-import { background: #d69e2e; }
-        .header-actions .btn-import:hover { background: #b7791f; box-shadow: 0 4px 12px rgba(214,158,46,0.4); }
 
-        /* ===== COLUMNAS ===== */
-        .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .header-actions button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+        }
+
+        .header-actions .btn-logout {
+            background: #e53e3e;
+        }
+
+        .header-actions .btn-logout:hover {
+            background: #c53030;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+        }
+
+        .header-actions .btn-export {
+            background: #38a169;
+        }
+
+        .header-actions .btn-export:hover {
+            background: #2f855a;
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
+        }
+
+        .header-actions .btn-import {
+            background: #d69e2e;
+        }
+
+        .header-actions .btn-import:hover {
+            background: #b7791f;
+            box-shadow: 0 4px 12px rgba(214, 158, 46, 0.4);
+        }
+
+        .header-actions .btn-sync {
+            background: #805ad5;
+        }
+
+        .header-actions .btn-sync:hover {
+            background: #6b46c1;
+            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.4);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
         .column {
-            background: white; border-radius: 16px; padding: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-height: 400px;
-            display: flex; flex-direction: column;
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
         }
+
         .column-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #edf2f7;
         }
-        .column-header h3 { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+
+        .column-header h3 {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .column-header .badge {
-            background: #edf2f7; padding: 2px 10px; border-radius: 30px;
-            font-size: 0.8rem; color: #4a5568;
+            background: #edf2f7;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #4a5568;
         }
-        .column-tasks { flex: 1; min-height: 200px; display: flex; flex-direction: column; gap: 12px; padding: 4px 0; }
 
-        /* ===== TARJETA ===== */
+        .column-tasks {
+            flex: 1;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 4px 0;
+        }
+
         .task-card {
-            background: #ffffff; border-radius: 12px; padding: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 6px solid #ccc;
-            cursor: grab; transition: all 0.2s; user-select: none;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 6px solid #ccc;
+            cursor: grab;
+            transition: all 0.2s;
+            user-select: none;
         }
-        .task-card:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .task-card:active { cursor: grabbing; opacity: 0.7; }
-        .task-card.dragging { opacity: 0.3; transform: scale(0.95); }
-        .task-title { font-weight: 600; color: #2d3748; margin-bottom: 6px; }
-        .task-desc { font-size: 0.9rem; color: #4a5568; margin-bottom: 10px; word-wrap: break-word; }
+
+        .task-card:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-card:active {
+            cursor: grabbing;
+            opacity: 0.7;
+        }
+
+        .task-card.dragging {
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 6px;
+        }
+
+        .task-desc {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
         .task-footer {
-            display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 8px; font-size: 0.85rem; color: #718096;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #718096;
         }
-        .task-actions { display: flex; gap: 4px; }
+
+        .task-actions {
+            display: flex;
+            gap: 4px;
+        }
+
         .task-actions button {
-            background: none; border: none; cursor: pointer; padding: 4px 8px;
-            border-radius: 6px; transition: background 0.2s; font-size: 0.9rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+            font-size: 0.9rem;
         }
-        .task-actions .btn-edit { color: #4a90e2; }
-        .task-actions .btn-edit:hover { background: #ebf4ff; }
-        .task-actions .btn-delete { color: #e53e3e; }
-        .task-actions .btn-delete:hover { background: #fff5f5; }
-        .task-assignees { display: flex; flex-wrap: wrap; gap: 4px; }
+
+        .task-actions .btn-edit {
+            color: #4a90e2;
+        }
+
+        .task-actions .btn-edit:hover {
+            background: #ebf4ff;
+        }
+
+        .task-actions .btn-delete {
+            color: #e53e3e;
+        }
+
+        .task-actions .btn-delete:hover {
+            background: #fff5f5;
+        }
+
+        .task-assignees {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
         .task-assignee-tag {
-            background: #edf2f7; padding: 2px 10px; border-radius: 30px;
-            font-weight: 500; color: #2d3748; font-size: 0.8rem;
+            background: #edf2f7;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 0.8rem;
         }
 
-        /* Colores de borde */
-        .column[data-status="abierta"] .task-card { border-left-color: #e53e3e; }
-        .column[data-status="proceso"] .task-card { border-left-color: #ecc94b; }
-        .column[data-status="terminada"] .task-card { border-left-color: #38a169; }
+        .column[data-status="abierta"] .task-card {
+            border-left-color: #e53e3e;
+        }
+        .column[data-status="proceso"] .task-card {
+            border-left-color: #ecc94b;
+        }
+        .column[data-status="terminada"] .task-card {
+            border-left-color: #38a169;
+        }
 
-        /* ===== MODAL ===== */
         .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-            justify-content: center; align-items: center; z-index: 1000;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
-        .modal-overlay.active { display: flex; }
-        .modal {
-            background: white; padding: 32px 28px; border-radius: 20px;
-            width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            animation: modalFade 0.3s ease; max-height: 90vh; overflow-y: auto;
-        }
-        @keyframes modalFade { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal h2 { margin-bottom: 20px; color: #2d3748; font-weight: 600; }
-        .modal label { display: block; font-weight: 500; margin: 12px 0 4px; color: #4a5568; font-size: 0.95rem; }
-        .modal input, .modal textarea {
-            width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0; border-radius: 10px;
-            font-size: 0.95rem; transition: border-color 0.2s; background: #f7fafc;
-        }
-        .modal input:focus, .modal textarea:focus { outline: none; border-color: #4a90e2; background: white; }
-        .modal textarea { resize: vertical; min-height: 80px; }
 
-        /* Selector de asignados */
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 32px 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: modalFade 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes modalFade {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .modal label {
+            display: block;
+            font-weight: 500;
+            margin: 12px 0 4px;
+            color: #4a5568;
+            font-size: 0.95rem;
+        }
+
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            background: #f7fafc;
+        }
+
+        .modal input:focus,
+        .modal textarea:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: white;
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
         .assignee-selector {
-            border: 2px solid #e2e8f0; border-radius: 10px; background: #f7fafc;
-            padding: 8px 12px; min-height: 60px; display: flex; flex-wrap: wrap;
-            gap: 6px; align-items: center; transition: border-color 0.2s;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f7fafc;
+            padding: 8px 12px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            transition: border-color 0.2s;
         }
-        .assignee-selector:focus-within { border-color: #4a90e2; background: white; }
+
+        .assignee-selector:focus-within {
+            border-color: #4a90e2;
+            background: white;
+        }
+
         .assignee-tag {
-            background: #4a90e2; color: white; padding: 4px 10px; border-radius: 30px;
-            display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 500;
+            background: #4a90e2;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
-        .assignee-tag .remove-tag { cursor: pointer; font-size: 0.8rem; opacity: 0.8; }
-        .assignee-tag .remove-tag:hover { opacity: 1; }
+
+        .assignee-tag .remove-tag {
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .assignee-tag .remove-tag:hover {
+            opacity: 1;
+        }
+
         .assignee-selector input {
-            border: none; background: transparent; padding: 4px 0;
-            flex: 1; min-width: 100px; outline: none; font-size: 0.95rem;
+            border: none;
+            background: transparent;
+            padding: 4px 0;
+            flex: 1;
+            min-width: 100px;
+            outline: none;
+            font-size: 0.95rem;
         }
-        .assignee-selector input::placeholder { color: #a0aec0; }
+
+        .assignee-selector input::placeholder {
+            color: #a0aec0;
+        }
 
         .assignee-suggestions {
-            display: none; background: white; border: 1px solid #e2e8f0;
-            border-radius: 8px; margin-top: 4px; max-height: 120px;
-            overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%;
+            display: none;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 4px;
+            max-height: 120px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
         }
-        .assignee-suggestions.show { display: block; }
-        .assignee-suggestions .suggestion-item { padding: 8px 12px; cursor: pointer; transition: background 0.2s; }
-        .assignee-suggestions .suggestion-item:hover { background: #edf2f7; }
 
-        .modal-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end; }
-        .modal-actions button { padding: 10px 24px; border: none; border-radius: 30px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .modal-actions .btn-cancel { background: #edf2f7; color: #4a5568; }
-        .modal-actions .btn-cancel:hover { background: #e2e8f0; }
-        .modal-actions .btn-submit { background: #4a90e2; color: white; }
-        .modal-actions .btn-submit:hover { background: #357abd; }
+        .assignee-suggestions.show {
+            display: block;
+        }
 
-        /* ===== ESTADOS VACÍOS ===== */
-        .empty-column { color: #a0aec0; text-align: center; padding: 30px 10px; font-style: italic; font-size: 0.95rem; }
+        .assignee-suggestions .suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
-        /* ===== MENSAJE DE SINCRONIZACIÓN ===== */
+        .assignee-suggestions .suggestion-item:hover {
+            background: #edf2f7;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-actions .btn-cancel {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .modal-actions .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .modal-actions .btn-submit {
+            background: #4a90e2;
+            color: white;
+        }
+
+        .modal-actions .btn-submit:hover {
+            background: #357abd;
+        }
+
+        /* Mensaje de sincronización */
         .sync-status {
-            position: fixed; bottom: 20px; right: 20px; background: #2d3748;
-            color: white; padding: 12px 20px; border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none; z-index: 2000; font-size: 0.9rem;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2d3748;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 2000;
+            font-size: 0.9rem;
         }
-        .sync-status.show { display: block; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* ===== INPUT OCULTO ===== */
-        #import-input { display: none; }
+        .sync-status.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
 
-        /* ===== RESPONSIVE ===== */
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         @media (max-width: 860px) {
-            .board { grid-template-columns: 1fr; gap: 16px; }
-            .header { flex-direction: column; align-items: stretch; text-align: center; }
-            .header-left { justify-content: center; }
-            .header-actions { justify-content: center; }
+            .board {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .header-left {
+                justify-content: center;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+        }
+
+        .empty-column {
+            color: #a0aec0;
+            text-align: center;
+            padding: 30px 10px;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        /* Input file oculto */
+        #import-input {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<!-- ================================ LOGIN ================================ -->
+<!-- LOGIN -->
 <div id="login-container">
     <h1><i class="fas fa-tasks" style="color: #4a90e2; margin-right: 8px;"></i>Kanban</h1>
     <p style="color: #4a5568; margin-bottom: 20px;">Ingresa tu nombre para continuar</p>
@@ -200,9 +578,8 @@
     <button id="login-btn">Entrar al tablero</button>
 </div>
 
-<!-- ================================ TABLERO ================================ -->
+<!-- TABLERO -->
 <div id="app">
-    <!-- HEADER -->
     <div class="header">
         <div class="header-left">
             <h2><i class="fas fa-columns" style="color: #4a90e2; margin-right: 8px;"></i>Mi Kanban</h2>
@@ -216,7 +593,6 @@
         </div>
     </div>
 
-    <!-- COLUMNAS -->
     <div class="board" id="board">
         <div class="column" data-status="abierta">
             <div class="column-header">
@@ -242,25 +618,29 @@
     </div>
 </div>
 
-<!-- ================================ INPUT PARA IMPORTAR ================================ -->
+<!-- Input oculto para importar -->
 <input type="file" id="import-input" accept=".json" />
 
-<!-- ================================ MODAL ================================ -->
+<!-- Modal para nueva/editar tarea -->
 <div class="modal-overlay" id="task-modal">
     <div class="modal">
         <h2 id="modal-title"><i class="fas fa-plus-circle" style="color: #4a90e2; margin-right: 8px;"></i>Nueva tarea</h2>
         <form id="task-form">
             <input type="hidden" id="edit-task-id" value="" />
+            
             <label for="task-title">Título *</label>
             <input type="text" id="task-title" placeholder="Ej: Revisar informe" required />
+
             <label for="task-desc">Descripción</label>
             <textarea id="task-desc" placeholder="Detalles de la tarea..."></textarea>
+
             <label>Asignar a (selecciona de la lista)</label>
             <div class="assignee-selector" id="assignee-container">
                 <div id="assignee-tags" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
                 <input type="text" id="assignee-input" placeholder="Escribe para buscar..." autocomplete="off" />
                 <div class="assignee-suggestions" id="assignee-suggestions"></div>
             </div>
+
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" id="modal-cancel">Cancelar</button>
                 <button type="submit" class="btn-submit" id="modal-submit">Crear tarea</button>
@@ -269,13 +649,11 @@
     </div>
 </div>
 
-<!-- ================================ MENSAJE DE ESTADO ================================ -->
+<!-- Mensaje de estado -->
 <div class="sync-status" id="sync-status"></div>
 
-<!-- ================================ JAVASCRIPT ================================ -->
 <script>
     (function() {
-        // ===== ESTADO GLOBAL =====
         let tasks = [];
         let currentUser = '';
         let people = [];
@@ -283,7 +661,7 @@
         let selectedAssignees = [];
         let editingTaskId = null;
 
-        // ===== REFERENCIAS DOM =====
+        // DOM References
         const loginContainer = document.getElementById('login-container');
         const app = document.getElementById('app');
         const loginInput = document.getElementById('login-input');
@@ -313,8 +691,9 @@
         const countProceso = document.getElementById('count-proceso');
         const countTerminada = document.getElementById('count-terminada');
 
-        // ===== FUNCIONES AUXILIARES =====
-        function generateId() { return nextId++; }
+        function generateId() {
+            return nextId++;
+        }
 
         function updatePeopleList() {
             const fromTasks = [];
@@ -332,7 +711,11 @@
         }
 
         function saveToStorage() {
-            const data = { tasks, nextId, currentUser };
+            const data = {
+                tasks: tasks,
+                nextId: nextId,
+                currentUser: currentUser
+            };
             localStorage.setItem('kanbanData', JSON.stringify(data));
         }
 
@@ -343,7 +726,9 @@
                 const data = JSON.parse(stored);
                 tasks = data.tasks || [];
                 nextId = data.nextId || 1;
-                if (data.currentUser) currentUser = data.currentUser;
+                if (data.currentUser) {
+                    currentUser = data.currentUser;
+                }
                 tasks.forEach(t => {
                     if (!t.assignees) t.assignees = [];
                     if (!Array.isArray(t.assignees)) t.assignees = [t.assignees].filter(Boolean);
@@ -353,10 +738,11 @@
                     }
                 });
                 return true;
-            } catch (e) { return false; }
+            } catch (e) {
+                return false;
+            }
         }
 
-        // ===== RENDERIZADO =====
         function renderAll() {
             renderColumn('abierta', colAbierta, countAbierta);
             renderColumn('proceso', colProceso, countProceso);
@@ -368,10 +754,12 @@
         function renderColumn(status, container, counter) {
             const filtered = tasks.filter(t => t.status === status);
             counter.textContent = filtered.length;
+
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="empty-column"><i class="fas fa-inbox" style="display:block; font-size:2rem; margin-bottom:8px; color:#cbd5e0;"></i>Sin tareas</div>`;
                 return;
             }
+
             container.innerHTML = '';
             filtered.forEach(task => {
                 const card = createTaskCard(task);
@@ -399,6 +787,7 @@
 
             const assigneesDiv = document.createElement('div');
             assigneesDiv.className = 'task-assignees';
+            
             const assignees = task.assignees || [];
             if (assignees.length === 0) {
                 const tag = document.createElement('span');
@@ -454,7 +843,6 @@
             return card;
         }
 
-        // ===== DRAG & DROP =====
         let draggedElement = null;
 
         function handleDragStart(e) {
@@ -476,24 +864,27 @@
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
                 });
+
                 col.addEventListener('drop', (e) => {
                     e.preventDefault();
                     const taskId = parseInt(e.dataTransfer.getData('text/plain'));
                     if (isNaN(taskId)) return;
+
                     const column = col.closest('.column');
                     if (!column) return;
                     const newStatus = column.dataset.status;
                     if (!newStatus) return;
+
                     const task = tasks.find(t => t.id === taskId);
                     if (!task) return;
                     if (task.status === newStatus) return;
+
                     task.status = newStatus;
                     renderAll();
                 });
             });
         }
 
-        // ===== LOGIN / LOGOUT =====
         function login(username) {
             if (!username || username.trim() === '') {
                 alert('Por favor ingresa tu nombre.');
@@ -503,8 +894,12 @@
             loginContainer.style.display = 'none';
             app.style.display = 'block';
             userDisplay.textContent = `👤 ${currentUser}`;
+            
             const loaded = loadFromStorage();
-            if (!loaded) { tasks = []; nextId = 1; }
+            if (!loaded) {
+                tasks = [];
+                nextId = 1;
+            }
             renderAll();
             setupDropZones();
         }
@@ -518,11 +913,12 @@
             }
         }
 
-        // ===== MODAL =====
+        // ----- Modal functions -----
         function openModal(title, submitText, taskData = null) {
             modalOverlay.classList.add('active');
             modalTitle.innerHTML = `<i class="fas fa-${taskData ? 'edit' : 'plus-circle'}" style="color: #4a90e2; margin-right: 8px;"></i>${title}`;
             modalSubmit.textContent = submitText;
+            
             if (taskData) {
                 taskTitle.value = taskData.title;
                 taskDesc.value = taskData.desc || '';
@@ -536,13 +932,16 @@
                 editingTaskId = null;
                 editTaskId.value = '';
             }
+            
             renderAssigneeTags();
             assigneeInput.value = '';
             assigneeSuggestions.classList.remove('show');
             taskTitle.focus();
         }
 
-        function openNewModal() { openModal('Nueva tarea', 'Crear tarea', null); }
+        function openNewModal() {
+            openModal('Nueva tarea', 'Crear tarea', null);
+        }
 
         function openEditModal(taskId) {
             const task = tasks.find(t => t.id === taskId);
@@ -580,17 +979,29 @@
 
         function updateSuggestions() {
             const input = assigneeInput.value.trim().toLowerCase();
-            if (!input) { assigneeSuggestions.classList.remove('show'); return; }
-            const suggestions = people.filter(name =>
-                name.toLowerCase().includes(input) && !selectedAssignees.includes(name)
+            if (!input) {
+                assigneeSuggestions.classList.remove('show');
+                return;
+            }
+            
+            const suggestions = people.filter(name => 
+                name.toLowerCase().includes(input) && 
+                !selectedAssignees.includes(name)
             );
-            if (suggestions.length === 0) { assigneeSuggestions.classList.remove('show'); return; }
+            
+            if (suggestions.length === 0) {
+                assigneeSuggestions.classList.remove('show');
+                return;
+            }
+            
             assigneeSuggestions.innerHTML = '';
             suggestions.forEach(name => {
                 const item = document.createElement('div');
                 item.className = 'suggestion-item';
                 item.textContent = name;
-                item.addEventListener('click', () => addAssignee(name));
+                item.addEventListener('click', () => {
+                    addAssignee(name);
+                });
                 assigneeSuggestions.appendChild(item);
             });
             assigneeSuggestions.classList.add('show');
@@ -611,8 +1022,14 @@
             e.preventDefault();
             const title = taskTitle.value.trim();
             const desc = taskDesc.value.trim();
-            if (!title) { alert('El título es obligatorio.'); return; }
+
+            if (!title) {
+                alert('El título es obligatorio.');
+                return;
+            }
+
             const taskId = editingTaskId ? parseInt(editingTaskId) : null;
+            
             if (taskId) {
                 const task = tasks.find(t => t.id === taskId);
                 if (task) {
@@ -623,23 +1040,26 @@
             } else {
                 const newTask = {
                     id: generateId(),
-                    title,
+                    title: title,
                     desc: desc || '',
                     assignees: [...selectedAssignees],
                     status: 'abierta'
                 };
                 tasks.push(newTask);
             }
+            
             renderAll();
             closeModal();
         }
 
-        // ===== EXPORT / IMPORT =====
+        // ----- Export / Import -----
         function showSyncMessage(message, isSuccess = true) {
             syncStatus.textContent = message;
             syncStatus.style.background = isSuccess ? '#38a169' : '#e53e3e';
             syncStatus.classList.add('show');
-            setTimeout(() => syncStatus.classList.remove('show'), 3000);
+            setTimeout(() => {
+                syncStatus.classList.remove('show');
+            }, 3000);
         }
 
         function exportData() {
@@ -647,7 +1067,13 @@
                 showSyncMessage('No hay tareas para exportar', false);
                 return;
             }
-            const data = { tasks, nextId, exportedAt: new Date().toISOString() };
+
+            const data = {
+                tasks: tasks,
+                nextId: nextId,
+                exportedAt: new Date().toISOString()
+            };
+
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -657,6 +1083,7 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
             showSyncMessage(`✅ ${tasks.length} tareas exportadas correctamente`);
         }
 
@@ -669,9 +1096,14 @@
                         showSyncMessage('❌ Archivo inválido: no contiene tareas', false);
                         return;
                     }
-                    if (!confirm(`¿Importar ${data.tasks.length} tareas? Esto reemplazará todas las tareas actuales.`)) return;
+
+                    const confirmMsg = `¿Importar ${data.tasks.length} tareas? Esto reemplazará todas las tareas actuales.`;
+                    if (!confirm(confirmMsg)) return;
+
                     tasks = data.tasks;
                     nextId = data.nextId || tasks.length + 1;
+                    
+                    // Asegurar formato correcto
                     tasks.forEach(t => {
                         if (!t.assignees) t.assignees = [];
                         if (!Array.isArray(t.assignees)) t.assignees = [t.assignees].filter(Boolean);
@@ -681,6 +1113,7 @@
                         }
                         if (!t.status) t.status = 'abierta';
                     });
+
                     renderAll();
                     showSyncMessage(`✅ ${tasks.length} tareas importadas correctamente`);
                 } catch (error) {
@@ -690,16 +1123,59 @@
             reader.readAsText(file);
         }
 
-        // ===== EVENT LISTENERS =====
-        loginBtn.addEventListener('click', () => login(loginInput.value));
-        loginInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') login(loginInput.value); });
+        // ----- Event listeners -----
+        loginBtn.addEventListener('click', () => {
+            login(loginInput.value);
+        });
+
+        loginInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                login(loginInput.value);
+            }
+        });
+
         logoutBtn.addEventListener('click', logout);
         newTaskBtn.addEventListener('click', openNewModal);
         modalCancel.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
         taskForm.addEventListener('submit', handleSubmitTask);
+
+        assigneeInput.addEventListener('input', updateSuggestions);
+        
+        assigneeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = assigneeInput.value.trim();
+                if (value && people.includes(value)) {
+                    addAssignee(value);
+                } else if (value) {
+                    alert('Esta persona no está registrada. Para registrarla, primero crea una tarea con su nombre o inicia sesión con ese nombre.');
+                }
+            }
+            if (e.key === 'Backspace' && assigneeInput.value === '' && selectedAssignees.length > 0) {
+                selectedAssignees.pop();
+                renderAssigneeTags();
+            }
+        });
+
+        assigneeInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                assigneeSuggestions.classList.remove('show');
+            }, 200);
+        });
+
+        // Exportar
         exportBtn.addEventListener('click', exportData);
-        importBtn.addEventListener('click', () => importInput.click());
+
+        // Importar
+        importBtn.addEventListener('click', () => {
+            importInput.click();
+        });
+
         importInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) {
                 importData(e.target.files[0]);
@@ -707,24 +1183,7 @@
             }
         });
 
-        assigneeInput.addEventListener('input', updateSuggestions);
-        assigneeInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const value = assigneeInput.value.trim();
-                if (value && people.includes(value)) addAssignee(value);
-                else if (value) alert('Esta persona no está registrada. Para registrarla, primero crea una tarea con su nombre o inicia sesión con ese nombre.');
-            }
-            if (e.key === 'Backspace' && assigneeInput.value === '' && selectedAssignees.length > 0) {
-                selectedAssignees.pop();
-                renderAssigneeTags();
-            }
-        });
-        assigneeInput.addEventListener('blur', () => {
-            setTimeout(() => assigneeSuggestions.classList.remove('show'), 200);
-        });
-
-        // ===== AUTO-LOGIN =====
+        // Auto-login
         (function autoLogin() {
             const stored = localStorage.getItem('kanbanData');
             if (stored) {
