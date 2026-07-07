@@ -320,10 +320,17 @@
                         celularAlumno = limpiarTelefono(fila[9].toString().trim());
                     }
 
+                    // ====== CORRECCIÓN AQUÍ: Leer modalidad directamente de la columna K (índice 10) ======
                     const modalidadRaw = fila[10] ? String(fila[10]).trim().toUpperCase() : '';
-                    let modalidadTexto = "Presencial";
-                    if (modalidadRaw.includes("SI") || modalidadRaw.includes("SINC") || modalidadRaw.includes("LÍNEA") || modalidadRaw.includes("LINEA")) {
-                        modalidadTexto = "En línea";
+                    let modalidadTexto = "PRESENCIAL"; // Valor por defecto
+                    
+                    if (modalidadRaw.includes("SINCR") || modalidadRaw.includes("SÍNCR") || modalidadRaw.includes("VIRTUAL")) {
+                        modalidadTexto = "SINCRÓNICO";
+                    } else if (modalidadRaw.includes("PRESENCIAL")) {
+                        modalidadTexto = "PRESENCIAL";
+                    } else {
+                        // Si no se encuentra, mantener el valor original o presencial por defecto
+                        modalidadTexto = modalidadRaw || "PRESENCIAL";
                     }
 
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
@@ -545,21 +552,18 @@
         function aplicarDescuentoLibros(cantidadCursos, libros, librosActivosIndices = null) {
             if (!libros || libros.length === 0) return { totalOriginal: 0, totalFinal: 0, listaConPrecios: [] };
             
-            // Si no se especifica librosActivosIndices, asumimos todos activos
             if (librosActivosIndices === null) {
                 librosActivosIndices = libros.map((_, idx) => idx);
             }
             
-            // Buscar la mejor promo de libros VIGENTE (que no haya expirado)
             const hoyLibros = new Date(); hoyLibros.setHours(0, 0, 0, 0);
             let mejorPromo = null;
             for (let promo of promosLibros) {
                 if (cantidadCursos >= promo.cantidadMinima) {
-                    // Verificar si la promo sigue vigente
                     if (promo.fechaFin) {
                         const fechaLimite = new Date(promo.fechaFin);
                         fechaLimite.setHours(23, 59, 59, 999);
-                        if (fechaLimite < hoyLibros) continue; // Promo vencida, saltar
+                        if (fechaLimite < hoyLibros) continue;
                     }
                     mejorPromo = promo;
                     break;
@@ -635,7 +639,7 @@
         function buscarAlumnosFiltrados(query) {
             if (!query || query.trim() === "") return [];
             const normalizedQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const queryDigits = query.replace(/\D/g, ""); // solo dígitos para celulares
+            const queryDigits = query.replace(/\D/g, "");
             
             const matches = [];
             for (const id in baseAlumnos) {
@@ -677,7 +681,6 @@
             resultadosDiv.innerHTML = '';
             resultadosDiv.classList.remove('hidden');
             
-            // Límite de 8 coincidencias visuales
             const matchesToShow = matches.slice(0, 8);
             matchesToShow.forEach(alumno => {
                 const item = document.createElement('div');
@@ -807,13 +810,11 @@
                 slider.value = 1; 
                 document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible para tu plan: ${maxCursosPermitidos} niveles.`;
 
-                // Resetear la selección de libros al buscar un alumno nuevo
                 ultimosLibrosClave = ""; 
                 const toggle = document.getElementById('libro-toggle');
                 if (toggle) toggle.checked = true;
                 libroActivo = true;
                 
-                // Sincronizar el toggle de servicio de cobrador con el cargo real del alumno
                 const servicioToggle = document.getElementById('servicio-toggle');
                 if (servicioToggle) {
                     servicioToggle.checked = alumnoActual.cargoServicio > 0;
@@ -857,7 +858,6 @@
             let precioBaseBajo = tablaPrecios[llaveBaja] || 3500;
             let precioBaseAlto = tablaPrecios[llaveAlta] || 3500;
             
-            // Cargo de servicio: En Vista Cobrador, depende del toggle manual. En Vista Alumno, del cargo base del alumno.
             let extraServicio = alumnoActual.cargoServicio;
             if (vistaActual === 'cobrador') {
                 const servicioToggle = document.getElementById('servicio-toggle');
@@ -872,13 +872,11 @@
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             
-            // Verificar si la beca base del alumno sigue vigente
             let becaBaseVigente = alumnoActual.beca;
             if (fechaVigenciaBecaBase) {
                 const fechaLimiteBeca = new Date(fechaVigenciaBecaBase);
                 fechaLimiteBeca.setHours(23, 59, 59, 999);
                 if (fechaLimiteBeca < hoy) {
-                    // La beca base ya venció: no aplicar beca
                     becaBaseVigente = 0;
                 }
             }
@@ -889,7 +887,6 @@
             let fechaTexto = "";
             
             if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
-                // Hay promo de volumen vigente y supera (o iguala) la beca vigente
                 descuentoAplicar = promoVolumen.descuento;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
@@ -898,7 +895,6 @@
                     if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
                 }
             } else if (becaBaseVigente > 0) {
-                // La beca base sigue vigente y no hay promo mejor
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
                 etiquetaPromo = "Beca asignada";
@@ -907,7 +903,6 @@
                     if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
                 }
             } else {
-                // Sin descuento vigente: precio de lista
                 descuentoAplicar = 0;
                 nombreDescuento = "Total Precio de Lista";
                 etiquetaPromo = "Sin promoción activa";
@@ -931,7 +926,6 @@
             let librosOriginal = 0, librosFinal = 0;
             
             if (infoLibros.cantidad > 0) {
-                // Verificar si cambió la clave de libros para inicializar todos como seleccionados
                 const claveActual = infoLibros.libros.map(l => l.nombre).join('|');
                 if (claveActual !== ultimosLibrosClave) {
                     ultimosLibrosClave = claveActual;
@@ -940,7 +934,6 @@
                 
                 libroActivo = document.getElementById('libro-toggle').checked;
                 
-                // En ambas vistas, calculamos sobre librosSeleccionadosIndices cuando libroActivo
                 const indicesAcalcular = libroActivo ? librosSeleccionadosIndices : [];
                 
                 const resultadoLibros = aplicarDescuentoLibros(cantCursos, infoLibros.libros, indicesAcalcular);
@@ -949,7 +942,6 @@
                 
                 libroContainer.classList.remove('hidden');
                 
-                // Mostrar desglose o mensaje según la vista
                 const labelToggle = document.getElementById('libro-toggle-label');
                 const desgloseLibrosDiv = document.getElementById('lista-libros-desglose');
                 
@@ -999,7 +991,6 @@
             }
             
             // ====== 4. Totales dinámicos ======
-            // Usamos los libros calculados según el estado de selección
             const totalListaGeneral = totalListaCursosCalc + librosOriginal;
             const totalConDescuentoGeneral = totalConDescuentoCursosCalc + librosFinal;
             
@@ -1015,13 +1006,11 @@
                 const primerNivelEsAlto = primerNivel >= 21;
                 const precioBaseEjemplo = primerNivelEsAlto ? precioBaseAlto : precioBaseBajo;
                 
-                // Sin Servicio
                 const unitarioListaSin = precioBaseEjemplo;
                 const unitarioDescSin = Math.round(precioBaseEjemplo * (1 - descuentoAplicar));
                 const totalCursosSin = (precioBaseBajo * (1 - descuentoAplicar) * cursosBajos) + (precioBaseAlto * (1 - descuentoAplicar) * cursosAltos);
                 const totalGeneralSin = totalCursosSin + librosFinal;
                 
-                // Con Servicio
                 const unitarioListaCon = precioBaseEjemplo + 90;
                 const unitarioDescCon = Math.round(precioBaseEjemplo * (1 - descuentoAplicar)) + 90;
                 const totalCursosCon = ((precioBaseBajo * (1 - descuentoAplicar) + 90) * cursosBajos) + ((precioBaseAlto * (1 - descuentoAplicar) + 90) * cursosAltos);
@@ -1092,7 +1081,6 @@
             const numeroDestino = NUMEROS_ATENCION[indiceSiguiente];
             const cantCursos = document.getElementById('cursos-slider').value;
             
-            // Cargo de servicio para WhatsApp
             let extraServicio = alumnoActual.cargoServicio;
             if (vistaActual === 'cobrador') {
                 const servicioToggle = document.getElementById('servicio-toggle');
