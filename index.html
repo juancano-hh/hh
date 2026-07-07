@@ -210,9 +210,13 @@
                         let limpio = fila[9].toString().trim().replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
                         celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
                     }
-                    const modalidadRaw = fila[10] ? String(fila[10]).trim().toUpperCase() : '';
-                    let modalidadTexto = "Presencial";
-                    if (modalidadRaw.includes("SI") || modalidadRaw.includes("SINC") || modalidadRaw.includes("LÍNEA") || modalidadRaw.includes("LINEA")) modalidadTexto = "En línea";
+                    
+                    // ====== CORRECCIÓN: Mostrar EXACTAMENTE lo que está en la columna K (índice 10) ======
+                    // Sin .toUpperCase(), sin .toLowerCase(), sin normalizaciones
+                    // Si el Excel dice "SÍNCRONO", muestra "SÍNCRONO"
+                    // Si el Excel dice "PRESENCIAL", muestra "PRESENCIAL"
+                    const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
+                    
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
                     if (programaRaw.includes("PTEEN")) programaNombre = "PTEEN";
