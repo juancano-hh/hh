@@ -320,18 +320,9 @@
                         celularAlumno = limpiarTelefono(fila[9].toString().trim());
                     }
 
-                    // ====== CORRECCIÓN AQUÍ: Leer modalidad directamente de la columna K (índice 10) ======
-                    const modalidadRaw = fila[10] ? String(fila[10]).trim().toUpperCase() : '';
-                    let modalidadTexto = "PRESENCIAL"; // Valor por defecto
-                    
-                    if (modalidadRaw.includes("SINCR") || modalidadRaw.includes("SÍNCR") || modalidadRaw.includes("VIRTUAL")) {
-                        modalidadTexto = "SINCRÓNICO";
-                    } else if (modalidadRaw.includes("PRESENCIAL")) {
-                        modalidadTexto = "PRESENCIAL";
-                    } else {
-                        // Si no se encuentra, mantener el valor original o presencial por defecto
-                        modalidadTexto = modalidadRaw || "PRESENCIAL";
-                    }
+                    // ====== CORRECCIÓN: Mostrar exactamente lo que está en la columna K (índice 10) ======
+                    // Simplemente tomamos el valor de la columna K sin modificaciones
+                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'No especificada';
 
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
@@ -378,7 +369,7 @@
                         nombre: nombreAlumno,
                         correo: correoAlumno,
                         celular: celularAlumno,
-                        modalidad: modalidadTexto,
+                        modalidad: modalidadTexto,  // Ahora muestra exactamente lo que viene en la columna K
                         programaTexto: programaTexto,
                         programaNombre: programaNombre,
                         prefijoMod: modalidadCalculada,
