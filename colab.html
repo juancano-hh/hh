@@ -320,9 +320,13 @@
                         celularAlumno = limpiarTelefono(fila[9].toString().trim());
                     }
 
-                    // ====== CORRECCIÓN: Mostrar exactamente lo que está en la columna K (índice 10) ======
-                    // Simplemente tomamos el valor de la columna K sin modificaciones
-                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'No especificada';
+                    // ====== CORRECCIÓN DEFINITIVA: Mostrar EXACTAMENTE lo que está en la columna K ======
+                    // Sin .toUpperCase(), sin .toLowerCase(), sin normalizaciones, sin nada
+                    // Si el Excel dice "SÍNCRONO", muestra "SÍNCRONO"
+                    // Si el Excel dice "PRESENCIAL", muestra "PRESENCIAL"
+                    // Si el Excel dice "síncrono", muestra "síncrono"
+                    // Si el Excel dice "Sincrono", muestra "Sincrono"
+                    const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
 
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
@@ -369,7 +373,7 @@
                         nombre: nombreAlumno,
                         correo: correoAlumno,
                         celular: celularAlumno,
-                        modalidad: modalidadTexto,  // Ahora muestra exactamente lo que viene en la columna K
+                        modalidad: modalidadTexto,  // EXACTAMENTE el valor de la celda
                         programaTexto: programaTexto,
                         programaNombre: programaNombre,
                         prefijoMod: modalidadCalculada,
@@ -473,7 +477,7 @@
             return promosAplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev, promosAplicables[0]);
         }
 
-        // ==================== CARGA DE LIBROS Y PROMOS DE LIBROS (mejorada) ====================
+        // ==================== CARGA DE LIBROS Y PROMOS DE LIBROS ====================
         async function cargarLibros() {
             try {
                 const res = await fetch(URL_LIBROS);
@@ -506,10 +510,10 @@
                     }
                     
                     // ---------- Promociones de libros (columnas G-J: índices 6,7,8,9) ----------
-                    const cantRaw = fila.c[6] ? fila.c[6].v : null;      // col G
-                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;      // col H
-                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : ""; // col I
-                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;      // col J
+                    const cantRaw = fila.c[6] ? fila.c[6].v : null;
+                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;
+                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "";
+                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;
                     
                     if (cantRaw !== null && dctoRaw !== null) {
                         let cantidad = parseInt(cantRaw);
@@ -525,16 +529,12 @@
                                 fechaFin: fechaFin
                             });
                             console.log(`📦 Promo libro leída: ${cantidad} cursos → ${Math.round(descuento*100)}% (${motivoRaw}) hasta ${fechaFin}`);
-                        } else {
-                            console.warn(`Fila ${i+1}: cantidad no numérica = ${cantRaw}`);
                         }
                     }
                 }
                 
-                // Ordenar promociones de libros (mayor cantidad mínima primero)
                 promosLibros.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
                 console.log(`Total promos libros cargadas: ${promosLibros.length}`);
-                console.log("Lista de promos:", promosLibros.map(p => `${p.cantidadMinima} cursos → ${p.descuento*100}%`).join(", "));
             } catch (e) {
                 console.error("Error cargando LIBROS:", e);
             }
@@ -626,7 +626,7 @@
             return { cantidad: lista.length, libros: lista, precioOriginal: totalOriginal };
         }
 
-        // ==================== LÓGICA PRINCIPAL (BÚSQUEDA Y VISTA COBRADOR) ====================
+        // ==================== LÓGICA PRINCIPAL ====================
         function buscarAlumnosFiltrados(query) {
             if (!query || query.trim() === "") return [];
             const normalizedQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -826,7 +826,6 @@
 
             const cantCursos = parseInt(document.getElementById('cursos-slider').value);
             document.getElementById('cursos-val').innerText = cantCursos;
-            const contenedorLista = document.getElementById('contenedor-lista');
             const infoAdicionalDiv = document.getElementById('info-promo-adicional');
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
@@ -936,11 +935,7 @@
                 const labelToggle = document.getElementById('libro-toggle-label');
                 const desgloseLibrosDiv = document.getElementById('lista-libros-desglose');
                 
-                if (vistaActual === 'cobrador') {
-                    labelToggle.innerText = "Incluir todos";
-                } else {
-                    labelToggle.innerText = "Incluir todos";
-                }
+                labelToggle.innerText = "Incluir todos";
                 desgloseLibrosDiv.classList.remove('hidden');
                 desgloseLibrosDiv.innerHTML = '';
                 
