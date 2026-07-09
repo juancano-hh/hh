@@ -280,15 +280,16 @@
                     <p id="cal-subtitulo" class="modal-header-sub"></p>
                 </div>
                 <div class="modal-controls">
-                    <select id="cal-modalidad" class="cal-sel" onchange="renderizarCalendarioModal()">
+                    <!-- Selects deshabilitados para mostrar la config al usuario sin permitir que la cambie -->
+                    <select id="cal-modalidad" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
                         <option value="04">Adultos</option>
                         <option value="08">Kids / Teens</option>
                     </select>
-                    <select id="cal-tipoClase" class="cal-sel" onchange="renderizarCalendarioModal()">
+                    <select id="cal-tipoClase" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
                         <option value="entre-semana">L - J</option>
                         <option value="sabado">Sábados</option>
                     </select>
-                    <select id="cal-filtroMes" class="cal-sel" onchange="renderizarCalendarioModal()">
+                    <select id="cal-filtroMes" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
                         <option value="non">Meses NON</option>
                         <option value="par">Meses PAR</option>
                     </select>
@@ -544,13 +545,35 @@
             const periodoAnt = calcularPeriodoAnterior(periodoSig);
             const datosAnt   = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
             const datosSig   = obtenerDatosPeriodo(periodoSig);
+            const tipoClase  = alumnoActual.tipoClaseCal; // 'entre-semana' o 'sabado'
+
+            let inicioAntStr = 'No disponible', finAntStr = 'No disponible';
+            let inicioSigStr = 'No disponible', finSigStr = 'No disponible';
+
+            if (datosAnt) {
+                let ini = new Date(datosAnt.inicio);
+                let fin = new Date(datosAnt.fin);
+                if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                fin = calAjustarFin(fin, tipoClase);
+                inicioAntStr = formatearFechaLinda(ini);
+                finAntStr = formatearFechaLinda(fin);
+            }
+            
+            if (datosSig) {
+                let ini = new Date(datosSig.inicio);
+                let fin = new Date(datosSig.fin);
+                if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                fin = calAjustarFin(fin, tipoClase);
+                inicioSigStr = formatearFechaLinda(ini);
+                finSigStr = formatearFechaLinda(fin);
+            }
 
             document.getElementById('lbl-periodo-actual').innerText    = periodoAnt || '—';
-            document.getElementById('lbl-inicio-actual').innerText     = datosAnt ? formatearFechaLinda(datosAnt.inicio) : 'No disponible';
-            document.getElementById('lbl-fin-actual').innerText        = datosAnt ? formatearFechaLinda(datosAnt.fin)   : 'No disponible';
+            document.getElementById('lbl-inicio-actual').innerText     = inicioAntStr;
+            document.getElementById('lbl-fin-actual').innerText        = finAntStr;
             document.getElementById('lbl-periodo-siguiente').innerText = periodoSig;
-            document.getElementById('lbl-inicio-siguiente').innerText  = datosSig  ? formatearFechaLinda(datosSig.inicio) : 'No disponible';
-            document.getElementById('lbl-fin-siguiente').innerText     = datosSig  ? formatearFechaLinda(datosSig.fin)    : 'No disponible';
+            document.getElementById('lbl-inicio-siguiente').innerText  = inicioSigStr;
+            document.getElementById('lbl-fin-siguiente').innerText     = finSigStr;
 
             seccion.classList.remove('hidden');
         }
