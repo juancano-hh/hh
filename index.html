@@ -383,7 +383,7 @@
                 alumnosPorIdNormalizado.clear();
                 for (let idx = 0; idx < filas.length; idx++) {
                     const fila = filas[idx];
-                    if (fila.length < 44) continue;
+                    if (fila.length < 4) continue; // solo requiere al menos el ID (índice 3)
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
                     if (!id) continue;
                     let tieneServicio = false;
@@ -697,16 +697,37 @@
             return { cantidad: lista.length, libros: lista, precioOriginal: lista.reduce((s,i)=>s+i.precio,0) };
         }
 
+        // Contador de reintentos (evita bucle infinito)
+        let _buscarReintentos = 0;
+
         // ==================== BÚSQUEDA ====================
         function buscarAlumno() {
             const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
+            if (!idInput) return;
             const ficha = document.getElementById('ficha-alumno');
             const calculos = document.getElementById('seccion-calculos');
             const errorBox = document.getElementById('error-box');
+            // Si los alumnos aún no han cargado
             if (Object.keys(baseAlumnos).length === 0) {
-                errorBox.innerText = "Aún cargando alumnos, espera un momento...";
-                errorBox.classList.remove('hidden'); return;
+                if (_buscarReintentos >= 5) {
+                    // Demasiados reintentos: pedir que recargue
+                    _buscarReintentos = 0;
+                    errorBox.innerText = "No se pudieron cargar los datos. Por favor recarga la página (F5).";
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+                _buscarReintentos++;
+                errorBox.innerText = `Cargando datos... (intento ${_buscarReintentos}/5)`;
+                errorBox.classList.remove('hidden');
+                // Reintentar en 2 segundos sin deshabilitar el botón
+                setTimeout(function() {
+                    errorBox.classList.add('hidden');
+                    buscarAlumno();
+                }, 2000);
+                return;
             }
+            // Datos cargados: resetear contador
+            _buscarReintentos = 0;
             const idNorm = String(idInput).replace(/^0+/, '');
             const alumnoEncontrado = alumnosPorIdNormalizado.get(idNorm);
             if (alumnoEncontrado) {
@@ -1059,11 +1080,23 @@
 
         // ==================== INICIALIZACIÓN ====================
         function inicializarTodo() {
+            const btn = document.querySelector('button[onclick="buscarAlumno()"]');
+            // Timeout de seguridad: siempre reactivar el botón máximo en 10 segundos
+            const timeoutSeguridad = setTimeout(() => {
+                if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
+            }, 10000);
+            // Cargar alumnos y calendario en paralelo
+            Promise.allSettled([
+                cargarAlumnos(),
+                cargarPeriodosCalendario()
+            ]).then(() => {
+                clearTimeout(timeoutSeguridad);
+                if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
+                console.log('✅ Datos listos.');
+            });
             cargarLibros();
             cargarPromosVolumen();
             cargarPrecios();
-            cargarAlumnos();
-            cargarPeriodosCalendario(); // NUEVO
         }
         document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
