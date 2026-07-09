@@ -6,6 +6,127 @@
     <title>Portal de Costos - Alumnos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* ===== MODAL CALENDARIO ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .modal-box {
+            width: 100%; max-width: 980px;
+            margin: 8px auto;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.55);
+            border-bottom: 1px solid rgba(200,210,230,0.4);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .modal-header-title { font-size: 0.9rem; font-weight: 700; color: #2b2638; }
+        .modal-header-sub { font-size: 0.62rem; color: #6b7280; margin-top: 1px; }
+        .modal-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+        .cal-sel {
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(200,210,230,0.5);
+            border-radius: 30px;
+            padding: 4px 10px;
+            font-size: 0.67rem;
+            color: #2d2a3b;
+            outline: none;
+            cursor: pointer;
+        }
+        .cal-sel:disabled { opacity: 0.4; cursor: not-allowed; }
+        .cal-close-btn {
+            background: rgba(220,220,235,0.7);
+            border: none; border-radius: 50%;
+            width: 28px; height: 28px;
+            font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: #4a4560; transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .cal-close-btn:hover { background: rgba(200,200,220,0.9); }
+        .cal-body { padding: 12px 12px 16px; }
+        .cal-info-bar {
+            text-align: center; font-size: 0.62rem; color: #4a435a;
+            background: rgba(255,255,255,0.4); padding: 4px 12px;
+            border-radius: 20px; margin-bottom: 10px;
+            border: 1px solid rgba(200,210,230,0.25);
+        }
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+        .cal-mes {
+            background: rgba(255,255,255,0.22);
+            border-radius: 14px; padding: 8px 5px 10px;
+            border: 1px solid rgba(200,210,230,0.22);
+        }
+        .cal-mes-tit {
+            text-align: center; font-size: 0.65rem; font-weight: 700;
+            color: #2d2a3b; margin-bottom: 5px; letter-spacing: 0.03em;
+        }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; margin-bottom: 3px; text-align: center; }
+        .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
+        .cal-wday.dom { color: #b0a8c0; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+        .cal-d {
+            aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
+            border-radius: 7px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(200,210,230,0.18);
+            font-size: 0.53rem; font-weight: 450; color: #2d2a3b;
+            cursor: default; transition: transform 0.1s;
+        }
+        .cal-d.otro-mes { opacity: 0.12; }
+        .cal-d.cal-clase  { background: rgba(100,180,255,0.28) !important; border-color: rgba(100,180,255,0.22) !important; }
+        .cal-d.cal-sab    { background: rgba(33,150,243,0.35)  !important; border-color: rgba(33,150,243,0.28)  !important; }
+        .cal-d.cal-dom    { background: rgba(255,255,255,0.04) !important; color: #b0a8c0 !important; opacity: 0.38; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.48)   !important; border-color: rgba(76,200,80,0.5)   !important; color: #1a4a1a !important; font-weight: 700; opacity: 1 !important; }
+        .cal-d.cal-fin    { background: rgba(186,104,200,0.52) !important; border-color: rgba(186,104,200,0.5) !important; color: #4a1a5a !important; font-weight: 700; opacity: 1 !important; }
+        .cal-d.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,180,50,0.30) !important; border-color: rgba(255,180,50,0.32) !important; }
+        .cal-d.cal-dom.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,255,255,0.04) !important; color: #b0a8c0 !important; opacity: 0.38; }
+        .cal-d.cal-hoy {
+            border: 2px solid #2d2a3b !important; font-weight: 800 !important;
+            transform: scale(1.1); z-index: 5;
+            box-shadow: 0 0 0 1px rgba(45,42,59,0.12);
+        }
+        .cal-d.cal-hoy.cal-dom { border-color: #2d2a3b !important; opacity: 1 !important; color: #2d2a3b !important; background: rgba(255,255,255,0.2) !important; }
+        .cal-leyenda {
+            margin-top: 12px; display: flex; flex-wrap: wrap;
+            justify-content: center; gap: 5px 12px;
+            font-size: 0.57rem; color: #3e3850;
+            padding-top: 10px;
+            border-top: 1px solid rgba(200,210,230,0.25);
+        }
+        .cal-ley-item { display: flex; align-items: center; gap: 3px; }
+        .cal-cuadro { display: inline-block; width: 11px; height: 11px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); }
+        .cal-cuadro.verde  { background: rgba(76,200,80,0.48); }
+        .cal-cuadro.morado { background: rgba(186,104,200,0.52); }
+        .cal-cuadro.naranja{ background: rgba(255,180,50,0.30); }
+        .cal-cuadro.azul-l { background: rgba(100,180,255,0.28); }
+        .cal-cuadro.azul   { background: rgba(33,150,243,0.35); }
+        .cal-cuadro.hoy    { background: transparent; border: 2px solid #2d2a3b; }
+        @media (max-width: 720px) { .cal-grid { grid-template-columns: repeat(3,1fr); gap: 6px; } }
+        @media (max-width: 480px) {
+            .cal-grid { grid-template-columns: repeat(2,1fr); gap: 4px; }
+            .cal-d { font-size: 0.47rem; }
+            .modal-controls { gap: 4px; }
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
 
@@ -39,6 +160,32 @@
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
             <!-- Servicio base oculto para el alumno -->
+
+            <!-- ===== NUEVO: FECHAS DE PERIODO ===== -->
+            <div id="seccion-periodos" class="hidden pt-3 border-t border-gray-200 space-y-2">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
+
+                <!-- Periodo actual (en curso) -->
+                <div class="bg-blue-50 rounded-xl p-3 space-y-1 border border-blue-100">
+                    <p class="text-xs font-bold text-blue-700">📚 Curso actual (en curso)</p>
+                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
+                </div>
+
+                <!-- Próximo periodo (pago registrado) -->
+                <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100">
+                    <p class="text-xs font-bold text-green-700">🎯 Próximo curso (pago registrado)</p>
+                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
+                </div>
+
+                <!-- Botón Ver Calendario -->
+                <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    📅 Ver Mi Calendario de Clases
+                </button>
+            </div>
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -124,35 +271,79 @@
         <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
     </div>
 
+    <!-- ===== MODAL CALENDARIO ===== -->
+    <div id="modal-calendario" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalCalendario()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <p class="modal-header-title">📅 Mi Calendario de Clases</p>
+                    <p id="cal-subtitulo" class="modal-header-sub"></p>
+                </div>
+                <div class="modal-controls">
+                    <select id="cal-modalidad" class="cal-sel" onchange="renderizarCalendarioModal()">
+                        <option value="04">Adultos</option>
+                        <option value="08">Kids / Teens</option>
+                    </select>
+                    <select id="cal-tipoClase" class="cal-sel" onchange="renderizarCalendarioModal()">
+                        <option value="entre-semana">L - J</option>
+                        <option value="sabado">Sábados</option>
+                    </select>
+                    <select id="cal-filtroMes" class="cal-sel" onchange="renderizarCalendarioModal()">
+                        <option value="non">Meses NON</option>
+                        <option value="par">Meses PAR</option>
+                    </select>
+                    <button class="cal-close-btn" onclick="cerrarModalCalendario()">✕</button>
+                </div>
+            </div>
+            <div class="cal-body">
+                <div id="cal-info-bar" class="cal-info-bar">Cargando...</div>
+                <div id="cal-grid" class="cal-grid">
+                    <div style="grid-column:1/-1;text-align:center;padding:20px;color:#666;font-size:0.8rem;">Cargando calendario...</div>
+                </div>
+                <div class="cal-leyenda">
+                    <div class="cal-ley-item"><span class="cal-cuadro verde"></span> Inicio</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro morado"></span> Fin</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro naranja"></span> Pago</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro azul-l"></span> Clase L-J</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro azul"></span> Clase Sáb</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro hoy"></span> Hoy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
-        const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E'; 
+        const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E';
         const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
-        const URL_LIBROS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
+        const URL_LIBROS  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
+        const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
 
-        // Variables globales
+        // Variables globales existentes
         let baseAlumnos = {};
         let alumnosPorIdNormalizado = new Map();
-        let tablaPrecios = {}; 
+        let tablaPrecios = {};
         let promosVolumen = [];
         let textoPromocionalF1 = "";
         let fechaVigenciaBecaBase = null;
         let librosMap = new Map();
         let promosLibros = [];
-
         let alumnoActual = null;
         let porcentajeDescuentoActual = 0;
-        let totalConDescuentoSinServicio = 0;   // subtotal cursos sin servicio (interno)
+        let totalConDescuentoSinServicio = 0;
         let totalListaLibrosFinal = 0;
         let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0 };
         let librosSeleccionadosIndices = [];
         let ultimosLibrosClave = "";
 
+        // ===== NUEVO: Periodos del calendario =====
+        let periodosCalendario = [];
+
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
 
-        // ==================== FUNCIÓN ROBUSTA DE PARSEO DE FECHAS ====================
+        // ==================== PARSEO DE FECHAS (existente) ====================
         function parseFecha(valor) {
             if (!valor) return null;
             if (valor instanceof Date && !isNaN(valor)) return valor;
@@ -166,17 +357,13 @@
                     let contenido = str.substring(5, str.length - 1);
                     let partes = contenido.split(',');
                     if (partes.length === 3) {
-                        let anio = parseInt(partes[0], 10);
-                        let mes = parseInt(partes[1], 10);
-                        let dia = parseInt(partes[2], 10);
+                        let anio = parseInt(partes[0], 10), mes = parseInt(partes[1], 10), dia = parseInt(partes[2], 10);
                         if (!isNaN(anio) && !isNaN(mes) && !isNaN(dia)) return new Date(anio, mes, dia);
                     }
                 }
                 let partes = str.split(/[-/]/);
                 if (partes.length === 3) {
-                    let dia = parseInt(partes[0], 10);
-                    let mes = parseInt(partes[1], 10) - 1;
-                    let anio = parseInt(partes[2], 10);
+                    let dia = parseInt(partes[0], 10), mes = parseInt(partes[1], 10) - 1, anio = parseInt(partes[2], 10);
                     if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) return new Date(anio, mes, dia);
                 }
                 let d = new Date(str);
@@ -185,7 +372,7 @@
             return null;
         }
 
-        // ==================== CARGA DE DATOS ====================
+        // ==================== CARGA DE ALUMNOS (modificado: lee columna B) ====================
         async function cargarAlumnos() {
             try {
                 const response = await fetch(LAYOUT_CSV_URL);
@@ -210,13 +397,8 @@
                         let limpio = fila[9].toString().trim().replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
                         celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
                     }
-                    
-                    // ====== CORRECCIÓN: Mostrar EXACTAMENTE lo que está en la columna K (índice 10) ======
-                    // Sin .toUpperCase(), sin .toLowerCase(), sin normalizaciones
-                    // Si el Excel dice "SÍNCRONO", muestra "SÍNCRONO"
-                    // Si el Excel dice "PRESENCIAL", muestra "PRESENCIAL"
+                    // ====== Mostrar EXACTAMENTE lo que está en la columna K (índice 10) ======
                     const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
-                    
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
                     if (programaRaw.includes("PTEEN")) programaNombre = "PTEEN";
@@ -227,7 +409,7 @@
                     else if (programaNombre === "KIDS") programaTexto = "Kids";
                     else if (programaNombre === "TEENS") programaTexto = "Teens";
                     else programaTexto = "Adulto";
-                    let programaCalculado = "04"; 
+                    let programaCalculado = "04";
                     if (programaRaw.includes("PTEEN") || programaRaw.includes("TEENS") || programaRaw.includes("KIDS")) programaCalculado = "08";
                     const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
                     let nivelSiguiente = 1;
@@ -236,7 +418,7 @@
                     const nivelActual = Math.max(0, nivelSiguiente - 1);
                     const textoCursoVisualizado = cursoSiguienteText.replace(/\d+/, nivelActual);
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
-                    let modalidadCalculada = "FFI"; 
+                    let modalidadCalculada = "FFI";
                     const horarioUpper = horarioTexto.toUpperCase();
                     if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) modalidadCalculada = "SA";
                     else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM")) modalidadCalculada = "DO";
@@ -246,12 +428,20 @@
                         if (isNaN(becaVal)) becaVal = 0;
                         if (becaVal > 1) becaVal = becaVal / 100;
                     }
+                    // ===== NUEVO: Periodo siguiente (columna B, índice 1) =====
+                    const periodoSiguiente = fila[1] ? String(fila[1]).trim() : '';
+                    // ===== NUEVO: Tipo de clase para el calendario =====
+                    // SA/SM/SV o DO/DOM → sábados; horas → entre semana
+                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
                         modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre,
                         prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                         cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
-                        cargoServicio: tieneServicio ? 90 : 0
+                        cargoServicio: tieneServicio ? 90 : 0,
+                        periodoSiguiente: periodoSiguiente,  // NUEVO
+                        tipoClaseCal: tipoClaseCal           // NUEVO
                     };
                     baseAlumnos[id] = alumno;
                     const idNorm = String(id).replace(/^0+/, '');
@@ -263,6 +453,109 @@
             }
         }
 
+        // ===== NUEVO: Parsear fecha formato DD/MM/YYYY del calendario =====
+        function parseFechaCalendario(fechaStr) {
+            if (!fechaStr) return null;
+            const p = fechaStr.split('/');
+            if (p.length !== 3) return null;
+            const dia = parseInt(p[0], 10), mes = parseInt(p[1], 10) - 1, anio = parseInt(p[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+            return new Date(anio, mes, dia);
+        }
+
+        // ===== NUEVO: Cargar CSV de periodos (mismo que usa calendario.html) =====
+        async function cargarPeriodosCalendario() {
+            try {
+                const response = await fetch(CAL_CSV_URL);
+                const csvText = await response.text();
+                const lineas = csvText.split('\n').filter(l => l.trim() !== '');
+                periodosCalendario = [];
+                for (let i = 1; i < lineas.length; i++) {
+                    const cols = lineas[i].split(',');
+                    if (cols.length < 3) continue;
+                    const periodo = cols[0].trim();
+                    const inicio = parseFechaCalendario(cols[1].trim());
+                    const fin    = parseFechaCalendario(cols[2].trim());
+                    if (periodo && inicio && fin) periodosCalendario.push({ periodo, inicio, fin });
+                }
+                console.log("Periodos calendario cargados:", periodosCalendario.length);
+            } catch (error) {
+                console.warn("Error cargando periodos calendario, usando fallback:", error);
+                periodosCalendario = [
+                    { periodo:'260401', inicio:new Date(2026,0,19),  fin:new Date(2026,1,15)  },
+                    { periodo:'260402', inicio:new Date(2026,1,16),  fin:new Date(2026,2,15)  },
+                    { periodo:'260403', inicio:new Date(2026,2,16),  fin:new Date(2026,3,19)  },
+                    { periodo:'260404', inicio:new Date(2026,3,20),  fin:new Date(2026,4,17)  },
+                    { periodo:'260405', inicio:new Date(2026,4,18),  fin:new Date(2026,5,14)  },
+                    { periodo:'260406', inicio:new Date(2026,5,15),  fin:new Date(2026,6,11)  },
+                    { periodo:'260407', inicio:new Date(2026,6,13),  fin:new Date(2026,7,9)   },
+                    { periodo:'260408', inicio:new Date(2026,7,10),  fin:new Date(2026,8,6)   },
+                    { periodo:'260409', inicio:new Date(2026,8,7),   fin:new Date(2026,9,4)   },
+                    { periodo:'260410', inicio:new Date(2026,9,5),   fin:new Date(2026,10,1)  },
+                    { periodo:'260411', inicio:new Date(2026,10,2),  fin:new Date(2026,10,29) },
+                    { periodo:'260412', inicio:new Date(2026,10,30), fin:new Date(2026,11,20) },
+                    { periodo:'260801', inicio:new Date(2026,0,19),  fin:new Date(2026,2,15)  },
+                    { periodo:'260803', inicio:new Date(2026,2,16),  fin:new Date(2026,4,17)  },
+                    { periodo:'260805', inicio:new Date(2026,4,18),  fin:new Date(2026,6,12)  },
+                    { periodo:'260807', inicio:new Date(2026,6,13),  fin:new Date(2026,8,6)   },
+                    { periodo:'260809', inicio:new Date(2026,8,7),   fin:new Date(2026,10,1)  },
+                    { periodo:'260811', inicio:new Date(2026,10,2),  fin:new Date(2026,11,20) },
+                    { periodo:'260802', inicio:new Date(2026,1,16),  fin:new Date(2026,3,19)  },
+                    { periodo:'260804', inicio:new Date(2026,3,20),  fin:new Date(2026,5,14)  },
+                    { periodo:'260806', inicio:new Date(2026,5,15),  fin:new Date(2026,7,9)   },
+                    { periodo:'260808', inicio:new Date(2026,7,10),  fin:new Date(2026,9,4)   },
+                    { periodo:'260810', inicio:new Date(2026,9,5),   fin:new Date(2026,10,29) }
+                ];
+            }
+        }
+
+        // ===== NUEVO: Calcular periodo anterior =====
+        function calcularPeriodoAnterior(periodo) {
+            if (!periodo || periodo.length < 6) return null;
+            const anio = periodo.substring(0, 2);
+            const mod  = periodo.substring(2, 4);
+            const mesNum = parseInt(periodo.substring(4, 6), 10);
+            if (isNaN(mesNum)) return null;
+            // Adultos: -1 mes; Kids/08: -2 meses
+            let mesAnterior = mesNum - (mod === '04' ? 1 : 2);
+            if (mesAnterior <= 0) mesAnterior += 12;
+            return `${anio}${mod}${String(mesAnterior).padStart(2, '0')}`;
+        }
+
+        // ===== NUEVO: Formatear fecha legible =====
+        function formatearFechaLinda(date) {
+            if (!date) return 'No disponible';
+            return date.toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+        }
+
+        // ===== NUEVO: Obtener datos de un periodo =====
+        function obtenerDatosPeriodo(codigo) {
+            return periodosCalendario.find(p => p.periodo === codigo) || null;
+        }
+
+        // ===== NUEVO: Mostrar fechas de periodo en la ficha =====
+        function mostrarFechasPeriodo() {
+            const seccion = document.getElementById('seccion-periodos');
+            if (!alumnoActual || !alumnoActual.periodoSiguiente) {
+                seccion.classList.add('hidden');
+                return;
+            }
+            const periodoSig = alumnoActual.periodoSiguiente;
+            const periodoAnt = calcularPeriodoAnterior(periodoSig);
+            const datosAnt   = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
+            const datosSig   = obtenerDatosPeriodo(periodoSig);
+
+            document.getElementById('lbl-periodo-actual').innerText    = periodoAnt || '—';
+            document.getElementById('lbl-inicio-actual').innerText     = datosAnt ? formatearFechaLinda(datosAnt.inicio) : 'No disponible';
+            document.getElementById('lbl-fin-actual').innerText        = datosAnt ? formatearFechaLinda(datosAnt.fin)   : 'No disponible';
+            document.getElementById('lbl-periodo-siguiente').innerText = periodoSig;
+            document.getElementById('lbl-inicio-siguiente').innerText  = datosSig  ? formatearFechaLinda(datosSig.inicio) : 'No disponible';
+            document.getElementById('lbl-fin-siguiente').innerText     = datosSig  ? formatearFechaLinda(datosSig.fin)    : 'No disponible';
+
+            seccion.classList.remove('hidden');
+        }
+
+        // ==================== CARGA DE PRECIOS / PROMOS / LIBROS ====================
         async function cargarPrecios() {
             try {
                 const res = await fetch(URL_PRECIOS);
@@ -272,18 +565,15 @@
                 tablaPrecios = {};
                 filas.forEach(f => {
                     if (f.c && f.c[0] && f.c[0].v) {
-                        const mod = String(f.c[0].v).trim().toUpperCase();
-                        const prog = f.c[1] && f.c[1].v ? String(f.c[1].v).trim().padStart(2, '0') : '';
+                        const mod   = String(f.c[0].v).trim().toUpperCase();
+                        const prog  = f.c[1] && f.c[1].v ? String(f.c[1].v).trim().padStart(2, '0') : '';
                         const nivel = f.c[2] && f.c[2].v ? String(f.c[2].v).trim() : 'BAJO';
                         const precio = f.c[3] && f.c[3].v ? parseFloat(f.c[3].v) : 0;
                         if (precio > 0) tablaPrecios[`${mod}${prog}${nivel}`] = precio;
                     }
                 });
                 console.log("Precios cargados:", Object.keys(tablaPrecios).length);
-            } catch (e) {
-                console.warn("Error cargando precios:", e);
-                tablaPrecios = {};
-            }
+            } catch (e) { console.warn("Error cargando precios:", e); tablaPrecios = {}; }
         }
 
         async function cargarPromosVolumen() {
@@ -292,36 +582,25 @@
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                promosVolumen = [];
-                textoPromocionalF1 = "";
-                fechaVigenciaBecaBase = null;
+                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null;
                 if (filas.length > 0 && filas[0].c && filas[0].c[5] && filas[0].c[5].v) textoPromocionalF1 = String(filas[0].c[5].v).trim();
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
                     if (!fila.c || fila.c.length < 4) continue;
-                    const cantRaw = fila.c[0] ? fila.c[0].v : null;
-                    const dctoRaw = fila.c[1] ? fila.c[1].v : null;
-                    const motivoRaw = fila.c[2] ? String(fila.c[2].v).trim() : "";
-                    const fechaRaw = fila.c[3] ? fila.c[3].v : null;
+                    const cantRaw = fila.c[0] ? fila.c[0].v : null, dctoRaw = fila.c[1] ? fila.c[1].v : null;
+                    const motivoRaw = fila.c[2] ? String(fila.c[2].v).trim() : "", fechaRaw = fila.c[3] ? fila.c[3].v : null;
                     if (cantRaw === null || dctoRaw === null) continue;
-                    let cantidad = parseInt(cantRaw);
-                    if (isNaN(cantidad)) continue;
-                    let descuento = parseFloat(dctoRaw);
-                    if (isNaN(descuento)) continue;
+                    let cantidad = parseInt(cantRaw); if (isNaN(cantidad)) continue;
+                    let descuento = parseFloat(dctoRaw); if (isNaN(descuento)) continue;
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
                     if (fechaRaw !== null && fechaFin === null) continue;
-                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) {
-                        fechaVigenciaBecaBase = fechaFin;
-                    }
-                    promosVolumen.push({ cantidadMinima: cantidad, descuento: descuento, motivo: motivoRaw, fechaFin: fechaFin });
+                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) fechaVigenciaBecaBase = fechaFin;
+                    promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                 }
                 promosVolumen.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Promos volumen cargadas:", promosVolumen.length, "Fecha vigencia beca:", fechaVigenciaBecaBase);
-            } catch (e) {
-                console.warn("Error cargando promos volumen:", e);
-                promosVolumen = [];
-            }
+                console.log("Promos volumen cargadas:", promosVolumen.length);
+            } catch (e) { console.warn("Error cargando promos volumen:", e); promosVolumen = []; }
         }
 
         async function cargarLibros() {
@@ -330,8 +609,7 @@
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                librosMap.clear();
-                promosLibros = [];
+                librosMap.clear(); promosLibros = [];
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
                     if (!fila.c) continue;
@@ -343,93 +621,63 @@
                         let nivel = parseInt(nivelRaw);
                         if (!isNaN(nivel)) {
                             let precio = parseFloat(precioRaw);
-                            if (!isNaN(precio)) librosMap.set(`${programaRaw}_${nivel}`, { nombre: libroRaw, precio: precio });
+                            if (!isNaN(precio)) librosMap.set(`${programaRaw}_${nivel}`, { nombre: libroRaw, precio });
                         }
                     }
-                    const cantRaw = fila.c[6] ? fila.c[6].v : null;
-                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;
-                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "";
-                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;
+                    const cantRaw = fila.c[6] ? fila.c[6].v : null, dctoRaw = fila.c[7] ? fila.c[7].v : null;
+                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "", fechaRaw = fila.c[9] ? fila.c[9].v : null;
                     if (cantRaw !== null && dctoRaw !== null) {
                         let cantidad = parseInt(cantRaw);
                         if (!isNaN(cantidad)) {
-                            let descuento = parseFloat(dctoRaw);
-                            if (isNaN(descuento)) continue;
+                            let descuento = parseFloat(dctoRaw); if (isNaN(descuento)) continue;
                             if (descuento > 1) descuento = descuento / 100;
                             let fechaFin = parseFecha(fechaRaw);
                             if (fechaRaw !== null && fechaFin === null) continue;
-                            promosLibros.push({ cantidadMinima: cantidad, descuento: descuento, motivo: motivoRaw, fechaFin: fechaFin });
+                            promosLibros.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                         }
                     }
                 }
                 promosLibros.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Libros cargados:", librosMap.size, "Promos libros:", promosLibros.length);
-            } catch (e) {
-                console.warn("Error cargando libros:", e);
-            }
+                console.log("Libros cargados:", librosMap.size);
+            } catch (e) { console.warn("Error cargando libros:", e); }
         }
 
-        // Obtiene la mejor promoción de volumen vigente (por cantidad de cursos)
         function obtenerMejorPromoVigente(cantidadCursos) {
             if (!promosVolumen.length) return null;
             const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
             const aplicables = promosVolumen.filter(p => {
                 if (cantidadCursos < p.cantidadMinima) return false;
-                if (p.fechaFin) {
-                    const fechaFin = new Date(p.fechaFin);
-                    fechaFin.setHours(23, 59, 59, 999);
-                    if (fechaFin < hoy) return false;
-                }
+                if (p.fechaFin) { const f = new Date(p.fechaFin); f.setHours(23,59,59,999); if (f < hoy) return false; }
                 return true;
             });
             if (!aplicables.length) return null;
             return aplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev);
         }
 
-        // Aplica descuento por volumen a los libros seleccionados
         function aplicarDescuentoLibrosDetallado(cantidadCursos, libros, indicesActivos) {
             if (!libros.length || indicesActivos.length === 0) return { totalOriginal: 0, totalFinal: 0, librosConPrecio: [] };
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             let mejorPromo = null;
             for (let promo of promosLibros) {
                 if (cantidadCursos >= promo.cantidadMinima) {
-                    if (promo.fechaFin) {
-                        const fechaLimite = new Date(promo.fechaFin);
-                        fechaLimite.setHours(23,59,59,999);
-                        if (fechaLimite < hoy) continue;
-                    }
-                    mejorPromo = promo;
-                    break;
+                    if (promo.fechaFin) { const f = new Date(promo.fechaFin); f.setHours(23,59,59,999); if (f < hoy) continue; }
+                    mejorPromo = promo; break;
                 }
             }
             let descuento = mejorPromo ? mejorPromo.descuento : 0;
             let maxConDescuento = mejorPromo ? Math.floor(mejorPromo.cantidadMinima / 4) : 0;
-            let totalOriginal = 0, totalFinal = 0;
-            let contador = 0;
+            let totalOriginal = 0, totalFinal = 0, contador = 0;
             const librosConPrecio = [];
             for (let i = 0; i < libros.length; i++) {
                 const activo = indicesActivos.includes(i);
                 const precio = libros[i].precio;
-                let precioFinal = precio;
-                let tieneDescuento = false;
+                let precioFinal = precio, tieneDescuento = false;
                 if (activo) {
                     totalOriginal += precio;
-                    if (contador < maxConDescuento && descuento > 0) {
-                        precioFinal = Math.round(precio * (1 - descuento));
-                        tieneDescuento = true;
-                        contador++;
-                    }
+                    if (contador < maxConDescuento && descuento > 0) { precioFinal = Math.round(precio * (1 - descuento)); tieneDescuento = true; contador++; }
                     totalFinal += precioFinal;
-                } else {
-                    precioFinal = 0;
-                }
-                librosConPrecio.push({
-                    ...libros[i],
-                    activo: activo,
-                    precioOriginal: precio,
-                    precioFinal: precioFinal,
-                    tieneDescuento: tieneDescuento
-                });
+                } else { precioFinal = 0; }
+                librosConPrecio.push({ ...libros[i], activo, precioOriginal: precio, precioFinal, tieneDescuento });
             }
             return { totalOriginal, totalFinal, librosConPrecio };
         }
@@ -442,16 +690,14 @@
             for (let niv = nivelActual + 1; niv <= nivelActual + cantidadCursos; niv++) {
                 const key = `${programaNombre}_${niv}`;
                 const libro = librosMap.get(key);
-                if (libro && libro.nombre !== libroActual.nombre && !librosNecesarios.has(libro.nombre)) {
+                if (libro && libro.nombre !== libroActual.nombre && !librosNecesarios.has(libro.nombre))
                     librosNecesarios.set(libro.nombre, { nombre: libro.nombre, precio: libro.precio, nivelCambio: niv });
-                }
             }
             const lista = Array.from(librosNecesarios.values());
-            const totalOriginal = lista.reduce((sum, item) => sum + item.precio, 0);
-            return { cantidad: lista.length, libros: lista, precioOriginal: totalOriginal };
+            return { cantidad: lista.length, libros: lista, precioOriginal: lista.reduce((s,i)=>s+i.precio,0) };
         }
 
-        // ==================== BÚSQUEDA Y CÁLCULOS ====================
+        // ==================== BÚSQUEDA ====================
         function buscarAlumno() {
             const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
             const ficha = document.getElementById('ficha-alumno');
@@ -459,43 +705,40 @@
             const errorBox = document.getElementById('error-box');
             if (Object.keys(baseAlumnos).length === 0) {
                 errorBox.innerText = "Aún cargando alumnos, espera un momento...";
-                errorBox.classList.remove('hidden');
-                return;
+                errorBox.classList.remove('hidden'); return;
             }
             const idNorm = String(idInput).replace(/^0+/, '');
             const alumnoEncontrado = alumnosPorIdNormalizado.get(idNorm);
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
-                document.getElementById('lbl-nombre').innerText = alumnoActual.nombre;
-                document.getElementById('lbl-celular').innerText = alumnoActual.celular;
-                document.getElementById('lbl-correo').innerText = alumnoActual.correo;
-                document.getElementById('lbl-curso').innerText = alumnoActual.cursoVisual;
+                document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
+                document.getElementById('lbl-celular').innerText  = alumnoActual.celular;
+                document.getElementById('lbl-correo').innerText   = alumnoActual.correo;
+                document.getElementById('lbl-curso').innerText    = alumnoActual.cursoVisual;
                 document.getElementById('lbl-programa').innerText = alumnoActual.programaTexto;
-                document.getElementById('lbl-modalidad').innerText = alumnoActual.modalidad;
-                document.getElementById('lbl-horario').innerText = alumnoActual.horario;
-                document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
+                document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
+                document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
+                document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
                 ficha.classList.remove('hidden');
                 calculos.classList.remove('hidden');
+                // ===== NUEVO: Mostrar fechas de periodo =====
+                mostrarFechasPeriodo();
                 if (textoPromocionalF1 && textoPromocionalF1 !== "") {
                     document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
                     document.getElementById('info-promo-adicional').classList.remove('hidden');
-                } else {
-                    document.getElementById('info-promo-adicional').classList.add('hidden');
-                }
+                } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
                 const slider = document.getElementById('cursos-slider');
                 const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
-                slider.max = maxCursos;
-                slider.value = 1;
+                slider.max = maxCursos; slider.value = 1;
                 document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
                 document.getElementById('libro-toggle').checked = true;
-                librosSeleccionadosIndices = [];
-                ultimosLibrosClave = "";
+                librosSeleccionadosIndices = []; ultimosLibrosClave = "";
                 actualizarCalculos();
             } else {
                 alumnoActual = null;
-                ficha.classList.add('hidden');
-                calculos.classList.add('hidden');
+                ficha.classList.add('hidden'); calculos.classList.add('hidden');
+                document.getElementById('seccion-periodos').classList.add('hidden');
                 errorBox.innerText = "ID no encontrado. Verifica tu matrícula (ej. 991122 o 00991122).";
                 errorBox.classList.remove('hidden');
             }
@@ -503,12 +746,11 @@
 
         function toggleLibroIndividual(idx) {
             const pos = librosSeleccionadosIndices.indexOf(idx);
-            if (pos > -1) librosSeleccionadosIndices.splice(pos, 1);
-            else librosSeleccionadosIndices.push(idx);
-            const toggleGlobal = document.getElementById('libro-toggle');
-            if (librosSeleccionadosIndices.length === infoLibros.libros.length) toggleGlobal.checked = true;
-            else if (librosSeleccionadosIndices.length === 0) toggleGlobal.checked = false;
-            else toggleGlobal.indeterminate = true;
+            if (pos > -1) librosSeleccionadosIndices.splice(pos, 1); else librosSeleccionadosIndices.push(idx);
+            const tg = document.getElementById('libro-toggle');
+            if (librosSeleccionadosIndices.length === infoLibros.libros.length) tg.checked = true;
+            else if (librosSeleccionadosIndices.length === 0) tg.checked = false;
+            else tg.indeterminate = true;
             actualizarCalculos();
         }
 
@@ -519,10 +761,8 @@
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
             const ahorroContainer = document.getElementById('ahorro-container');
-            const lblAhorro = document.getElementById('lbl-ahorro');
             const nivelActual = alumnoActual.nivelActual;
-            const primerNivel = nivelActual + 1;
-            const ultimoNivel = primerNivel + cantCursos - 1;
+            const primerNivel = nivelActual + 1, ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
             for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) (nivel >= 21) ? cursosAltos++ : cursosBajos++;
             const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
@@ -530,50 +770,29 @@
             let precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             let precioBaseAlto = tablaPrecios[llaveAlta] || 0;
             let extraServicio = alumnoActual.cargoServicio;
-            
             if (precioBaseBajo === 0) console.warn(`Precio no encontrado para ${llaveBaja}`);
             if (precioBaseAlto === 0) console.warn(`Precio no encontrado para ${llaveAlta}`);
-            
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
-            
             let becaBaseVigente = 0;
             if (fechaVigenciaBecaBase) {
-                const fechaLimite = new Date(fechaVigenciaBecaBase);
-                fechaLimite.setHours(23,59,59,999);
-                if (fechaLimite >= hoy) {
-                    becaBaseVigente = alumnoActual.beca;
-                }
+                const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
+                if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
             }
-            
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
             if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
-                descuentoAplicar = promoVolumen.descuento;
-                nombreDescuento = `Total con ${promoVolumen.motivo}`;
-                etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fechaLarga = promoVolumen.fechaFin.toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' }).replace(',','');
-                    if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
-                }
+                descuentoAplicar = promoVolumen.descuento; nombreDescuento = `Total con ${promoVolumen.motivo}`; etiquetaPromo = promoVolumen.motivo;
+                if (promoVolumen.fechaFin) { const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
             } else if (becaBaseVigente > 0) {
-                descuentoAplicar = becaBaseVigente;
-                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
-                etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaBecaBase) {
-                    const fechaLarga = fechaVigenciaBecaBase.toLocaleDateString('es-ES', { year:'numeric', month:'long', day:'numeric' }).replace(',','');
-                    if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
-                }
+                descuentoAplicar = becaBaseVigente; nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`; etiquetaPromo = "Beca asignada";
+                if (fechaVigenciaBecaBase) { const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
             }
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
-            if (fechaTexto) { fechaVigenciaSpan.innerText = fechaTexto; fechaVigenciaSpan.classList.remove('hidden'); } 
+            if (fechaTexto) { fechaVigenciaSpan.innerText = fechaTexto; fechaVigenciaSpan.classList.remove('hidden'); }
             else { fechaVigenciaSpan.classList.add('hidden'); }
-            
-            // Subtotal cursos SIN servicio (para el cálculo interno del mensaje)
             const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
             const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - descuentoAplicar));
-            const totalCursosSinServicio = (unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos);
-            
-            // Libros
+            const totalCursosSinServicio  = (unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos);
             const librosData = calcularLibrosNecesarios(nivelActual, alumnoActual.programaNombre, cantCursos);
             infoLibros = librosData;
             const claveActual = infoLibros.libros.map(l => l.nombre).join('|');
@@ -594,57 +813,45 @@
                     div.className = 'flex items-center justify-between bg-white/70 p-2 rounded-lg border border-blue-100/50';
                     let precioHTML = '';
                     if (libro.activo) {
-                        if (libro.tieneDescuento) {
-                            precioHTML = `<span class="text-gray-400 line-through text-xs">$${libro.precioOriginal.toLocaleString('es-MX')}</span> <span class="font-bold text-green-700">$${libro.precioFinal.toLocaleString('es-MX')}</span>`;
-                        } else {
-                            precioHTML = `<span class="font-bold text-gray-800">$${libro.precioOriginal.toLocaleString('es-MX')}</span>`;
-                        }
-                    } else {
-                        precioHTML = `<span class="text-gray-400 italic">Excluido</span>`;
-                    }
+                        if (libro.tieneDescuento) precioHTML = `<span class="text-gray-400 line-through text-xs">$${libro.precioOriginal.toLocaleString('es-MX')}</span> <span class="font-bold text-green-700">$${libro.precioFinal.toLocaleString('es-MX')}</span>`;
+                        else precioHTML = `<span class="font-bold text-gray-800">$${libro.precioOriginal.toLocaleString('es-MX')}</span>`;
+                    } else { precioHTML = `<span class="text-gray-400 italic">Excluido</span>`; }
                     div.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" id="libro-chk-${idx}" ${libro.activo ? 'checked' : ''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <input type="checkbox" id="libro-chk-${idx}" ${libro.activo?'checked':''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                             <label for="libro-chk-${idx}" class="text-gray-700 font-medium cursor-pointer">${libro.nombre} <span class="text-[10px] text-gray-400">(Nivel ${libro.nivelCambio})</span></label>
                         </div>
-                        <div class="text-right text-xs">${precioHTML}</div>
-                    `;
+                        <div class="text-right text-xs">${precioHTML}</div>`;
                     detalleDiv.appendChild(div);
                 });
                 document.getElementById('libro-mensaje').innerHTML = `Selecciona los libros que deseas incluir:`;
-            } else {
-                libroContainer.classList.add('hidden');
-            }
-            
+            } else { libroContainer.classList.add('hidden'); }
             totalConDescuentoSinServicio = totalCursosSinServicio;
             totalListaLibrosFinal = librosFinal;
-            
-            // Totales con servicio para mostrar en pantalla (el alumno ve el total final ya incluido)
-            const totalCursosConServicio = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
+            const totalCursosConServicio  = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
             const totalConDescuentoGeneral = totalCursosConServicio + librosFinal;
-            const totalListaGeneral = ( (precioBaseBajo+extraServicio)*cursosBajos + (precioBaseAlto+extraServicio)*cursosAltos ) + (infoLibros.cantidad ? infoLibros.libros.reduce((s,l)=>s+l.precio,0) : 0);
-            
-            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + (infoLibros.cantidad ? infoLibros.libros.reduce((s,l)=>s+l.precio,0):0);
+            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const primerEsAlto = primerNivel >= 21;
             const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
             const unitarioLista = precioBaseEjemplo + extraServicio;
-            const unitarioDesc = (primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ) + extraServicio;
-            document.getElementById('lbl-uni-desc').innerHTML = `Precio con dto (${porcentajeDescuentoActual}%):`;
-            document.getElementById('uni-lista').innerHTML = formatoMoneda.format(unitarioLista);
-            document.getElementById('uni-desc').innerHTML = formatoMoneda.format(unitarioDesc);
-            document.getElementById('lbl-tipo-descuento').innerHTML = nombreDescuento;
-            document.getElementById('tag-promo').innerHTML = etiquetaPromo;
-            document.getElementById('res-lista').innerHTML = formatoMoneda.format(totalListaGeneral);
-            document.getElementById('res-descuento-total').innerHTML = formatoMoneda.format(totalConDescuentoGeneral);
+            const unitarioDesc  = (primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ) + extraServicio;
+            document.getElementById('lbl-uni-desc').innerHTML         = `Precio con dto (${porcentajeDescuentoActual}%):`;
+            document.getElementById('uni-lista').innerHTML            = fmt.format(unitarioLista);
+            document.getElementById('uni-desc').innerHTML             = fmt.format(unitarioDesc);
+            document.getElementById('lbl-tipo-descuento').innerHTML   = nombreDescuento;
+            document.getElementById('tag-promo').innerHTML            = etiquetaPromo;
+            document.getElementById('res-lista').innerHTML            = fmt.format(totalListaGeneral);
+            document.getElementById('res-descuento-total').innerHTML  = fmt.format(totalConDescuentoGeneral);
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
-            if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); lblAhorro.innerText = formatoMoneda.format(ahorro); }
+            if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); document.getElementById('lbl-ahorro').innerText = fmt.format(ahorro); }
             else { ahorroContainer.classList.add('hidden'); }
         }
 
         document.addEventListener('change', function(e) {
             if (e.target && e.target.id === 'libro-toggle') {
                 const activar = e.target.checked;
-                if (activar) librosSeleccionadosIndices = infoLibros.libros.map((_, idx) => idx);
+                if (activar) librosSeleccionadosIndices = infoLibros.libros.map((_,idx)=>idx);
                 else librosSeleccionadosIndices = [];
                 actualizarCalculos();
             }
@@ -660,27 +867,17 @@
             const extraServicio = alumnoActual.cargoServicio;
             const subtotal = totalConDescuentoSinServicio + totalListaLibrosFinal;
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
-            
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             let promo = obtenerMejorPromoVigente(cantCursos);
             if (promo && promo.descuento > alumnoActual.beca) stringDescuento += ` (${promo.motivo})`;
             else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
-            
-            // Construir lista de libros seleccionados con nombres
             let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
-                const librosActivos = infoLibros.libros.filter((_, idx) => librosSeleccionadosIndices.includes(idx));
-                const nombresLibros = librosActivos.map(libro => libro.nombre).join(", ");
-                librosTexto = `\n• *Libros incluidos:* ${nombresLibros} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
-            } else if (infoLibros.cantidad > 0) {
-                librosTexto = `\n• *Libros incluidos:* Ninguno`;
-            }
-            
-            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
-            const subtotalStr = formatoMoneda.format(subtotal);
-            const totalStr = formatoMoneda.format(totalFinal);
-            
+                const librosActivos = infoLibros.libros.filter((_,idx)=>librosSeleccionadosIndices.includes(idx));
+                librosTexto = `\n• *Libros incluidos:* ${librosActivos.map(l=>l.nombre).join(", ")} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
+            } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
+            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const mensaje = `Hola, solicito mis fichas de pago por favor.
       
 *Mis Datos:*
@@ -694,16 +891,179 @@
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
 • *Descuento:* ${stringDescuento}
-• *Subtotal:* ${subtotalStr}${librosTexto}
-• *Total a pagar:* ${totalStr}`;
+• *Subtotal:* ${fmt.format(subtotal)}${librosTexto}
+• *Total a pagar:* ${fmt.format(totalFinal)}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
+        // ==================== MODAL CALENDARIO ====================
+
+        function abrirModalCalendario() {
+            if (!alumnoActual) return;
+            const modalidad = alumnoActual.programa;        // '04' o '08'
+            const tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
+            // Filtro NON/PAR deducido del código de periodo
+            let filtroMes = 'non';
+            if (alumnoActual.periodoSiguiente && alumnoActual.periodoSiguiente.length >= 6) {
+                const mesNum = parseInt(alumnoActual.periodoSiguiente.substring(4, 6), 10);
+                filtroMes = (mesNum % 2 === 0) ? 'par' : 'non';
+            }
+            // Pre-configurar selectores
+            document.getElementById('cal-modalidad').value  = modalidad;
+            document.getElementById('cal-tipoClase').value  = tipoClase;
+            document.getElementById('cal-filtroMes').value  = filtroMes;
+            document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
+            // Mostrar modal
+            document.getElementById('modal-calendario').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            renderizarCalendarioModal();
+        }
+
+        function cerrarModalCalendario() {
+            document.getElementById('modal-calendario').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') cerrarModalCalendario();
+        });
+
+        function renderizarCalendarioModal() {
+            const modalidad = document.getElementById('cal-modalidad').value;
+            const tipoClase = document.getElementById('cal-tipoClase').value;
+            const filtroMes = document.getElementById('cal-filtroMes').value;
+            document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
+            const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids / Teens';
+            const nombreTipo  = tipoClase === 'entre-semana' ? 'Lunes a Jueves' : 'Sábados';
+            const nombreFiltro = modalidad === '08' ? ` · Meses ${filtroMes.toUpperCase()}` : '';
+            const nombreAlumno = alumnoActual ? alumnoActual.nombre.split(' ').slice(0,2).join(' ') : '';
+            document.getElementById('cal-subtitulo').innerText = `${nombreAlumno} · ${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+            const filtrados = filtrarPeriodosModal(modalidad, filtroMes);
+            const hoyStr = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
+            document.getElementById('cal-info-bar').innerHTML = `${filtrados.length} períodos · Hoy: ${hoyStr}`;
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = '';
+            for (let mes = 0; mes < 12; mes++) {
+                grid.appendChild(generarMesModal(mes, 2026, filtrados, modalidad, tipoClase));
+            }
+        }
+
+        function filtrarPeriodosModal(modalidad, filtroMes) {
+            return periodosCalendario.filter(item => {
+                const p = item.periodo;
+                if (!p || p.length < 6) return false;
+                if (p.substring(2, 4) !== modalidad) return false;
+                if (modalidad === '08') {
+                    const mesNum = parseInt(p.substring(4, 6), 10);
+                    const esPar = mesNum % 2 === 0;
+                    if (filtroMes === 'non' && esPar) return false;
+                    if (filtroMes === 'par' && !esPar) return false;
+                }
+                return true;
+            });
+        }
+
+        // ── Funciones auxiliares del calendario (adaptadas de calendario.html) ──
+        function calIsSameDay(d1, d2) {
+            return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate();
+        }
+        function calIsInRange(date, start, end) {
+            const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+            const s=new Date(start.getFullYear(),start.getMonth(),start.getDate());
+            const e=new Date(end.getFullYear(),end.getMonth(),end.getDate());
+            return d>=s && d<=e;
+        }
+        function calAddDays(date, days) { const r=new Date(date); r.setDate(r.getDate()+days); return r; }
+        function calAjustarInicioSabado(fecha) {
+            const dia=fecha.getDay(); if(dia===6) return new Date(fecha);
+            return calAddDays(fecha, (6-dia+7)%7);
+        }
+        function calAjustarFinSabado(fecha) {
+            const dia=fecha.getDay();
+            if(dia===0) return calAddDays(fecha,-1);
+            if(dia===6) return new Date(fecha);
+            return calAddDays(fecha,-(dia+1));
+        }
+        function calAjustarFinEntreSemana(fecha) {
+            const dia=fecha.getDay();
+            if(dia===6) return calAddDays(fecha,-2);
+            if(dia===0) return calAddDays(fecha,-3);
+            return new Date(fecha);
+        }
+        function calAjustarFin(fecha, tipoClase) {
+            return tipoClase==='sabado' ? calAjustarFinSabado(fecha) : calAjustarFinEntreSemana(fecha);
+        }
+
+        function generarMesModal(mes, anio, periodosFiltrados, modalidad, tipoClase) {
+            const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const HOY = new Date();
+            const wrapper = document.createElement('div'); wrapper.className='cal-mes';
+            const tit = document.createElement('div'); tit.className='cal-mes-tit'; tit.textContent=MESES[mes]; wrapper.appendChild(tit);
+            const wdays = document.createElement('div'); wdays.className='cal-wdays';
+            ['L','M','X','J','V','S','D'].forEach((d,i)=>{
+                const div=document.createElement('div'); div.className='cal-wday'+(i===6?' dom':''); div.textContent=d; wdays.appendChild(div);
+            }); wrapper.appendChild(wdays);
+            const grid = document.createElement('div'); grid.className='cal-dgrid';
+            const firstDay = new Date(anio,mes,1);
+            const startDow = firstDay.getDay();
+            const offset = startDow===0 ? 6 : startDow-1;
+            const daysInMonth = new Date(anio,mes+1,0).getDate();
+            const daysInPrev  = new Date(anio,mes,0).getDate();
+            const inicioMes = new Date(anio,mes,1), finMes = new Date(anio,mes+1,0);
+            const periodosActivos = periodosFiltrados.filter(p => {
+                const finExt = new Date(p.fin.getFullYear(),p.fin.getMonth()+1,0);
+                return inicioMes<=finExt && finMes>=p.inicio;
+            });
+            for (let i=0; i<42; i++) {
+                const cell = document.createElement('div'); cell.className='cal-d';
+                let dayNum, isCurrent;
+                if (i<offset) { dayNum=daysInPrev-offset+i+1; isCurrent=false; }
+                else if (i>=offset+daysInMonth) { dayNum=i-(offset+daysInMonth)+1; isCurrent=false; }
+                else { dayNum=i-offset+1; isCurrent=true; }
+                cell.textContent=dayNum;
+                if (!isCurrent) { cell.classList.add('otro-mes'); }
+                else {
+                    const cur = new Date(anio,mes,dayNum);
+                    const dow=cur.getDay(), esDom=dow===0, esSab=dow===6;
+                    let esInicio=false, esFin=false, esPago=false, esClase=false;
+                    for (const p of periodosActivos) {
+                        let iniA=new Date(p.inicio), finA=new Date(p.fin);
+                        const iniOrig=new Date(p.inicio);
+                        if (tipoClase==='sabado') iniA=calAjustarInicioSabado(iniA);
+                        finA=calAjustarFin(finA,tipoClase);
+                        if (calIsSameDay(cur,iniA)) esInicio=true;
+                        if (calIsSameDay(cur,finA)) esFin=true;
+                        const enRango=calIsInRange(cur,iniA,finA);
+                        if (enRango && !esDom) {
+                            if (tipoClase==='entre-semana' && dow>=1 && dow<=4) esClase=true;
+                            else if (tipoClase==='sabado' && esSab) esClase=true;
+                        }
+                        const diffDias=Math.floor((cur-iniOrig)/(1000*60*60*24));
+                        if (modalidad==='04' && diffDias>=0 && diffDias<=12) esPago=true;
+                        else if (modalidad==='08' && diffDias>=28 && diffDias<=41) esPago=true;
+                    }
+                    if (esInicio) cell.classList.add('cal-inicio');
+                    if (esFin)    cell.classList.add('cal-fin');
+                    if (esDom && !esInicio && !esFin) { cell.classList.add('cal-dom'); }
+                    else if (!esDom) {
+                        if (esClase && !esInicio && !esFin) cell.classList.add(tipoClase==='sabado'?'cal-sab':'cal-clase');
+                        if (esPago && !esInicio && !esFin)  cell.classList.add('cal-pago');
+                    }
+                    if (calIsSameDay(cur,HOY)) cell.classList.add('cal-hoy');
+                }
+                grid.appendChild(cell);
+            }
+            wrapper.appendChild(grid);
+            return wrapper;
+        }
+
+        // ==================== INICIALIZACIÓN ====================
         function inicializarTodo() {
             cargarLibros();
             cargarPromosVolumen();
             cargarPrecios();
             cargarAlumnos();
+            cargarPeriodosCalendario(); // NUEVO
         }
         document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
