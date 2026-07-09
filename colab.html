@@ -290,28 +290,56 @@
             return fechaFormateada;
         }
 
-        // ==================== CARGA DE ALUMNOS CON CSV ====================
+        // ==================== CARGA DE ALUMNOS CON CSV (VERSIÓN CORREGIDA) ====================
         async function cargarAlumnos() {
             const errorBox = document.getElementById('error-box');
             try {
                 const response = await fetch(LAYOUT_CSV_URL);
                 const csvText = await response.text();
-                const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+                
+                // Forzar encoding UTF-8
+                const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+                const text = await blob.text();
+                
+                const result = Papa.parse(text, { 
+                    header: false, 
+                    skipEmptyLines: true,
+                    encoding: "UTF-8"
+                });
                 const filas = result.data;
                 baseAlumnos = {};
 
+                console.log("Total filas en CSV:", filas.length);
+
                 for (let idx = 0; idx < filas.length; idx++) {
                     const fila = filas[idx];
-                    if (fila.length < 44) continue;
-                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
-                    if (!id) continue;
+                    
+                    // Verificar que la fila tenga suficientes columnas
+                    if (!fila || fila.length < 10) {
+                        continue;
+                    }
+
+                    // Obtener ID - columna 3 (cuarta columna)
+                    const idRaw = fila[3] ? String(fila[3]).trim() : "";
+                    // Si el ID está vacío o es "N/A", saltar
+                    if (!idRaw || idRaw === "" || idRaw.toUpperCase() === "N/A") {
+                        continue;
+                    }
+                    
+                    const id = idRaw.toUpperCase();
+                    
+                    // Obtener nombre - columna 6 (séptima columna)
+                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : '';
+                    if (!nombreAlumno || nombreAlumno === "") {
+                        continue; // Saltar filas sin nombre
+                    }
 
                     let tieneServicio = false, esPrecioMoradoEspecial = false;
+                    // Condición - columna 43
                     const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
                     if (condicionTexto === "MORADO") esPrecioMoradoEspecial = true;
                     else if (condicionTexto === "SERVICIO") tieneServicio = true;
 
-                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
                     let correoAlumno = 'No registrado';
                     if (fila[8]) correoAlumno = String(fila[8]).trim();
 
@@ -320,12 +348,6 @@
                         celularAlumno = limpiarTelefono(fila[9].toString().trim());
                     }
 
-                    // ====== CORRECCIÓN DEFINITIVA: Mostrar EXACTAMENTE lo que está en la columna K ======
-                    // Sin .toUpperCase(), sin .toLowerCase(), sin normalizaciones, sin nada
-                    // Si el Excel dice "SÍNCRONO", muestra "SÍNCRONO"
-                    // Si el Excel dice "PRESENCIAL", muestra "PRESENCIAL"
-                    // Si el Excel dice "síncrono", muestra "síncrono"
-                    // Si el Excel dice "Sincrono", muestra "Sincrono"
                     const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
 
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
@@ -345,6 +367,7 @@
                         programaCalculado = "08";
                     }
 
+                    // Curso siguiente - columna 14
                     const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
                     let nivelSiguiente = 1;
                     const numeroMatch = cursoSiguienteText.match(/\d+/);
@@ -352,6 +375,7 @@
                     const nivelActual = Math.max(0, nivelSiguiente - 1);
                     const textoCursoVisualizado = cursoSiguienteText.replace(/\d+/, nivelActual);
 
+                    // Horario - columna 15
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
                     let modalidadCalculada = "FFI"; 
                     const horarioUpper = horarioTexto.toUpperCase();
@@ -361,9 +385,11 @@
                         modalidadCalculada = "DO";
                     }
 
+                    // Beca - columna 40
                     let becaVal = 0;
                     if (fila[40]) {
-                        becaVal = parseFloat(fila[40]);
+                        const becaStr = String(fila[40]).replace('%', '').trim();
+                        becaVal = parseFloat(becaStr);
                         if (isNaN(becaVal)) becaVal = 0;
                         if (becaVal > 1) becaVal = becaVal / 100;
                     }
@@ -373,7 +399,7 @@
                         nombre: nombreAlumno,
                         correo: correoAlumno,
                         celular: celularAlumno,
-                        modalidad: modalidadTexto,  // EXACTAMENTE el valor de la celda
+                        modalidad: modalidadTexto,
                         programaTexto: programaTexto,
                         programaNombre: programaNombre,
                         prefijoMod: modalidadCalculada,
@@ -386,8 +412,14 @@
                         precioFijoMorado: esPrecioMoradoEspecial
                     };
                 }
-                console.log("Alumnos cargados vía CSV:", Object.keys(baseAlumnos).length);
+
+                console.log("✅ Alumnos cargados exitosamente:", Object.keys(baseAlumnos).length);
                 errorBox.classList.add('hidden');
+                
+                if (Object.keys(baseAlumnos).length === 0) {
+                    errorBox.innerText = "No se encontraron alumnos. Verifica que el CSV tenga datos en las columnas correctas.";
+                    errorBox.classList.remove('hidden');
+                }
             } catch (error) {
                 console.error("Error cargando CSV:", error);
                 errorBox.innerText = `Error al cargar datos: ${error.message}`;
