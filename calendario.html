@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Calendario Anual · Liquid Glass</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+            padding: 12px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .glass-card {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            border-radius: 32px;
+            padding: 16px 14px 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(255, 255, 255, 0.5) inset, 0 0 0 1px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 4px 12px 4px;
+            color: #2d2a3b;
+            font-weight: 500;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .header h2 {
+            font-size: 1rem;
+            font-weight: 400;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: #2b2638;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .header-controls select {
+            background: rgba(255, 255, 255, 0.35);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            color: #2d2a3b;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .header-controls select:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .calendario-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .mes-wrapper {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            border-radius: 16px;
+            padding: 10px 6px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mes-titulo {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2d2a3b;
+            margin-bottom: 6px;
+            letter-spacing: 0.03em;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 30px;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 4px;
+            padding: 0 1px;
+            text-align: center;
+        }
+
+        .weekdays div {
+            font-size: 0.5rem;
+            font-weight: 600;
+            color: #534d66;
+            letter-spacing: 0.04em;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 0;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .weekdays div.domingo {
+            color: #b0a8c0;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            padding: 1px 0;
+        }
+
+        .day-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            font-size: 0.6rem;
+            font-weight: 450;
+            color: #2d2a3b;
+            transition: all 0.1s;
+            cursor: default;
+            position: relative;
+        }
+
+        .day-cell.other-month {
+            opacity: 0.15;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.03);
+            color: #8a84a0;
+        }
+
+        .day-cell.dia-clase {
+            background: rgba(100, 180, 255, 0.25) !important;
+            border-color: rgba(100, 180, 255, 0.22) !important;
+        }
+
+        .day-cell.dia-clase-sabado {
+            background: rgba(33, 150, 243, 0.35) !important;
+            border-color: rgba(33, 150, 243, 0.30) !important;
+        }
+
+        .day-cell.domingo {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.04) !important;
+            color: #b0a8c0;
+            opacity: 0.4;
+        }
+
+        .day-cell.inicio-curso {
+            background: rgba(76, 200, 80, 0.45) !important;
+            border-color: rgba(76, 200, 80, 0.5) !important;
+            color: #1a4a1a;
+            font-weight: 700;
+        }
+
+        .day-cell.fin-curso {
+            background: rgba(186, 104, 200, 0.50) !important;
+            border-color: rgba(186, 104, 200, 0.5) !important;
+            color: #4a1a5a;
+            font-weight: 700;
+        }
+
+        .day-cell.pago {
+            background: rgba(255, 180, 50, 0.30) !important;
+            border-color: rgba(255, 180, 50, 0.35) !important;
+        }
+
+        .day-cell.pago.inicio-curso {
+            background: rgba(76, 200, 80, 0.45) !important;
+            border-color: rgba(76, 200, 80, 0.5) !important;
+        }
+
+        .day-cell.pago.fin-curso {
+            background: rgba(186, 104, 200, 0.50) !important;
+            border-color: rgba(186, 104, 200, 0.5) !important;
+        }
+
+        .day-cell.domingo.inicio-curso,
+        .day-cell.domingo.fin-curso {
+            opacity: 1 !important;
+        }
+
+        .day-cell.domingo.inicio-curso {
+            background: rgba(76, 200, 80, 0.45) !important;
+            border-color: rgba(76, 200, 80, 0.5) !important;
+            color: #1a4a1a;
+        }
+
+        .day-cell.domingo.fin-curso {
+            background: rgba(186, 104, 200, 0.50) !important;
+            border-color: rgba(186, 104, 200, 0.5) !important;
+            color: #4a1a5a;
+        }
+
+        .day-cell.domingo.pago:not(.inicio-curso):not(.fin-curso) {
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.04) !important;
+            color: #b0a8c0;
+            opacity: 0.4;
+        }
+
+        .day-cell.hoy {
+            border: 2.5px solid #2d2a3b !important;
+            font-weight: 800 !important;
+            box-shadow: 0 0 0 1px rgba(45, 42, 59, 0.15), 0 0 12px rgba(45, 42, 59, 0.08) !important;
+            transform: scale(1.08);
+            z-index: 10;
+        }
+
+        .day-cell.hoy.inicio-curso {
+            border-color: #1a4a1a !important;
+            box-shadow: 0 0 0 1px rgba(76, 200, 80, 0.3) !important;
+        }
+
+        .day-cell.hoy.fin-curso {
+            border-color: #4a1a5a !important;
+            box-shadow: 0 0 0 1px rgba(186, 104, 200, 0.3) !important;
+        }
+
+        .day-cell.hoy.domingo {
+            border-color: #2d2a3b !important;
+            opacity: 1 !important;
+            color: #2d2a3b !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .legend {
+            margin-top: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 14px;
+            padding: 10px 6px 2px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.6rem;
+            color: #3e3850;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .color-box {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .color-box.verde { background: rgba(76, 200, 80, 0.45); }
+        .color-box.morado { background: rgba(186, 104, 200, 0.50); }
+        .color-box.naranja { background: rgba(255, 180, 50, 0.30); }
+        .color-box.clase { background: rgba(100, 180, 255, 0.25); }
+        .color-box.sabado { background: rgba(33, 150, 243, 0.35); }
+        .color-box.hoy { background: transparent; border: 2.5px solid #2d2a3b; }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #534d66;
+            font-size: 0.8rem;
+        }
+
+        .info-curso {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #4a435a;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        @media (max-width: 700px) {
+            .calendario-container { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .day-cell { font-size: 0.55rem; border-radius: 8px; }
+            .mes-titulo { font-size: 0.6rem; }
+        }
+
+        @media (max-width: 500px) {
+            .calendario-container { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .glass-card { padding: 10px 8px 14px; }
+            .day-cell { font-size: 0.5rem; border-radius: 6px; border-width: 1px; }
+            .weekdays div { font-size: 0.4rem; }
+            .mes-wrapper { padding: 6px 4px 8px; }
+            .header h2 { font-size: 0.8rem; padding: 2px 10px; }
+            .header-controls select { font-size: 0.6rem; padding: 2px 8px; }
+            .day-cell.hoy { transform: scale(1.1); border-width: 2px !important; }
+        }
+
+        @media (max-width: 380px) {
+            .calendario-container { grid-template-columns: 1fr 1fr; gap: 4px; }
+            .day-cell { font-size: 0.45rem; border-radius: 4px; }
+            .legend { font-size: 0.5rem; gap: 4px 8px; }
+            .color-box { width: 10px; height: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-card" id="app">
+        <div class="header">
+            <h2 id="tituloPrincipal">📅 2026</h2>
+            <div class="header-controls">
+                <select id="filtroMesSelect">
+                    <option value="non">Meses NON (Ene, Mar, May, Jul, Sep, Nov)</option>
+                    <option value="par">Meses PAR (Feb, Abr, Jun, Ago, Oct, Dic)</option>
+                </select>
+                <select id="tipoClaseSelect">
+                    <option value="entre-semana">L-J</option>
+                    <option value="sabado">Sábados</option>
+                </select>
+                <select id="modalidadSelect">
+                    <option value="08">Kids</option>
+                    <option value="04">Adultos</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="infoCurso" class="info-curso">Cargando...</div>
+
+        <div class="calendario-container" id="calendarioContainer">
+            <div class="loading">Cargando...</div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><span class="color-box verde"></span> Inicio</div>
+            <div class="legend-item"><span class="color-box morado"></span> Fin</div>
+            <div class="legend-item"><span class="color-box naranja"></span> Pago</div>
+            <div class="legend-item"><span class="color-box clase"></span> Clase L-J</div>
+            <div class="legend-item"><span class="color-box sabado"></span> Clase Sáb</div>
+            <div class="legend-item"><span class="color-box hoy"></span> Hoy</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
+
+            const HOY = new Date(2026, 6, 7);
+            const ANIO_ACTUAL = 2026;
+
+            const container = document.getElementById('calendarioContainer');
+            const modalidadSelect = document.getElementById('modalidadSelect');
+            const tipoClaseSelect = document.getElementById('tipoClaseSelect');
+            const filtroMesSelect = document.getElementById('filtroMesSelect');
+            const infoCurso = document.getElementById('infoCurso');
+            const tituloPrincipal = document.getElementById('tituloPrincipal');
+
+            let periodos = [];
+
+            function parseFecha(fechaStr) {
+                const partes = fechaStr.split('/');
+                if (partes.length !== 3) return null;
+                const dia = parseInt(partes[0], 10);
+                const mes = parseInt(partes[1], 10) - 1;
+                const anio = parseInt(partes[2], 10);
+                return new Date(anio, mes, dia);
+            }
+
+            function isSameDay(d1, d2) {
+                return d1.getFullYear() === d2.getFullYear() &&
+                    d1.getMonth() === d2.getMonth() &&
+                    d1.getDate() === d2.getDate();
+            }
+
+            function isDateInRange(date, start, end) {
+                const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const s = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                const e = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+                return d >= s && d <= e;
+            }
+
+            function addDays(date, days) {
+                const result = new Date(date);
+                result.setDate(result.getDate() + days);
+                return result;
+            }
+
+            function ajustarInicioSabado(fecha) {
+                const dia = fecha.getDay();
+                if (dia === 6) return new Date(fecha);
+                const diasHastaSabado = (6 - dia + 7) % 7;
+                return addDays(fecha, diasHastaSabado);
+            }
+
+            function ajustarFinSabado(fecha) {
+                const dia = fecha.getDay();
+                if (dia === 0) {
+                    return addDays(fecha, -1);
+                }
+                if (dia === 6) {
+                    return new Date(fecha);
+                }
+                return addDays(fecha, -(dia + 1));
+            }
+
+            function ajustarFinEntreSemana(fecha) {
+                const dia = fecha.getDay();
+                if (dia === 6) {
+                    return addDays(fecha, -2);
+                } else if (dia === 0) {
+                    return addDays(fecha, -3);
+                }
+                return new Date(fecha);
+            }
+
+            function ajustarFin(fecha, tipoClase) {
+                if (tipoClase === 'sabado') {
+                    return ajustarFinSabado(fecha);
+                } else {
+                    return ajustarFinEntreSemana(fecha);
+                }
+            }
+
+            async function fetchCSV() {
+                try {
+                    const response = await fetch(CSV_URL);
+                    if (!response.ok) throw new Error('Error al cargar el CSV');
+                    return await response.text();
+                } catch (error) {
+                    console.error('Error fetching CSV:', error);
+                    return `PERIODO,FECHA INICIO,FECHA FIN
+        260401,19/01/2026,15/02/2026
+        260402,16/02/2026,15/03/2026
+        260403,16/03/2026,19/04/2026
+        260404,20/04/2026,17/05/2026
+        260405,18/05/2026,14/06/2026
+        260406,15/06/2026,11/07/2026
+        260407,13/07/2026,9/08/2026
+        260408,10/08/2026,6/09/2026
+        260409,7/09/2026,4/10/2026
+        260410,5/10/2026,1/11/2026
+        260411,2/11/2026,29/11/2026
+        260412,20/11/2026,20/12/2026
+        260801,19/01/2026,15/03/2026
+        260803,16/03/2026,17/05/2026
+        260805,18/05/2026,11/07/2026
+        260807,13/07/2026,6/09/2026
+        260809,7/09/2026,1/11/2026
+        260811,2/11/2026,20/12/2026
+        260402,16/02/2026,19/04/2026
+        260404,20/04/2026,14/06/2026
+        260406,15/06/2026,9/08/2026
+        260408,10/08/2026,4/10/2026
+        260410,5/10/2026,29/11/2026
+        260412,20/11/2026,14/02/2027`;
+                }
+            }
+
+            function procesarCSV(csvText) {
+                const lineas = csvText.split('\n').filter(line => line.trim() !== '');
+                const datos = [];
+                for (let i = 1; i < lineas.length; i++) {
+                    const columnas = lineas[i].split(',');
+                    if (columnas.length < 3) continue;
+                    const periodo = columnas[0].trim();
+                    const fechaInicio = columnas[1].trim();
+                    const fechaFin = columnas[2].trim();
+                    const inicio = parseFecha(fechaInicio);
+                    const fin = parseFecha(fechaFin);
+                    if (inicio && fin) {
+                        datos.push({ periodo, inicio, fin });
+                    }
+                }
+                return datos;
+            }
+
+            function filtrarPeriodos(datos, modalidad, filtroMes) {
+                const resultados = [];
+                const codigoModalidad = modalidad;
+                for (const item of datos) {
+                    const periodo = item.periodo;
+                    if (periodo.length < 6) continue;
+                    const mod = periodo.substring(2, 4);
+                    if (mod !== codigoModalidad) continue;
+                    
+                    // Solo aplicar filtro de mes para Kids (08)
+                    if (modalidad === '08') {
+                        const mesInicio = item.inicio.getMonth();
+                        const esPar = mesInicio % 2 === 1; // 1=feb(par), 3=abr(par), etc.
+                        
+                        if (filtroMes === 'non' && esPar) continue;
+                        if (filtroMes === 'par' && !esPar) continue;
+                    }
+                    // Para Adultos (04): mostrar todos los períodos sin filtro
+                    
+                    resultados.push(item);
+                }
+                return resultados;
+            }
+
+            function generarMes(mes, anio, periodosFiltrados, modalidad, tipoClase) {
+                const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mes-wrapper';
+
+                const titulo = document.createElement('div');
+                titulo.className = 'mes-titulo';
+                titulo.textContent = `${meses[mes]}`;
+                wrapper.appendChild(titulo);
+
+                const weekdays = document.createElement('div');
+                weekdays.className = 'weekdays';
+                const diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                diasSemana.forEach((d, idx) => {
+                    const div = document.createElement('div');
+                    div.textContent = d;
+                    if (idx === 6) div.classList.add('domingo');
+                    weekdays.appendChild(div);
+                });
+                wrapper.appendChild(weekdays);
+
+                const grid = document.createElement('div');
+                grid.className = 'days-grid';
+
+                const firstDay = new Date(anio, mes, 1);
+                const startDayOfWeek = firstDay.getDay();
+                const offset = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1;
+
+                const daysInMonth = new Date(anio, mes + 1, 0).getDate();
+                const daysInPrevMonth = new Date(anio, mes, 0).getDate();
+                const totalCells = 42;
+
+                const periodosActivos = [];
+                for (const p of periodosFiltrados) {
+                    const inicio = new Date(p.inicio);
+                    const fin = new Date(p.fin);
+                    const ultimoDiaFin = new Date(fin.getFullYear(), fin.getMonth() + 1, 0);
+                    const fechaFinAjustada = new Date(fin.getFullYear(), fin.getMonth(), ultimoDiaFin.getDate());
+                    const fechaInicioMes = new Date(anio, mes, 1);
+                    const fechaFinMes = new Date(anio, mes + 1, 0);
+                    
+                    if (fechaInicioMes <= fechaFinAjustada && fechaFinMes >= inicio) {
+                        periodosActivos.push(p);
+                    }
+                }
+
+                for (let i = 0; i < totalCells; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'day-cell';
+
+                    let dayNumber;
+                    let isCurrentMonth = true;
+
+                    if (i < offset) {
+                        dayNumber = daysInPrevMonth - offset + i + 1;
+                        isCurrentMonth = false;
+                    } else if (i >= offset + daysInMonth) {
+                        dayNumber = i - (offset + daysInMonth) + 1;
+                        isCurrentMonth = false;
+                    } else {
+                        dayNumber = i - offset + 1;
+                        isCurrentMonth = true;
+                    }
+
+                    cell.textContent = dayNumber;
+
+                    if (!isCurrentMonth) {
+                        cell.classList.add('other-month');
+                    }
+
+                    if (isCurrentMonth) {
+                        const currentDate = new Date(anio, mes, dayNumber);
+                        const diaSemana = currentDate.getDay();
+                        const esDomingo = diaSemana === 0;
+                        const esSabado = diaSemana === 6;
+
+                        let esInicio = false;
+                        let esFin = false;
+                        let esPago = false;
+                        let esClase = false;
+
+                        for (const p of periodosActivos) {
+                            let inicioAjustado = new Date(p.inicio);
+                            let finAjustado = new Date(p.fin);
+                            const inicioOriginal = new Date(p.inicio);
+
+                            if (tipoClase === 'sabado') {
+                                inicioAjustado = ajustarInicioSabado(inicioAjustado);
+                            }
+                            
+                            finAjustado = ajustarFin(finAjustado, tipoClase);
+
+                            if (isSameDay(currentDate, inicioAjustado)) esInicio = true;
+                            if (isSameDay(currentDate, finAjustado)) esFin = true;
+
+                            const estaEnRango = isDateInRange(currentDate, inicioAjustado, finAjustado);
+                            if (estaEnRango && !esDomingo) {
+                                if (tipoClase === 'entre-semana' && diaSemana >= 1 && diaSemana <= 4) {
+                                    esClase = true;
+                                } else if (tipoClase === 'sabado' && esSabado) {
+                                    esClase = true;
+                                }
+                            }
+
+                            const diffDias = Math.floor((currentDate - inicioOriginal) / (1000 * 60 * 60 * 24));
+                            if (modalidad === '04' && diffDias >= 0 && diffDias <= 12) {
+                                esPago = true;
+                            } else if (modalidad === '08' && diffDias >= 28 && diffDias <= 41) {
+                                esPago = true;
+                            }
+                        }
+
+                        if (esInicio) {
+                            cell.classList.add('inicio-curso');
+                        }
+                        if (esFin) {
+                            cell.classList.add('fin-curso');
+                        }
+                        if (esDomingo && !esInicio && !esFin) {
+                            cell.classList.add('domingo');
+                        } else if (!esDomingo) {
+                            if (esClase && !esInicio && !esFin) {
+                                cell.classList.add(tipoClase === 'sabado' ? 'dia-clase-sabado' : 'dia-clase');
+                            }
+                            if (esPago && !esInicio && !esFin) {
+                                cell.classList.add('pago');
+                            }
+                        }
+
+                        if (isSameDay(currentDate, HOY)) {
+                            cell.classList.add('hoy');
+                        }
+                    }
+
+                    grid.appendChild(cell);
+                }
+
+                wrapper.appendChild(grid);
+                return wrapper;
+            }
+
+            async function actualizarVista() {
+                const modalidad = modalidadSelect.value;
+                const tipoClase = tipoClaseSelect.value;
+                const filtroMes = filtroMesSelect.value;
+                
+                const nombreTipo = tipoClase === 'entre-semana' ? 'L-J' : 'Sábados';
+                const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids';
+                
+                // Para Adultos: deshabilitar filtro de meses (solo aplica para Kids)
+                if (modalidad === '04') {
+                    filtroMesSelect.disabled = true;
+                } else {
+                    filtroMesSelect.disabled = false;
+                }
+                
+                const nombreFiltro = (modalidad === '08' && filtroMes === 'non') ? ' · Meses NON' : 
+                                     (modalidad === '08' && filtroMes === 'par') ? ' · Meses PAR' : '';
+                tituloPrincipal.textContent = `📅 2026 · ${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+
+                container.innerHTML = '<div class="loading">Cargando...</div>';
+
+                try {
+                    const csvText = await fetchCSV();
+                    const datos = procesarCSV(csvText);
+                    periodos = datos;
+
+                    const filtrados = filtrarPeriodos(datos, modalidad, filtroMes);
+
+                    const totalCursos = filtrados.length;
+                    let textoFiltro = '';
+                    if (modalidad === '08' && filtroMes === 'non') {
+                        textoFiltro = ' (Meses NON: Ene, Mar, May, Jul, Sep, Nov)';
+                    } else if (modalidad === '08' && filtroMes === 'par') {
+                        textoFiltro = ' (Meses PAR: Feb, Abr, Jun, Ago, Oct, Dic)';
+                    }
+                    infoCurso.innerHTML = `
+                        ${totalCursos} períodos${textoFiltro} · Hoy: 07/07/2026
+                    `;
+
+                    container.innerHTML = '';
+
+                    // Mostrar TODOS los meses del año
+                    for (let mes = 0; mes < 12; mes++) {
+                        const mesHTML = generarMes(mes, ANIO_ACTUAL, filtrados, modalidad, tipoClase);
+                        container.appendChild(mesHTML);
+                    }
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    container.innerHTML = '<div class="loading">Error al cargar datos.</div>';
+                }
+            }
+
+            modalidadSelect.addEventListener('change', actualizarVista);
+            tipoClaseSelect.addEventListener('change', actualizarVista);
+            filtroMesSelect.addEventListener('change', actualizarVista);
+            actualizarVista();
+
+        })();
+    </script>
+</body>
+</html>
