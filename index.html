@@ -251,6 +251,8 @@
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+            <p id="contenedor-salon" class="hidden text-sm text-gray-700"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
+            <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
 
@@ -504,10 +506,12 @@
         const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
         // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHKsVTMF67mzqWW0oXFxCthojsH56S94OvFoaWBJHDp3UyWOaNrbvLyLskdORmENAzPg/exec';
+        const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
 
         // Variables globales existentes
         let baseAlumnos = {};
         let alumnosPorIdNormalizado = new Map();
+        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
         let tablaPrecios = {};
         let promosVolumen = [];
         let textoPromocionalF1 = "";
@@ -1025,6 +1029,24 @@
                 document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
+                
+                // NUEVO: Buscar salón si es presencial
+                const contSalon = document.getElementById('contenedor-salon');
+                const contTeacher = document.getElementById('contenedor-teacher');
+                contSalon.classList.add('hidden');
+                contTeacher.classList.add('hidden');
+
+                if (alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
+                    const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
+                    const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado);
+                    if (salonObj) {
+                        document.getElementById('lbl-salon').innerText = salonObj.salon;
+                        document.getElementById('lbl-teacher').innerText = salonObj.teacher;
+                        contSalon.classList.remove('hidden');
+                        contTeacher.classList.remove('hidden');
+                    }
+                }
+
                 // PASO 2: ocultar búsqueda, mostrar solo botones
                 document.getElementById('seccion-busqueda').classList.add('hidden');
                 document.getElementById('menu-principal').classList.remove('hidden');
@@ -1405,7 +1427,8 @@
             Promise.allSettled([
                 cargarAlumnos(),
                 cargarPeriodosCalendario(),
-                cargarHorariosRecuperacion()
+                cargarHorariosRecuperacion(),
+                cargarSalones()
             ]).then(() => {
                 clearTimeout(timeoutSeguridad);
                 if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
@@ -1414,6 +1437,88 @@
             cargarLibros();
             cargarPromosVolumen();
             cargarPrecios();
+        }
+
+        // ==================== SALONES Y MAESTROS ====================
+        async function cargarSalones() {
+            try {
+                // Añadimos un parámetro de tiempo para evitar que el navegador guarde la versión vieja
+                const urlSinCache = SALONES_CSV_URL + '&t=' + new Date().getTime();
+                const res = await fetch(urlSinCache);
+                const txt = await res.text();
+                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                const filas = parsed.data;
+                if (filas.length < 3) return;
+
+                matrizSalones.salones = filas[0].map(s => String(s).trim());
+                matrizSalones.teachers = filas[1].map(t => String(t).trim());
+                matrizSalones.filas = [];
+                matrizSalones.filasSabado = [];
+
+                let esSabado = false;
+                for (let i = 2; i < filas.length; i++) {
+                    const f = filas[i];
+                    const hor = String(f[0] || '').trim().toUpperCase();
+                    if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
+                        esSabado = true;
+                        continue;
+                    }
+                    if (!hor) continue;
+
+                    // Formatear hora (ej. 9:00 -> 09:00)
+                    let [h, m] = hor.split(':');
+                    if (!m) m = '00';
+                    let hStr = h.padStart(2, '0') + ':' + m;
+
+                    const obj = { horaFmt: hStr, celdas: f };
+                    if (esSabado) matrizSalones.filasSabado.push(obj);
+                    else matrizSalones.filas.push(obj);
+                }
+                console.log('✅ Salones cargados. Horarios entre semana:', matrizSalones.filas.length, 'Sábados:', matrizSalones.filasSabado.length);
+            } catch (err) {
+                console.error('Error cargando salones:', err);
+            }
+        }
+
+        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado) {
+            if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
+            
+            // Extraer estrictamente los números de la hora (ej. "09:00 a. m." -> "09:00")
+            let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
+            if (!matchHorario) return null;
+            let hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+
+            // Determinar texto a buscar (Solo nivel actual exacto)
+            let textoBuscar = String(nivelActual);
+            if (programaNombre === 'KIDS') textoBuscar = `KB ${nivelActual}`;
+            else if (programaNombre === 'TEENS') textoBuscar = `TN ${nivelActual}`;
+            else if (programaNombre === 'PTEEN') textoBuscar = `PT ${nivelActual}`;
+
+            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase(); // Quitar todos los espacios para evitar fallos (ej. "KB8")
+
+            const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
+            
+            // Buscar la fila comparando estrictamente las horas
+            const fila = filasBuscar.find(f => {
+                let m = String(f.celdas[0] || '').match(/(\d+):(\d+)/);
+                if (!m) return false;
+                let filaHStr = parseInt(m[1], 10).toString().padStart(2, '0') + ':' + m[2].substring(0, 2);
+                return filaHStr === hStr;
+            });
+            
+            if (!fila) return null;
+
+            // Buscar en las celdas de la fila
+            for (let i = 1; i < fila.celdas.length; i++) {
+                const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
+                if (celda === textoLimpio) {
+                    return {
+                        salon: matrizSalones.salones[i] || 'No definido',
+                        teacher: matrizSalones.teachers[i] || 'No definido'
+                    };
+                }
+            }
+            return null;
         }
 
         // ==================== HORARIOS DE RECUPERACIÓN ====================
