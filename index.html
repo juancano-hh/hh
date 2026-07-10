@@ -121,35 +121,129 @@
         .cal-cuadro.azul   { background: rgba(33,150,243,0.35); }
         .cal-cuadro.hoy    { background: transparent; border: 2px solid #2d2a3b; }
         @media (max-width: 720px) { .cal-grid { grid-template-columns: repeat(3,1fr); gap: 6px; } }
-        @media (max-width: 480px) {
+        @media(max-width:520px){
             .cal-grid { grid-template-columns: repeat(2,1fr); gap: 4px; }
             .cal-d { font-size: 0.47rem; }
             .modal-controls { gap: 4px; }
         }
+        /* ===== MODAL RECUPERACIÓN ===== */
+        .rec-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .rec-box {
+            width: 100%; max-width: 500px;
+            margin: 24px auto;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+        .rec-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 20px 20px 16px;
+            color: #fff;
+        }
+        .rec-body { padding: 20px; }
+        .rec-label { display: block; font-size: 0.75rem; font-weight: 700; color: #4b5563; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rec-input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; outline: none; transition: border-color 0.2s; background: #f9fafb; }
+        .rec-input:focus { border-color: #6366f1; background: #fff; }
+        .rec-select { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; background: #f9fafb; outline: none; cursor: pointer; }
+        .rec-select:focus { border-color: #6366f1; }
+        .dia-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 12px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: #f9fafb;
+            cursor: pointer; font-size: 0.8rem; color: #374151;
+            transition: all 0.15s; user-select: none;
+        }
+        .dia-btn.selected { border-color: #6366f1; background: #eef2ff; color: #4f46e5; font-weight: 700; }
+        .dia-btn input { accent-color: #6366f1; }
+        .rec-submit {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff; font-weight: 800; font-size: 0.95rem;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+        }
+        .rec-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+        .rec-submit:active { transform: translateY(0); }
+        .rec-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        /* ===== MINI CALENDAR RECUPERACIÓN ===== */
+        .mini-cal-header { background: #6366f1; color: #fff; text-align: center; padding: 8px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; }
+        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; background: #fff; }
+        .mini-cal-day-label { text-align: center; font-size: 0.6rem; font-weight: 700; color: #9ca3af; padding: 3px 0; }
+        .mini-cal-day-label.viernes { color: #fca5a5; }
+        .mini-cal-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+            transition: all 0.12s; border: 1.5px solid transparent;
+        }
+        .mini-cal-cell.empty { cursor: default; }
+        .mini-cal-cell.fuera { color: #d1d5db; cursor: not-allowed; }
+        .mini-cal-cell.viernes { color: #fca5a5; background: #fff1f2; cursor: not-allowed; }
+        .mini-cal-cell.disponible { color: #374151; background: #f3f4f6; }
+        .mini-cal-cell.disponible:hover { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+        .mini-cal-cell.seleccionado { background: #6366f1; color: #fff; border-color: #4f46e5; }
+        .mini-cal-cell.hoy-rec { border-color: #6366f1; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
-
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
-            <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
-        </div>
 
-        <!-- BÚSQUEDA SOLO POR ID (sin sugerencias dinámicas) -->
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID (Matrícula)</label>
-                <div class="flex gap-2">
-                    <input type="text" id="alumno-id" placeholder="Ej. 991122 o 00991122" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()">
-                    <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
-                        Buscar
-                    </button>
+        <!-- PASO 1: BÚSQUEDA -->
+        <div id="seccion-busqueda">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
+                <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID (Matrícula)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="alumno-id" placeholder="Ej. 991122 o 00991122" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()">
+                        <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
+                            Buscar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="ficha-alumno" class="hidden mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+        <!-- PASO 2: BOTONES PRINCIPALES -->
+        <div id="menu-principal" class="hidden">
+            <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">💳</span>
+                    <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
+                </button>
+                <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">🔁</span>
+                    <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                </button>
+            </div>
+            <p class="text-center mt-4">
+                <button onclick="regresarBusqueda()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-6 transition-all duration-200 bg-gray-50 hover:bg-gray-100">
+                    ↩ Buscar otra matrícula
+                </button>
+            </p>
+        </div>
+
+        <!-- ===== FICHA ALUMNO (se muestra al elegir una opción) ===== -->
+        <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+            <!-- Botón regresar al menú -->
+            <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 mb-2">
+                ← Cambiar opción
+            </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all"></span></p>
@@ -159,29 +253,26 @@
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
-            <!-- Servicio base oculto para el alumno -->
 
-            <!-- ===== NUEVO: FECHAS DE PERIODO ===== -->
+            <!-- ===== FECHAS DE PERIODO (solo en vista pagos) ===== -->
             <div id="seccion-periodos" class="hidden pt-3 border-t border-gray-200 space-y-2">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
-
-                <!-- Periodo actual (en curso) -->
                 <div class="bg-blue-50 rounded-xl p-3 space-y-1 border border-blue-100">
                     <p class="text-xs font-bold text-blue-700">📚 Curso actual (en curso)</p>
                     <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
                 </div>
-
-                <!-- Próximo periodo (pago registrado) -->
-                <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100">
+                <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100 relative">
                     <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
                     <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
+                    <div id="seccion-volumen" class="hidden mt-2 pt-2 border-t border-green-200">
+                        <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
+                        <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
+                    </div>
                 </div>
-
-                <!-- Botón Ver Calendario -->
                 <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                     📅 Ver Mi Calendario de Clases
                 </button>
@@ -269,6 +360,95 @@
         </div>
 
         <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
+
+        <!-- ===== FORMULARIO INLINE DE RECUPERACIÓN (WIZARD) ===== -->
+        <div id="seccion-recuperacion" class="hidden mt-4 space-y-4">
+            <div class="border-t border-purple-100 pt-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-4">🔁 Clase de Recuperación</p>
+
+                <!-- Indicador de pasos -->
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <span id="rec-indicador-1" class="text-xs font-bold text-purple-600 bg-purple-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">1</span>
+                    <div class="flex-1 border-t-2 border-gray-200 mx-2 transition-all" id="rec-linea-1"></div>
+                    <span id="rec-indicador-2" class="text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">2</span>
+                    <div class="flex-1 border-t-2 border-gray-200 mx-2 transition-all" id="rec-linea-2"></div>
+                    <span id="rec-indicador-3" class="text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">3</span>
+                </div>
+
+                <div id="rec-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 text-center mb-3"></div>
+
+                <!-- WIZARD: PASO 1 (Datos de contacto y clase en línea) -->
+                <div id="rec-paso-1" class="space-y-4 transition-all">
+                    <div class="mb-3">
+                        <label class="rec-label">Correo electrónico</label>
+                        <input type="email" id="rec-correo" class="rec-input" placeholder="tu@correo.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="rec-label">¿Qué día quieres recuperar tu clase en línea?</label>
+                        <select id="rec-tipo" class="rec-select" onchange="filtrarHorariosPorTipo()">
+                            <option value="">-- Selecciona el tipo --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="rec-horario-container" style="display:none">
+                        <label class="rec-label">Horario disponible para recuperar</label>
+                        <select id="rec-horario" class="rec-select">
+                            <option value="">-- Selecciona un horario --</option>
+                        </select>
+                        <p id="rec-horario-aviso" class="text-xs text-orange-500 mt-1 hidden">No hay horarios disponibles para este tipo de clase.</p>
+                    </div>
+
+                    <button onclick="avanzarPasoRec(2)" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200 mt-2">
+                        Siguiente →
+                    </button>
+                </div>
+
+                <!-- WIZARD: PASO 2 (Calendario de falta) -->
+                <div id="rec-paso-2" class="hidden space-y-4 transition-all">
+                    <div class="mb-3">
+                        <label class="rec-label text-orange-600">¿Qué día(s) no vendrás de tu clase presencial?</label>
+                        <p class="text-xs text-gray-400 mb-3" id="rec-cal-instrucciones">Selecciona los días que vas a faltar (según tu programa original).</p>
+                        <div id="rec-mini-cal" class="rounded-xl border border-orange-100 overflow-hidden bg-orange-50/30"></div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="retrocederPasoRec(1)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
+                            ← Atrás
+                        </button>
+                        <button onclick="avanzarPasoRec(3)" class="w-2/3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
+                            Siguiente →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WIZARD: PASO 3 (Resumen y Envío) -->
+                <div id="rec-paso-3" class="hidden space-y-4 transition-all">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-800 text-sm mb-3 border-b pb-2">📋 Resumen de tu solicitud</h4>
+                        <div class="space-y-2 text-sm text-gray-600" id="rec-resumen-container">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="retrocederPasoRec(2)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
+                            ← Atrás
+                        </button>
+                        <button id="rec-btn-enviar" onclick="enviarFormRecuperacion()" class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
+                            Enviar Solicitud
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MENSAJE EXITO -->
+                <div id="rec-exito" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 text-center mt-3">
+                    <p class="text-2xl mb-1">✅</p>
+                    <p class="font-bold text-green-800 text-sm">¡Solicitud enviada!</p>
+                    <p class="text-xs text-green-600 mt-1">Te contactaremos pronto con los detalles.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- ===== MODAL CALENDARIO ===== -->
@@ -321,6 +501,9 @@
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
         const URL_LIBROS  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
         const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
+        const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
+        // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHKsVTMF67mzqWW0oXFxCthojsH56S94OvFoaWBJHDp3UyWOaNrbvLyLskdORmENAzPg/exec';
 
         // Variables globales existentes
         let baseAlumnos = {};
@@ -339,8 +522,10 @@
         let librosSeleccionadosIndices = [];
         let ultimosLibrosClave = "";
 
-        // ===== NUEVO: Periodos del calendario =====
+        // ===== Periodos del calendario =====
         let periodosCalendario = [];
+        // ===== Horarios de recuperación =====
+        let horariosRecuperacion = [];
 
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
 
@@ -434,6 +619,13 @@
                     // ===== NUEVO: Tipo de clase para el calendario =====
                     // SA/SM/SV o DO/DOM → sábados; horas → entre semana
                     const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+                    // ===== NUEVO: Cursos por volumen (columna AD, índice 29) =====
+                    const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
+                    // ===== NUEVO: Pago registrado (columna C, índice 2) =====
+                    const tieneR = fila[2] ? String(fila[2]).trim().toUpperCase() === 'R' : false;
+
+                    // ===== NUEVO: Codigo de clase del alumno (columna M, índice 12) =====
+                    const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
 
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
@@ -441,8 +633,11 @@
                         prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                         cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
                         cargoServicio: tieneServicio ? 90 : 0,
-                        periodoSiguiente: periodoSiguiente,  // NUEVO
-                        tipoClaseCal: tipoClaseCal           // NUEVO
+                        periodoSiguiente: periodoSiguiente,
+                        tipoClaseCal: tipoClaseCal,
+                        volumen: volumenInfo,
+                        tieneR: tieneR,
+                        codigoClase: codigoClaseLayout  // NUEVO
                     };
                     baseAlumnos[id] = alumno;
                     const idNorm = String(id).replace(/^0+/, '');
@@ -523,6 +718,21 @@
             return `${anio}${mod}${String(mesAnterior).padStart(2, '0')}`;
         }
 
+        // ===== NUEVO: Sumar periodos (volumen) =====
+        function calSumarPeriodos(periodoBase, cantidadSumar) {
+            if (!periodoBase || periodoBase.length !== 6) return periodoBase;
+            const anio = parseInt(periodoBase.substring(0, 2), 10);
+            const mod = periodoBase.substring(2, 4);
+            let mes = parseInt(periodoBase.substring(4, 6), 10);
+            const incremento = mod === '04' ? 1 : 2;
+            let mesesSumar = cantidadSumar * incremento;
+            mes += mesesSumar;
+            let anioSumar = Math.floor((mes - 1) / 12);
+            mes = mes - (anioSumar * 12);
+            let nuevoAnio = anio + anioSumar;
+            return `${nuevoAnio}${mod}${String(mes).padStart(2, '0')}`;
+        }
+
         // ===== NUEVO: Formatear fecha legible =====
         function formatearFechaLinda(date) {
             if (!date) return 'No disponible';
@@ -532,6 +742,23 @@
         // ===== NUEVO: Obtener datos de un periodo =====
         function obtenerDatosPeriodo(codigo) {
             return periodosCalendario.find(p => p.periodo === codigo) || null;
+        }
+
+        // ===== NUEVO: Obtener rango de fechas de pago =====
+        function obtenerRangoPago(datos, mod) {
+            if (!datos || !datos.inicio) return 'No disponible';
+            const ini = new Date(datos.inicio); // Usamos inicio original del CSV
+            let inicioPago = new Date(ini);
+            let finPago = new Date(ini);
+            if (mod === '04') {
+                inicioPago.setDate(inicioPago.getDate() + 0);
+                finPago.setDate(finPago.getDate() + 12);
+            } else {
+                inicioPago.setDate(inicioPago.getDate() + 28);
+                finPago.setDate(finPago.getDate() + 41);
+            }
+            const ops = { day:'numeric', month:'short' };
+            return `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
         }
 
         // ===== NUEVO: Mostrar fechas de periodo en la ficha =====
@@ -574,6 +801,40 @@
             document.getElementById('lbl-periodo-siguiente').innerText = periodoSig;
             document.getElementById('lbl-inicio-siguiente').innerText  = inicioSigStr;
             document.getElementById('lbl-fin-siguiente').innerText     = finSigStr;
+
+            const secVolumen = document.getElementById('seccion-volumen');
+            const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
+            const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
+            
+            if (alumnoActual.volumen === "TERMINA") {
+                secVolumen.classList.remove('hidden');
+                lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+            } else if (alumnoActual.volumen.includes(" DE ")) {
+                const partesVol = alumnoActual.volumen.split(" DE ");
+                const currentCourse = parseInt(partesVol[0].trim());
+                const totalCourses = parseInt(partesVol[1].trim());
+                if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                    const cursosRestantes = totalCourses - currentCourse; // Corregido: ya no se suma +1
+                    const nextPaymentPeriod = calSumarPeriodos(periodoSig, cursosRestantes);
+                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                    
+                    secVolumen.classList.remove('hidden');
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.innerText = `Cursos pagados: ${totalCourses}`;
+                    lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
+                } else {
+                    secVolumen.classList.add('hidden');
+                }
+            } else {
+                // Estudiante normal (vacío), mostrar la próxima fecha de pago
+                secVolumen.classList.remove('hidden');
+                lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+            }
 
             seccion.classList.remove('hidden');
         }
@@ -764,28 +1025,62 @@
                 document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
-                ficha.classList.remove('hidden');
-                calculos.classList.remove('hidden');
-                // ===== NUEVO: Mostrar fechas de periodo =====
-                mostrarFechasPeriodo();
-                if (textoPromocionalF1 && textoPromocionalF1 !== "") {
-                    document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
-                    document.getElementById('info-promo-adicional').classList.remove('hidden');
-                } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
-                const slider = document.getElementById('cursos-slider');
-                const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
-                slider.max = maxCursos; slider.value = 1;
-                document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
-                document.getElementById('libro-toggle').checked = true;
-                librosSeleccionadosIndices = []; ultimosLibrosClave = "";
-                actualizarCalculos();
+                // PASO 2: ocultar búsqueda, mostrar solo botones
+                document.getElementById('seccion-busqueda').classList.add('hidden');
+                document.getElementById('menu-principal').classList.remove('hidden');
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
             } else {
                 alumnoActual = null;
-                ficha.classList.add('hidden'); calculos.classList.add('hidden');
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
+                document.getElementById('menu-principal').classList.add('hidden');
                 document.getElementById('seccion-periodos').classList.add('hidden');
                 errorBox.innerText = "ID no encontrado. Verifica tu matrícula (ej. 991122 o 00991122).";
                 errorBox.classList.remove('hidden');
             }
+        }
+
+        // ===== Regresar al buscador (paso 1) =====
+        function regresarBusqueda() {
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-busqueda').classList.remove('hidden');
+            document.getElementById('error-box').classList.add('hidden');
+            document.getElementById('alumno-id').value = '';
+            alumnoActual = null;
+        }
+
+        // ===== Regresar al menu de botones (paso 2) =====
+        function regresarMenu() {
+            document.getElementById('ficha-alumno').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            document.getElementById('menu-principal').classList.remove('hidden');
+        }
+
+        // ===== Mostrar sección de pagos (paso 3) =====
+        function mostrarSeccionPagos() {
+            // PASO 3: ocultar botones, mostrar ficha + calculos
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.remove('hidden');
+            document.getElementById('seccion-calculos').classList.remove('hidden');
+            // Cargar fechas de periodo
+            mostrarFechasPeriodo();
+            if (textoPromocionalF1 && textoPromocionalF1 !== "") {
+                document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
+                document.getElementById('info-promo-adicional').classList.remove('hidden');
+            } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
+            const slider = document.getElementById('cursos-slider');
+            const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
+            slider.max = maxCursos; slider.value = 1;
+            document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
+            document.getElementById('libro-toggle').checked = true;
+            librosSeleccionadosIndices = []; ultimosLibrosClave = "";
+            actualizarCalculos();
         }
 
         function toggleLibroIndividual(idx) {
@@ -1104,14 +1399,13 @@
         // ==================== INICIALIZACIÓN ====================
         function inicializarTodo() {
             const btn = document.querySelector('button[onclick="buscarAlumno()"]');
-            // Timeout de seguridad: siempre reactivar el botón máximo en 10 segundos
             const timeoutSeguridad = setTimeout(() => {
                 if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
             }, 10000);
-            // Cargar alumnos y calendario en paralelo
             Promise.allSettled([
                 cargarAlumnos(),
-                cargarPeriodosCalendario()
+                cargarPeriodosCalendario(),
+                cargarHorariosRecuperacion()
             ]).then(() => {
                 clearTimeout(timeoutSeguridad);
                 if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
@@ -1120,6 +1414,468 @@
             cargarLibros();
             cargarPromosVolumen();
             cargarPrecios();
+        }
+
+        // ==================== HORARIOS DE RECUPERACIÓN ====================
+        async function cargarHorariosRecuperacion() {
+            try {
+                const res = await fetch(HORARIOS_CSV_URL);
+                const txt = await res.text();
+                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                horariosRecuperacion = [];
+                const filas = parsed.data;
+                // Saltar la cabecera (fila 0)
+                for (let i = 1; i < filas.length; i++) {
+                    const f = filas[i];
+                    if (!f || f.length < 13) continue;
+                    const nivelIni = f[3] ? String(f[3]).trim() : '';
+                    const nivelFin = f[4] ? String(f[4]).trim() : '';
+                    const subjectCode = f[5] ? String(f[5]).trim().toUpperCase() : '';
+                    const frecuencia = f[6] ? String(f[6]).trim().toUpperCase() : '';
+                    const crn = f[9] ? String(f[9]).trim() : '';
+                    const horario = f[11] ? String(f[11]).trim() : '';
+                    const docente = f[14] ? String(f[14]).trim() : '';
+                    if (!crn || !horario) continue;
+
+                    // Convertir horario a formato HH:MM
+                    const h = horario.padStart(4, '0');
+                    const horaFmt = h.substring(0, h.length - 2) + ':' + h.substring(h.length - 2);
+
+                    // Determinar días
+                    let diasLabel = '';
+                    if (frecuencia === 'FF') diasLabel = 'Lunes - Jueves';
+                    else if (frecuencia === 'SA' || frecuencia === 'SM' || frecuencia === 'SV') diasLabel = 'Sábados';
+                    else if (frecuencia === 'DO' || frecuencia === 'DOM') diasLabel = 'Domingos';
+                    else diasLabel = frecuencia;
+
+                    // Guardar niveles como números
+                    const nivIni = nivelIni !== '' ? parseInt(nivelIni, 10) : null;
+                    const nivFin = nivelFin !== '' ? parseInt(nivelFin, 10) : null;
+
+                    horariosRecuperacion.push({
+                        nivelIni: nivIni,
+                        nivelFin: nivFin,
+                        subjectCode: subjectCode,
+                        frecuencia: frecuencia,
+                        crn: crn,
+                        horario: horario,
+                        horaFmt: horaFmt,
+                        diasLabel: diasLabel,
+                        docente: docente
+                    });
+                }
+                console.log('Horarios recuperación cargados:', horariosRecuperacion.length);
+            } catch (err) {
+                console.error('Error cargando horarios recuperación:', err);
+            }
+        }
+
+        // ========== VARIABLES DE RECUPERACIÓN ==========
+        let diasSeleccionadosRec = new Set(); // Set de strings 'YYYY-MM-DD'
+        let inicioRecuperacion = null;
+        let finRecuperacion = null;
+        let pasoActualRec = 1;
+
+        function mostrarFormRecuperacion() {
+            if (!alumnoActual) return;
+
+            // PASO 3: ocultar botones, mostrar ficha y formulario
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.remove('hidden');
+            document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.remove('hidden');
+
+            // Reset Wizard
+            diasSeleccionadosRec.clear();
+            document.getElementById('rec-exito').classList.add('hidden');
+            document.getElementById('rec-error').classList.add('hidden');
+            document.getElementById('rec-horario-container').style.display = 'none';
+            
+            const headerWizard = document.getElementById('rec-indicador-1');
+            if (headerWizard) headerWizard.parentElement.classList.remove('hidden');
+            
+            irAPasoRec(1);
+
+            // Pre-llenar correo
+            document.getElementById('rec-correo').value =
+                alumnoActual.correo !== 'No registrado' ? alumnoActual.correo : '';
+
+            // ===== Poblar tipos de clase según programa =====
+            const tipoSel = document.getElementById('rec-tipo');
+            tipoSel.innerHTML = '<option value="">-- Selecciona el tipo --</option>';
+            const prog = alumnoActual.programaNombre; // ADULTO, PTEEN, TEENS, KIDS
+            const esAdulto = (prog === 'ADULTO');
+            const opciones = esAdulto
+                ? [
+                    { val: 'FF', txt: 'Lunes a Jueves (L-J)' },
+                    { val: 'SA', txt: 'Sábados' },
+                    { val: 'DO', txt: 'Domingos' }
+                  ]
+                : [
+                    { val: 'S1', txt: 'S1 — Martes y Jueves' },
+                    { val: 'S2', txt: 'S2 — Lunes y Miércoles' }
+                  ];
+            opciones.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.val; opt.textContent = o.txt;
+                tipoSel.appendChild(opt);
+            });
+
+            // Calcular fechas del curso actual para el calendario
+            const periodoAnt = calcularPeriodoAnterior(alumnoActual.periodoSiguiente);
+            const datosAnt = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
+            if (datosAnt) {
+                inicioRecuperacion = new Date(datosAnt.inicio);
+                finRecuperacion   = new Date(datosAnt.fin);
+                const tc = alumnoActual.tipoClaseCal;
+                if (tc === 'sabado') inicioRecuperacion = calAjustarInicioSabado(inicioRecuperacion);
+                finRecuperacion = calAjustarFin(finRecuperacion, tc);
+            } else {
+                inicioRecuperacion = null;
+                finRecuperacion = null;
+            }
+        }
+
+        function filtrarHorariosPorTipo() {
+            const tipo = document.getElementById('rec-tipo').value;
+            const contenedorH = document.getElementById('rec-horario-container');
+            const contenedorC = document.getElementById('rec-cal-container');
+            diasSeleccionadosRec.clear();
+
+            if (!tipo) {
+                contenedorH.style.display = 'none';
+                contenedorC.style.display = 'none';
+                return;
+            }
+
+            // Determinar códigos de subject según programa
+            const prog = alumnoActual.programaNombre;
+            let subjectCodes = [];
+            if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
+            else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
+            else if (prog === 'TEENS') subjectCodes = ['TEEN'];
+            else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+
+            const nivel = alumnoActual.nivelActual;
+            // Filtrar horarios por subject + frequency + nivel
+            let filtrados = horariosRecuperacion.filter(h => {
+                const cumpleSubject  = subjectCodes.includes(h.subjectCode);
+                const cumpleFrecuencia = h.frecuencia === tipo;
+                const cumpleNivelIni = h.nivelIni === null || h.nivelIni <= nivel;
+                const cumpleNivelFin = h.nivelFin === null || h.nivelFin >= nivel;
+                return cumpleSubject && cumpleFrecuencia && cumpleNivelIni && cumpleNivelFin;
+            });
+
+            // Ordenar de más temprano a más tarde (usando h.horario que es un número como '0900', '1600')
+            filtrados.sort((a, b) => {
+                const hA = parseInt(a.horario.padStart(4, '0'), 10);
+                const hB = parseInt(b.horario.padStart(4, '0'), 10);
+                return hA - hB;
+            });
+
+            const sel = document.getElementById('rec-horario');
+            const aviso = document.getElementById('rec-horario-aviso');
+            sel.innerHTML = '<option value="">-- Selecciona un horario --</option>';
+            contenedorH.style.display = 'block';
+
+            if (filtrados.length === 0) {
+                aviso.classList.remove('hidden');
+                sel.disabled = true;
+            } else {
+                aviso.classList.add('hidden');
+                sel.disabled = false;
+                const vistos = new Set();
+                filtrados.forEach(h => {
+                    const txt = `${h.horaFmt} • ${h.diasLabel}`;
+                    if (!vistos.has(txt)) {
+                        vistos.add(txt);
+                        const opt = document.createElement('option');
+                        opt.value = h.crn;
+                        opt.textContent = txt;
+                        opt.dataset.frecuencia = h.frecuencia;
+                        opt.dataset.docente = h.docente;
+                        opt.dataset.horafmt = h.horaFmt;
+                        sel.appendChild(opt);
+                    }
+                });
+            }
+
+        }
+
+        // ================= WIZARD LOGIC =================
+        function irAPasoRec(paso) {
+            pasoActualRec = paso;
+            // Actualizar UI de indicadores
+            for(let i=1; i<=3; i++) {
+                const ind = document.getElementById(`rec-indicador-${i}`);
+                if (!ind) continue;
+                if (i === paso) {
+                    ind.className = 'text-xs font-bold text-purple-600 bg-purple-100 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                } else if (i < paso) {
+                    ind.className = 'text-xs font-bold text-white bg-purple-500 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                } else {
+                    ind.className = 'text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                }
+                
+                if(i < 3) {
+                    const linea = document.getElementById(`rec-linea-${i}`);
+                    if(linea) linea.className = i < paso ? 'flex-1 border-t-2 border-purple-300 mx-2 transition-all' : 'flex-1 border-t-2 border-gray-200 mx-2 transition-all';
+                }
+            }
+
+            // Ocultar todos los pasos
+            document.getElementById('rec-paso-1').classList.add('hidden');
+            document.getElementById('rec-paso-2').classList.add('hidden');
+            document.getElementById('rec-paso-3').classList.add('hidden');
+
+            // Mostrar el paso actual
+            document.getElementById(`rec-paso-${paso}`).classList.remove('hidden');
+            document.getElementById('rec-error').classList.add('hidden');
+        }
+
+        function avanzarPasoRec(destino) {
+            const errorDiv = document.getElementById('rec-error');
+            errorDiv.classList.add('hidden');
+
+            if (destino === 2) {
+                // Validar Paso 1
+                const correo = document.getElementById('rec-correo').value.trim();
+                if (!correo || !correo.includes('@')) {
+                    errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                const horarioSel = document.getElementById('rec-horario').value;
+                if (!horarioSel) {
+                    errorDiv.innerText = 'Por favor selecciona un horario de recuperación.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                renderizarMiniCalendario();
+            } else if (destino === 3) {
+                // Validar Paso 2
+                if (diasSeleccionadosRec.size === 0) {
+                    errorDiv.innerText = 'Selecciona al menos un día presencial al que faltarás.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                generarResumenRecuperacion();
+            }
+            irAPasoRec(destino);
+        }
+
+        function retrocederPasoRec(destino) {
+            irAPasoRec(destino);
+        }
+
+        function generarResumenRecuperacion() {
+            const correo = document.getElementById('rec-correo').value.trim();
+            const sel = document.getElementById('rec-horario');
+            const horarioTexto = sel.options[sel.selectedIndex].text;
+            
+            const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const DIAS_N = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const diasLabels = [...diasSeleccionadosRec].sort().map(k => {
+                const [y,m,d] = k.split('-').map(Number);
+                const f = new Date(y, m-1, d);
+                return `${DIAS_N[f.getDay()]} ${d} ${MESES_C[m-1]}`;
+            }).join('<br> • ');
+
+            const html = `
+                <p><strong>📧 Correo:</strong> ${correo}</p>
+                <p><strong>💻 Clase en línea a tomar:</strong><br> ${horarioTexto}</p>
+                <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasLabels}</p>
+            `;
+            document.getElementById('rec-resumen-container').innerHTML = html;
+        }
+
+        function renderizarMiniCalendario() {
+            const calDiv = document.getElementById('rec-mini-cal');
+            calDiv.innerHTML = '';
+            if (!inicioRecuperacion || !finRecuperacion) {
+                calDiv.innerHTML = '<p class="text-xs text-red-400 p-3">No se pudo cargar el periodo del curso.</p>';
+                return;
+            }
+
+            const HOY = new Date(); HOY.setHours(0,0,0,0);
+            const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            const DIAS_HDR = ['L','M','X','J','V','S','D'];
+
+            // Iterar mes por mes entre inicio y fin del curso
+            let curMes = new Date(inicioRecuperacion.getFullYear(), inicioRecuperacion.getMonth(), 1);
+            const mesFinLimit = new Date(finRecuperacion.getFullYear(), finRecuperacion.getMonth(), 1);
+
+            while (curMes <= mesFinLimit) {
+                const anio = curMes.getFullYear();
+                const mes  = curMes.getMonth();
+                const wrapper = document.createElement('div');
+                if (calDiv.children.length > 0) wrapper.style.borderTop = '1px solid #e9d5ff';
+
+                // Header del mes
+                const hdr = document.createElement('div');
+                hdr.className = 'mini-cal-header';
+                hdr.textContent = `${MESES_ES[mes]} ${anio}`;
+                wrapper.appendChild(hdr);
+
+                // Grid días
+                const grid = document.createElement('div');
+                grid.className = 'mini-cal-grid';
+
+                // Etiquetas días semana (L M X J V S D)
+                DIAS_HDR.forEach((d, i) => {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'mini-cal-day-label' + (i === 4 ? ' viernes' : '');
+                    lbl.textContent = d;
+                    grid.appendChild(lbl);
+                });
+
+                // Día 1 del mes → calcular offset (0=Lun,...,6=Dom)
+                const primerDia = new Date(anio, mes, 1);
+                let offset = primerDia.getDay() - 1; // JS: 0=Dom
+                if (offset < 0) offset = 6;
+                for (let i = 0; i < offset; i++) {
+                    const blank = document.createElement('div');
+                    blank.className = 'mini-cal-cell empty';
+                    grid.appendChild(blank);
+                }
+
+                const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+                for (let d = 1; d <= diasEnMes; d++) {
+                    const fecha = new Date(anio, mes, d);
+                    fecha.setHours(0,0,0,0);
+                    const cell = document.createElement('div');
+                    cell.textContent = d;
+                    const dow = fecha.getDay(); // 0=Dom, 1=Lun... 6=Sab
+
+                    const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
+                    const esPasado = fecha < HOY;
+                    
+                    // Restricción según programa original
+                    const modOriginal = alumnoActual.prefijoMod; // FFI, SA, DO
+                    let esValido = false;
+                    if (modOriginal === 'SA') {
+                        esValido = (dow === 6); // Solo sábados
+                    } else if (modOriginal === 'DO') {
+                        esValido = (dow === 0); // Solo domingos
+                    } else {
+                        // Entre semana (Lunes a Jueves)
+                        esValido = (dow >= 1 && dow <= 4);
+                    }
+
+                    const key = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+                    if (!dentroRango || !esValido || esPasado) {
+                        cell.className = 'mini-cal-cell ' + (!esValido ? 'fuera' : 'fuera');
+                    } else {
+                        cell.className = 'mini-cal-cell disponible';
+                        if (diasSeleccionadosRec.has(key)) cell.classList.replace('disponible','seleccionado');
+                        if (fecha.getTime() === HOY.getTime()) cell.classList.add('hoy-rec');
+                        cell.addEventListener('click', () => {
+                            if (diasSeleccionadosRec.has(key)) {
+                                diasSeleccionadosRec.delete(key);
+                                cell.classList.replace('seleccionado','disponible');
+                            } else {
+                                diasSeleccionadosRec.add(key);
+                                cell.classList.replace('disponible','seleccionado');
+                            }
+                        });
+                    }
+                    grid.appendChild(cell);
+                }
+                wrapper.appendChild(grid);
+                calDiv.appendChild(wrapper);
+                curMes.setMonth(curMes.getMonth() + 1);
+            }
+        }
+
+        function cerrarModalRecuperacion() {
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+        }
+
+        async function enviarFormRecuperacion() {
+            const errorDiv = document.getElementById('rec-error');
+            const btnEnviar = document.getElementById('rec-btn-enviar');
+            errorDiv.classList.add('hidden');
+
+            const correo = document.getElementById('rec-correo').value.trim();
+            if (!correo || !correo.includes('@')) {
+                errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            const tipo = document.getElementById('rec-tipo').value;
+            if (!tipo) {
+                errorDiv.innerText = 'Selecciona el tipo de clase.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            const horarioSel = document.getElementById('rec-horario').value;
+            if (!horarioSel) {
+                errorDiv.innerText = 'Por favor selecciona un horario.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            if (diasSeleccionadosRec.size === 0) {
+                errorDiv.innerText = 'Selecciona al menos un día a recuperar.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+
+            // Formatear días seleccionados (sin día de semana ni año)
+            const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            const diasLabels = [...diasSeleccionadosRec].sort().map(k => {
+                const [y,m,d] = k.split('-').map(Number);
+                return `${d} de ${MESES_LARGOS[m-1]}`;
+            }).join(', ');
+
+            // Obtener variables de la clase elegida
+            const optSel = document.querySelector(`#rec-horario option[value="${horarioSel}"]`);
+            const frecuencia = optSel ? optSel.dataset.frecuencia : '';
+            const modalidadEnvio = alumnoActual.modalidad;
+            const docente = optSel ? optSel.dataset.docente : '';
+            const horafmt = optSel ? optSel.dataset.horafmt : '';
+            const horafmtLimpio = horafmt.replace(/^0/, ''); // e.g. "08:00" -> "8:00"
+
+            const hoy = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
+            const idSinCeros = String(alumnoActual.idOriginal).replace(/^0+/,'');
+
+            const payload = {
+                fechaSolicitud: fechaHoy,
+                idAlumno: idSinCeros,
+                nombre: alumnoActual.nombre,
+                correo: correo,
+                campus: 'PUEBLA ANZURES',
+                tipo: 'RI',
+                modalidad: modalidadEnvio,
+                codigoClase: alumnoActual.codigoClase || '',
+                nivel: String(alumnoActual.nivelActual),
+                frecuenciaReq: frecuencia,
+                horarioReq: horafmtLimpio,
+                crnReq: horarioSel, // El value del select es el crn
+                docenteReq: docente,
+                diasRecuperacion: diasLabels,
+                tipoOperacion: "RECUPERACION"
+            };
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Enviando...';
+            try {
+                if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') throw new Error('URL no configurada.');
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                document.getElementById('rec-paso-3').classList.add('hidden');
+                document.getElementById('rec-indicador-1').parentElement.classList.add('hidden');
+                document.getElementById('rec-exito').classList.remove('hidden');
+
+                // Abrir WhatsApp automáticamente para notificar
+                const numeroWa = '522208731288';
+                const textoWa = encodeURIComponent('Ya solicite mi clase en linea');
+                window.open(`https://wa.me/${numeroWa}?text=${textoWa}`, '_blank');
+            } catch (err) {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar Solicitud';
+                errorDiv.innerText = 'Error al enviar: ' + err.message;
+                errorDiv.classList.remove('hidden');
+            }
         }
         document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
