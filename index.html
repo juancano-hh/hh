@@ -220,6 +220,10 @@
 
         <!-- PASO 2: BOTONES PRINCIPALES -->
         <div id="menu-principal" class="hidden">
+            <div class="text-center mb-4">
+                <h2 id="menu-saludo-nombre" class="text-xl font-bold text-gray-800"></h2>
+                <p id="menu-saludo-id" class="text-sm font-mono text-gray-500"></p>
+            </div>
             <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
@@ -245,6 +249,7 @@
                 ← Cambiar opción
             </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
+            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all"></span></p>
             <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all"></span></p>
@@ -1021,6 +1026,7 @@
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
+                document.getElementById('lbl-id').innerText       = alumnoActual.idOriginal;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
                 document.getElementById('lbl-celular').innerText  = alumnoActual.celular;
                 document.getElementById('lbl-correo').innerText   = alumnoActual.correo;
@@ -1029,6 +1035,10 @@
                 document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
                 document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
+                
+                // NUEVO: Saludo en el menú principal
+                document.getElementById('menu-saludo-nombre').innerText = `¡Hola, ${alumnoActual.nombre}!`;
+                document.getElementById('menu-saludo-id').innerText = `ID: ${alumnoActual.idOriginal}`;
                 
                 // NUEVO: Buscar salón si es presencial
                 const contSalon = document.getElementById('contenedor-salon');
