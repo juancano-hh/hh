@@ -259,6 +259,7 @@
             <p id="contenedor-salon" class="hidden text-sm text-gray-700"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+            <p id="contenedor-libro" class="hidden text-sm text-gray-700"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
 
             <!-- ===== FECHAS DE PERIODO (solo en vista pagos) ===== -->
@@ -1041,6 +1042,15 @@
                 document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
                 document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
                 
+                const libroObj = librosMap.get(`${alumnoActual.programaNombre}_${alumnoActual.nivelActual}`);
+                const contLibro = document.getElementById('contenedor-libro');
+                if (libroObj) {
+                    document.getElementById('lbl-libro').innerText = libroObj.nombre;
+                    contLibro.classList.remove('hidden');
+                } else {
+                    contLibro.classList.add('hidden');
+                }
+                
                 // NUEVO: Saludo en el menú principal
                 document.getElementById('menu-saludo-nombre').innerText = `¡Hola, ${alumnoActual.nombre}!`;
                 document.getElementById('menu-saludo-id').innerText = `ID: ${alumnoActual.idOriginal}`;
@@ -1511,7 +1521,10 @@
             } else {
                 let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
                 if (!matchHorario) return null;
-                hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+                let hora = parseInt(matchHorario[1], 10);
+                if (tempHorario.includes('P') && hora < 12) hora += 12;
+                if (tempHorario.includes('A') && hora === 12) hora = 0;
+                hStr = hora.toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
             }
 
             // Determinar texto a buscar (Solo nivel actual exacto)
