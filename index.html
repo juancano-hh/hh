@@ -221,8 +221,8 @@
         <!-- PASO 2: BOTONES PRINCIPALES -->
         <div id="menu-principal" class="hidden">
             <div class="text-center mb-4">
-                <h2 id="menu-saludo-nombre" class="text-xl font-bold text-gray-800"></h2>
-                <p id="menu-saludo-id" class="text-sm font-mono text-gray-500"></p>
+                <h2 id="menu-saludo-nombre" class="text-lg font-bold text-gray-800"></h2>
+                <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
             </div>
             <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
             <div class="grid grid-cols-2 gap-3">
@@ -453,6 +453,10 @@
                     <p class="text-2xl mb-1">✅</p>
                     <p class="font-bold text-green-800 text-sm">¡Solicitud enviada!</p>
                     <p class="text-xs text-green-600 mt-1">Te contactaremos pronto con los detalles.</p>
+                    <div id="rec-link-container" class="hidden mt-3">
+                        <p class="text-xs text-green-700 mb-1">con este link puedes entrar a tu clase en linea:</p>
+                        <a id="rec-link" href="#" target="_blank" class="text-sm text-blue-600 underline break-all font-bold">link</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1550,6 +1554,7 @@
                     const crn = f[9] ? String(f[9]).trim() : '';
                     const horario = f[11] ? String(f[11]).trim() : '';
                     const docente = f[14] ? String(f[14]).trim() : '';
+                    const link = f[15] ? String(f[15]).trim() : '';
                     if (!crn || !horario) continue;
 
                     // Convertir horario a formato HH:MM
@@ -1576,7 +1581,8 @@
                         horario: horario,
                         horaFmt: horaFmt,
                         diasLabel: diasLabel,
-                        docente: docente
+                        docente: docente,
+                        link: link
                     });
                 }
                 console.log('Horarios recuperación cargados:', horariosRecuperacion.length);
@@ -1711,6 +1717,7 @@
                         opt.dataset.frecuencia = h.frecuencia;
                         opt.dataset.docente = h.docente;
                         opt.dataset.horafmt = h.horaFmt;
+                        opt.dataset.link = h.link;
                         sel.appendChild(opt);
                     }
                 });
@@ -1980,6 +1987,16 @@
                 document.getElementById('rec-paso-3').classList.add('hidden');
                 document.getElementById('rec-indicador-1').parentElement.classList.add('hidden');
                 document.getElementById('rec-exito').classList.remove('hidden');
+
+                const linkClase = optSel ? optSel.dataset.link : '';
+                const recLinkContainer = document.getElementById('rec-link-container');
+                const recLink = document.getElementById('rec-link');
+                if (linkClase) {
+                    recLink.href = linkClase;
+                    recLinkContainer.classList.remove('hidden');
+                } else {
+                    recLinkContainer.classList.add('hidden');
+                }
 
                 // Abrir WhatsApp automáticamente para notificar
                 const numeroWa = '522208731288';
