@@ -396,6 +396,7 @@
                         <select id="rec-tipo" class="rec-select" onchange="filtrarHorariosPorTipo()">
                             <option value="">-- Selecciona el tipo --</option>
                         </select>
+                        <p id="nota-entre-semana" class="hidden text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-2">Entre semana solo se puede recuperar el mismo día.</p>
                     </div>
 
                     <div class="mb-3" id="rec-horario-container" style="display:none">
@@ -642,7 +643,7 @@
 
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
-                        modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre,
+                        modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
                         prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                         cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
                         cargoServicio: tieneServicio ? 90 : 0,
@@ -836,7 +837,7 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
-                    lblCursosPagados.innerText = `Cursos pagados: ${totalCourses}`;
+                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen}`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
                     secVolumen.classList.add('hidden');
@@ -1496,11 +1497,22 @@
 
         function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado) {
             if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
-            
-            // Extraer estrictamente los números de la hora (ej. "09:00 a. m." -> "09:00")
-            let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
-            if (!matchHorario) return null;
-            let hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+            let hStr;
+            let tempHorario = String(horarioOriginal).toUpperCase().replace(/[\.\s]/g, '');
+
+            if (esSabado && tempHorario === 'SM') {
+                if (programaNombre === 'KIDS' || programaNombre === 'TEENS' || programaNombre === 'PTEEN') {
+                    hStr = '10:00';
+                } else {
+                    hStr = '08:00';
+                }
+            } else if (esSabado && tempHorario === 'SV') {
+                hStr = '13:30';
+            } else {
+                let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
+                if (!matchHorario) return null;
+                hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+            }
 
             // Determinar texto a buscar (Solo nivel actual exacto)
             let textoBuscar = String(nivelActual);
@@ -1629,7 +1641,7 @@
             const esAdulto = (prog === 'ADULTO');
             const opciones = esAdulto
                 ? [
-                    { val: 'FF', txt: 'Lunes a Jueves (L-J)' },
+                    { val: 'FF', txt: 'Entre semana (lunes a jueves)' },
                     { val: 'SA', txt: 'Sábados' },
                     { val: 'DO', txt: 'Domingos' }
                   ]
@@ -1667,25 +1679,42 @@
             if (!tipo) {
                 contenedorH.style.display = 'none';
                 contenedorC.style.display = 'none';
+                const nota = document.getElementById('nota-entre-semana');
+                if (nota) nota.classList.add('hidden');
                 return;
             }
 
-            // Determinar códigos de subject según programa
-            const prog = alumnoActual.programaNombre;
+            const nota = document.getElementById('nota-entre-semana');
+            if (nota) {
+                if (tipo === 'FF') nota.classList.remove('hidden');
+                else nota.classList.add('hidden');
+            }
+
+            // Determinar códigos de subject según programaRaw (columna L de layout)
+            const raw = (alumnoActual.programaRaw || '').toUpperCase();
             let subjectCodes = [];
-            if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
-            else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
-            else if (prog === 'TEENS') subjectCodes = ['TEEN'];
-            else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+            if (raw.includes('ADULTOS')) subjectCodes = ['ADUL'];
+            else if (raw.includes('PTEEN')) subjectCodes = ['PTEE'];
+            else if (raw.includes('TEENS')) subjectCodes = ['TEEN'];
+            else if (raw.includes('TEACHERS')) subjectCodes = ['TEAC'];
+            else if (raw.includes('CONVERSATION')) subjectCodes = ['ICC'];
+            else if (raw.includes('TOEFL')) subjectCodes = ['TOEF'];
+            else {
+                // Fallback a lógica anterior si no coincide
+                const prog = alumnoActual.programaNombre;
+                if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
+                else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
+                else if (prog === 'TEENS') subjectCodes = ['TEEN'];
+                else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+            }
 
             const nivel = alumnoActual.nivelActual;
             // Filtrar horarios por subject + frequency + nivel
             let filtrados = horariosRecuperacion.filter(h => {
                 const cumpleSubject  = subjectCodes.includes(h.subjectCode);
                 const cumpleFrecuencia = h.frecuencia === tipo;
-                const cumpleNivelIni = h.nivelIni === null || h.nivelIni <= nivel;
-                const cumpleNivelFin = h.nivelFin === null || h.nivelFin >= nivel;
-                return cumpleSubject && cumpleFrecuencia && cumpleNivelIni && cumpleNivelFin;
+                const cumpleNivel = h.nivelFin === nivel;
+                return cumpleSubject && cumpleFrecuencia && cumpleNivel;
             });
 
             // Ordenar de más temprano a más tarde (usando h.horario que es un número como '0900', '1600')
@@ -1708,7 +1737,7 @@
                 sel.disabled = false;
                 const vistos = new Set();
                 filtrados.forEach(h => {
-                    const txt = `${h.horaFmt} • ${h.diasLabel}`;
+                    const txt = h.horaFmt;
                     if (!vistos.has(txt)) {
                         vistos.add(txt);
                         const opt = document.createElement('option');
