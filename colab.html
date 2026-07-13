@@ -6,51 +6,285 @@
     <title>Portal de Costos - Alumnos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* ===== MODAL CALENDARIO ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .modal-box {
+            width: 100%; max-width: 980px;
+            margin: 8px auto;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.55);
+            border-bottom: 1px solid rgba(200,210,230,0.4);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .modal-header-title { font-size: 0.9rem; font-weight: 700; color: #2b2638; }
+        .modal-header-sub { font-size: 0.62rem; color: #6b7280; margin-top: 1px; }
+        .modal-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+        .cal-sel {
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(200,210,230,0.5);
+            border-radius: 30px;
+            padding: 4px 10px;
+            font-size: 0.67rem;
+            color: #2d2a3b;
+            outline: none;
+            cursor: pointer;
+        }
+        .cal-sel:disabled { opacity: 0.4; cursor: not-allowed; }
+        .cal-close-btn {
+            background: rgba(220,220,235,0.7);
+            border: none; border-radius: 50%;
+            width: 28px; height: 28px;
+            font-size: 1rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: #4a4560; transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .cal-close-btn:hover { background: rgba(200,200,220,0.9); }
+        .cal-body { padding: 12px 12px 16px; }
+        .cal-info-bar {
+            text-align: center; font-size: 0.62rem; color: #4a435a;
+            background: rgba(255,255,255,0.4); padding: 4px 12px;
+            border-radius: 20px; margin-bottom: 10px;
+            border: 1px solid rgba(200,210,230,0.25);
+        }
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+        .cal-mes {
+            background: rgba(255,255,255,0.22);
+            border-radius: 14px; padding: 8px 5px 10px;
+            border: 1px solid rgba(200,210,230,0.22);
+        }
+        .cal-mes-tit {
+            text-align: center; font-size: 0.65rem; font-weight: 700;
+            color: #2d2a3b; margin-bottom: 5px; letter-spacing: 0.03em;
+        }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; margin-bottom: 3px; text-align: center; }
+        .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
+        .cal-wday.dom { color: #b0a8c0; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+        .cal-d {
+            aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
+            border-radius: 7px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(200,210,230,0.18);
+            font-size: 0.53rem; font-weight: 450; color: #2d2a3b;
+            cursor: default; transition: transform 0.1s;
+        }
+        .cal-d.otro-mes { opacity: 0.12; }
+        .cal-d.cal-clase  { background: rgba(100,180,255,0.28) !important; border-color: rgba(100,180,255,0.22) !important; }
+        .cal-d.cal-sab    { background: rgba(33,150,243,0.35)  !important; border-color: rgba(33,150,243,0.28)  !important; }
+        .cal-d.cal-dom    { background: rgba(255,255,255,0.04) !important; color: #b0a8c0 !important; opacity: 0.38; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.48)   !important; border-color: rgba(76,200,80,0.5)   !important; color: #1a4a1a !important; font-weight: 700; opacity: 1 !important; }
+        .cal-d.cal-fin    { background: rgba(186,104,200,0.52) !important; border-color: rgba(186,104,200,0.5) !important; color: #4a1a5a !important; font-weight: 700; opacity: 1 !important; }
+        .cal-d.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,180,50,0.30) !important; border-color: rgba(255,180,50,0.32) !important; }
+        .cal-d.cal-dom.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,255,255,0.04) !important; color: #b0a8c0 !important; opacity: 0.38; }
+        .cal-d.cal-hoy {
+            border: 2px solid #2d2a3b !important; font-weight: 800 !important;
+            transform: scale(1.1); z-index: 5;
+            box-shadow: 0 0 0 1px rgba(45,42,59,0.12);
+        }
+        .cal-d.cal-hoy.cal-dom { border-color: #2d2a3b !important; opacity: 1 !important; color: #2d2a3b !important; background: rgba(255,255,255,0.2) !important; }
+        .cal-leyenda {
+            margin-top: 12px; display: flex; flex-wrap: wrap;
+            justify-content: center; gap: 5px 12px;
+            font-size: 0.57rem; color: #3e3850;
+            padding-top: 10px;
+            border-top: 1px solid rgba(200,210,230,0.25);
+        }
+        .cal-ley-item { display: flex; align-items: center; gap: 3px; }
+        .cal-cuadro { display: inline-block; width: 11px; height: 11px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08); }
+        .cal-cuadro.verde  { background: rgba(76,200,80,0.48); }
+        .cal-cuadro.morado { background: rgba(186,104,200,0.52); }
+        .cal-cuadro.naranja{ background: rgba(255,180,50,0.30); }
+        .cal-cuadro.azul-l { background: rgba(100,180,255,0.28); }
+        .cal-cuadro.azul   { background: rgba(33,150,243,0.35); }
+        .cal-cuadro.hoy    { background: transparent; border: 2px solid #2d2a3b; }
+        @media (max-width: 720px) { .cal-grid { grid-template-columns: repeat(3,1fr); gap: 6px; } }
+        @media(max-width:520px){
+            .cal-grid { grid-template-columns: repeat(2,1fr); gap: 4px; }
+            .cal-d { font-size: 0.47rem; }
+            .modal-controls { gap: 4px; }
+        }
+        /* ===== MODAL RECUPERACIÓN ===== */
+        .rec-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .rec-box {
+            width: 100%; max-width: 500px;
+            margin: 24px auto;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+        .rec-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            padding: 20px 20px 16px;
+            color: #fff;
+        }
+        .rec-body { padding: 20px; }
+        .rec-label { display: block; font-size: 0.75rem; font-weight: 700; color: #4b5563; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rec-input { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; outline: none; transition: border-color 0.2s; background: #f9fafb; }
+        .rec-input:focus { border-color: #6366f1; background: #fff; }
+        .rec-select { width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; background: #f9fafb; outline: none; cursor: pointer; }
+        .rec-select:focus { border-color: #6366f1; }
+        .dia-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 12px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: #f9fafb;
+            cursor: pointer; font-size: 0.8rem; color: #374151;
+            transition: all 0.15s; user-select: none;
+        }
+        .dia-btn.selected { border-color: #6366f1; background: #eef2ff; color: #4f46e5; font-weight: 700; }
+        .dia-btn input { accent-color: #6366f1; }
+        .rec-submit {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff; font-weight: 800; font-size: 0.95rem;
+            border: none; border-radius: 12px; cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+        }
+        .rec-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+        .rec-submit:active { transform: translateY(0); }
+        .rec-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        /* ===== MINI CALENDAR RECUPERACIÓN ===== */
+        .mini-cal-header { background: #6366f1; color: #fff; text-align: center; padding: 8px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; }
+        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; background: #fff; }
+        .mini-cal-day-label { text-align: center; font-size: 0.6rem; font-weight: 700; color: #9ca3af; padding: 3px 0; }
+        .mini-cal-day-label.viernes { color: #fca5a5; }
+        .mini-cal-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer;
+            transition: all 0.12s; border: 1.5px solid transparent;
+        }
+        .mini-cal-cell.empty { cursor: default; }
+        .mini-cal-cell.fuera { color: #d1d5db; cursor: not-allowed; }
+        .mini-cal-cell.viernes { color: #fca5a5; background: #fff1f2; cursor: not-allowed; }
+        .mini-cal-cell.disponible { color: #374151; background: #f3f4f6; }
+        .mini-cal-cell.disponible:hover { background: #e0e7ff; border-color: #a5b4fc; color: #4338ca; }
+        .mini-cal-cell.seleccionado { background: #6366f1; color: #fff; border-color: #4f46e5; }
+        .mini-cal-cell.hoy-rec { border-color: #6366f1; }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
-
     <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
-            <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
-        </div>
 
-        <!-- Selector de Vista -->
-        <div class="flex bg-gray-100 p-1 rounded-xl mb-6">
-            <button id="btn-vista-alumno" onclick="cambiarVista('alumno')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 bg-white text-gray-800 shadow-sm">
-                🎓 Vista Alumno
-            </button>
-            <button id="btn-vista-cobrador" onclick="cambiarVista('cobrador')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 text-gray-500 hover:text-gray-800">
-                💼 Vista Cobrador
-            </button>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label id="lbl-busqueda" class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID</label>
-                <div class="flex gap-2">
-                    <div class="relative flex-1">
-                        <input type="text" id="alumno-id" placeholder="Ej. ID, Nombre o Celular" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeyup="manejarInputBusqueda(event)">
-                        <div id="resultados-busqueda" class="hidden absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg divide-y divide-gray-100"></div>
+        <!-- PASO 1: BÚSQUEDA -->
+        <div id="seccion-busqueda">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
+                <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
+            </div>
+            <div class="space-y-4">
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID, Nombre o Celular</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="alumno-id" placeholder="Ej. 991122 o Juan Pérez" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()" oninput="filtrarAlumnosBuscador()" autocomplete="off">
+                        <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
+                            Buscar
+                        </button>
                     </div>
-                    <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
-                        Buscar
-                    </button>
+                    <ul id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 max-h-64 overflow-y-auto hidden shadow-xl divide-y divide-gray-100"></ul>
                 </div>
             </div>
         </div>
 
-        <div id="ficha-alumno" class="hidden mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+        <!-- PASO 2: BOTONES PRINCIPALES -->
+        <div id="menu-principal" class="hidden">
+            <div class="text-center mb-4">
+                <h2 id="menu-saludo-nombre" class="text-lg font-bold text-gray-800"></h2>
+                <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
+            </div>
+            <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">💳</span>
+                    <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
+                </button>
+                <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">🔁</span>
+                    <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                </button>
+            </div>
+            <p class="text-center mt-4">
+                <button onclick="regresarBusqueda()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-6 transition-all duration-200 bg-gray-50 hover:bg-gray-100">
+                    ↩ Buscar otra matrícula
+                </button>
+            </p>
+        </div>
+
+        <!-- ===== FICHA ALUMNO (se muestra al elegir una opción) ===== -->
+        <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+            <!-- Botón regresar al menú -->
+            <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 mb-2">
+                ← Cambiar opción
+            </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
+            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all"></span></p>
             <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all"></span></p>
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+            <p id="contenedor-salon" class="hidden text-sm text-gray-700"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
+            <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
-            <p class="text-sm text-gray-700"><strong>Servicio Base:</strong> <span id="lbl-servicio-base" class="font-bold"></span></p>
+
+            <!-- ===== FECHAS DE PERIODO (solo en vista pagos) ===== -->
+            <div id="seccion-periodos" class="hidden pt-3 border-t border-gray-200 space-y-2">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
+                <div class="bg-blue-50 rounded-xl p-3 space-y-1 border border-blue-100">
+                    <p class="text-xs font-bold text-blue-700">📚 Curso actual (en curso)</p>
+                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
+                </div>
+                <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100 relative">
+                    <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
+                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
+                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
+                    <div id="seccion-volumen" class="hidden mt-2 pt-2 border-t border-green-200">
+                        <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
+                        <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
+                    </div>
+                </div>
+                <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    📅 Ver Mi Calendario de Clases
+                </button>
+            </div>
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -65,6 +299,7 @@
 
             <div id="info-promo-adicional" class="hidden text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-yellow-800 text-center font-medium"></div>
 
+            <!-- SECCIÓN LIBROS CON CHECKBOXES INDIVIDUALES -->
             <div id="libro-container" class="hidden bg-blue-50 p-4 rounded-xl border border-blue-200 space-y-3">
                 <div class="flex items-center justify-between">
                     <div>
@@ -72,28 +307,31 @@
                         <p id="libro-mensaje" class="text-xs text-blue-700"></p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <span id="libro-toggle-label" class="text-xs text-gray-600">Agregar</span>
+                        <span id="libro-toggle-label" class="text-xs text-gray-600">Incluir todos</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="libro-toggle" class="sr-only peer" checked>
                             <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                         </label>
                     </div>
                 </div>
-                <div id="lista-libros-desglose" class="hidden space-y-2 border-t border-blue-100 pt-2"></div>
+                <div id="lista-libros-detalle" class="space-y-2"></div>
             </div>
 
-            <!-- Control de Cargo de Servicio (solo visible en vista cobrador) -->
-            <div id="servicio-override-container" class="hidden bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-bold text-gray-800">⚙️ Cargo por Servicio</p>
-                    <p class="text-xs text-gray-600">Aplicar cargo extra de $90 por curso.</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs text-gray-600">Cobrar</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="servicio-toggle" class="sr-only peer" onchange="actualizarCalculos()">
-                        <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                    </label>
+            <!-- CARGO POR SERVICIO -->
+            <div id="servicio-container" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-purple-800">Cargo por Servicio</p>
+                        <p class="text-xs text-purple-700">Aplicar cargo extra de $90 por curso.</p>
+                        <p id="servicio-status" class="text-[10px] font-bold mt-1 uppercase"></p>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span id="servicio-toggle-label" class="text-xs text-gray-600">Cobrar</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="servicio-toggle" onchange="actualizarCalculos()" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-purple-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -106,56 +344,6 @@
                 <div class="flex justify-between text-green-700">
                     <span id="lbl-uni-desc">Precio con dto unitario:</span>
                     <span id="uni-desc" class="font-bold">$0.00</span>
-                </div>
-            </div>
-
-            <!-- Comparativa de Servicios (solo visible en vista cobrador) -->
-            <div id="comparativa-servicios" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <p class="font-bold text-slate-700 uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <span>📊</span> Comparativa de Servicios (Cursos + Gran Total)
-                </p>
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <!-- Sin Servicio -->
-                    <div class="bg-white p-3 rounded-lg border border-slate-200 space-y-1">
-                        <span class="font-bold text-slate-800 block border-b pb-1 mb-1 text-[11px]">Sin Servicio</span>
-                        <div class="flex justify-between">
-                            <span class="text-slate-500">Curso Lista:</span>
-                            <span id="comp-lista-sin" class="font-medium text-slate-700">$0.00</span>
-                        </div>
-                        <div class="flex justify-between text-green-700">
-                            <span>Curso Dto:</span>
-                            <span id="comp-desc-sin" class="font-bold">$0.00</span>
-                        </div>
-                        <div class="border-t border-slate-100 pt-1 mt-1 flex justify-between font-medium text-slate-800">
-                            <span>Cursos:</span>
-                            <span id="comp-total-cursos-sin">$0.00</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-slate-900 border-t border-dashed border-slate-200 pt-1 mt-1">
-                            <span>Gran Total:</span>
-                            <span id="comp-total-general-sin" class="text-blue-600">$0.00</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Con Servicio -->
-                    <div class="bg-blue-50/40 p-3 rounded-lg border border-blue-100 space-y-1">
-                        <span class="font-bold text-blue-800 block border-b pb-1 mb-1 text-[11px]">Con Servicio (+90)</span>
-                        <div class="flex justify-between">
-                            <span class="text-blue-600">Curso Lista:</span>
-                            <span id="comp-lista-con" class="font-medium text-slate-700">$0.00</span>
-                        </div>
-                        <div class="flex justify-between text-green-700">
-                            <span>Curso Dto:</span>
-                            <span id="comp-desc-con" class="font-bold">$0.00</span>
-                        </div>
-                        <div class="border-t border-blue-100/50 pt-1 mt-1 flex justify-between font-medium text-blue-800">
-                            <span>Cursos:</span>
-                            <span id="comp-total-cursos-con">$0.00</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-blue-950 border-t border-dashed border-blue-200 pt-1 mt-1">
-                            <span>Gran Total:</span>
-                            <span id="comp-total-general-con" class="text-blue-700">$0.00</span>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -187,6 +375,37 @@
                 </div>
             </div>
 
+            <!-- DESGLOSE DETALLADO -->
+            <div id="desglose-container" class="bg-white p-4 rounded-xl border border-gray-200 space-y-2 text-xs text-gray-700">
+                <p class="font-bold text-gray-800 uppercase tracking-wider mb-2 text-[10px] text-center bg-gray-100 py-1 rounded">Desglose Detallado</p>
+                <div class="flex justify-between items-center">
+                    <span>Precio por curso <b class="text-red-600">SIN</b> servicio:</span>
+                    <span id="desglose-uni-sin" class="font-bold"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span>Precio por curso <b class="text-purple-600">CON</b> servicio:</span>
+                    <span id="desglose-uni-con" class="font-bold"></span>
+                </div>
+                <hr class="my-2 border-gray-100">
+                <div class="flex justify-between items-center">
+                    <span>Total cursos <b class="text-red-600">SIN</b> servicio:</span>
+                    <span id="desglose-tot-cur-sin" class="font-bold"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span>Total cursos <b class="text-purple-600">CON</b> servicio:</span>
+                    <span id="desglose-tot-cur-con" class="font-bold"></span>
+                </div>
+                <hr class="my-2 border-gray-100">
+                <div class="flex justify-between items-center">
+                    <span>Total con libro <b class="text-red-600">SIN</b> servicio:</span>
+                    <span id="desglose-tot-lib-sin" class="font-bold text-sm"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span>Total con libro <b class="text-purple-600">CON</b> servicio:</span>
+                    <span id="desglose-tot-lib-con" class="font-bold text-sm"></span>
+                </div>
+            </div>
+
             <div class="pt-2">
                 <button onclick="enviarSolicitudWhatsApp()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition duration-200 flex items-center justify-center gap-2">
                     <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -198,236 +417,492 @@
         </div>
 
         <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
+
+        <!-- ===== FORMULARIO INLINE DE RECUPERACIÓN (WIZARD) ===== -->
+        <div id="seccion-recuperacion" class="hidden mt-4 space-y-4">
+            <div class="border-t border-purple-100 pt-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-4">🔁 Clase de Recuperación</p>
+
+                <!-- Indicador de pasos -->
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <span id="rec-indicador-1" class="text-xs font-bold text-purple-600 bg-purple-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">1</span>
+                    <div class="flex-1 border-t-2 border-gray-200 mx-2 transition-all" id="rec-linea-1"></div>
+                    <span id="rec-indicador-2" class="text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">2</span>
+                    <div class="flex-1 border-t-2 border-gray-200 mx-2 transition-all" id="rec-linea-2"></div>
+                    <span id="rec-indicador-3" class="text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all">3</span>
+                </div>
+
+                <div id="rec-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 text-center mb-3"></div>
+
+                <!-- WIZARD: PASO 1 (Datos de contacto y clase en línea) -->
+                <div id="rec-paso-1" class="space-y-4 transition-all">
+                    <div class="mb-3">
+                        <label class="rec-label">Correo electrónico</label>
+                        <input type="email" id="rec-correo" class="rec-input" placeholder="tu@correo.com">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="rec-label">¿Qué día quieres recuperar tu clase en línea?</label>
+                        <select id="rec-tipo" class="rec-select" onchange="filtrarHorariosPorTipo()">
+                            <option value="">-- Selecciona el tipo --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3" id="rec-horario-container" style="display:none">
+                        <label class="rec-label">Horario disponible para recuperar</label>
+                        <select id="rec-horario" class="rec-select">
+                            <option value="">-- Selecciona un horario --</option>
+                        </select>
+                        <p id="rec-horario-aviso" class="text-xs text-orange-500 mt-1 hidden">No hay horarios disponibles para este tipo de clase.</p>
+                    </div>
+
+                    <button onclick="avanzarPasoRec(2)" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200 mt-2">
+                        Siguiente →
+                    </button>
+                </div>
+
+                <!-- WIZARD: PASO 2 (Calendario de falta) -->
+                <div id="rec-paso-2" class="hidden space-y-4 transition-all">
+                    <div class="mb-3">
+                        <label class="rec-label text-orange-600">¿Qué día(s) no vendrás de tu clase presencial?</label>
+                        <p class="text-xs text-gray-400 mb-3" id="rec-cal-instrucciones">Selecciona los días que vas a faltar (según tu programa original).</p>
+                        <div id="rec-mini-cal" class="rounded-xl border border-orange-100 overflow-hidden bg-orange-50/30"></div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="retrocederPasoRec(1)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
+                            ← Atrás
+                        </button>
+                        <button onclick="avanzarPasoRec(3)" class="w-2/3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
+                            Siguiente →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- WIZARD: PASO 3 (Resumen y Envío) -->
+                <div id="rec-paso-3" class="hidden space-y-4 transition-all">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-800 text-sm mb-3 border-b pb-2">📋 Resumen de tu solicitud</h4>
+                        <div class="space-y-2 text-sm text-gray-600" id="rec-resumen-container">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="retrocederPasoRec(2)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
+                            ← Atrás
+                        </button>
+                        <button id="rec-btn-enviar" onclick="enviarFormRecuperacion()" class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
+                            Enviar Solicitud
+                        </button>
+                    </div>
+                </div>
+
+                <!-- MENSAJE EXITO -->
+                <div id="rec-exito" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 text-center mt-3">
+                    <p class="text-2xl mb-1">✅</p>
+                    <p class="font-bold text-green-800 text-sm">¡Solicitud enviada!</p>
+                    <p class="text-xs text-green-600 mt-1">Te contactaremos pronto con los detalles.</p>
+                    <div id="rec-link-container" class="hidden mt-3">
+                        <p class="text-xs text-green-700 mb-1">con este link puedes entrar a tu clase en linea:</p>
+                        <a id="rec-link" href="#" target="_blank" class="text-sm text-blue-600 underline break-all font-bold">link</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL CALENDARIO ===== -->
+    <div id="modal-calendario" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalCalendario()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div>
+                    <p class="modal-header-title">📅 Mi Calendario de Clases</p>
+                    <p id="cal-subtitulo" class="modal-header-sub"></p>
+                </div>
+                <div class="modal-controls">
+                    <!-- Selects deshabilitados para mostrar la config al usuario sin permitir que la cambie -->
+                    <select id="cal-modalidad" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
+                        <option value="04">Adultos</option>
+                        <option value="08">Kids / Teens</option>
+                    </select>
+                    <select id="cal-tipoClase" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
+                        <option value="entre-semana">L - J</option>
+                        <option value="sabado">Sábados</option>
+                    </select>
+                    <select id="cal-filtroMes" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
+                        <option value="non">Meses NON</option>
+                        <option value="par">Meses PAR</option>
+                    </select>
+                    <button class="cal-close-btn" onclick="cerrarModalCalendario()">✕</button>
+                </div>
+            </div>
+            <div class="cal-body">
+                <div id="cal-info-bar" class="cal-info-bar">Cargando...</div>
+                <div id="cal-grid" class="cal-grid">
+                    <div style="grid-column:1/-1;text-align:center;padding:20px;color:#666;font-size:0.8rem;">Cargando calendario...</div>
+                </div>
+                <div class="cal-leyenda">
+                    <div class="cal-ley-item"><span class="cal-cuadro verde"></span> Inicio</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro morado"></span> Fin</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro naranja"></span> Pago</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro azul-l"></span> Clase L-J</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro azul"></span> Clase Sáb</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro hoy"></span> Hoy</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ==================== CONFIGURACIÓN DE URLs ====================
+        // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
-        const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E'; 
+        const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E';
         const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
-        const URL_LIBROS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
+        const URL_LIBROS  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
+        const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
+        const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
+        // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHKsVTMF67mzqWW0oXFxCthojsH56S94OvFoaWBJHDp3UyWOaNrbvLyLskdORmENAzPg/exec';
+        const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
 
-        // ==================== VARIABLES GLOBALES ====================
+        // Variables globales existentes
         let baseAlumnos = {};
-        let tablaPrecios = {}; 
+        let alumnosPorIdNormalizado = new Map();
+        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
+        let tablaPrecios = {};
         let promosVolumen = [];
         let textoPromocionalF1 = "";
         let fechaVigenciaBecaBase = null;
         let librosMap = new Map();
         let promosLibros = [];
-
         let alumnoActual = null;
         let porcentajeDescuentoActual = 0;
-        let totalListaCursos = 0;
-        let totalConDescuentoCursos = 0;
-        let totalListaLibrosOriginal = 0;
+        let totalConDescuentoSinServicio = 0;
         let totalListaLibrosFinal = 0;
-        let libroActivo = true;
-        let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0, precioFinal: 0 };
-        let promoActiva = null;
-
-        // Variables del Modo Cobrador
-        let vistaActual = 'alumno';
+        let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0 };
         let librosSeleccionadosIndices = [];
         let ultimosLibrosClave = "";
 
+        // ===== Periodos del calendario =====
+        let periodosCalendario = [];
+        // ===== Horarios de recuperación =====
+        let horariosRecuperacion = [];
+
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
 
-        // ==================== FUNCIONES AUXILIARES ====================
-        function limpiarTelefono(valor) {
-            if (!valor || valor === "") return "No registrado";
-            let limpio = valor.replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
-            limpio = limpio.replace(/^,|,$/g, '');
-            return limpio || "No registrado";
-        }
-
-        function parseFecha(fechaRaw) {
-            if (!fechaRaw) return null;
-            if (fechaRaw instanceof Date && !isNaN(fechaRaw)) return fechaRaw;
-            if (typeof fechaRaw === 'number') {
+        // ==================== PARSEO DE FECHAS (existente) ====================
+        function parseFecha(valor) {
+            if (!valor) return null;
+            if (valor instanceof Date && !isNaN(valor)) return valor;
+            if (typeof valor === 'number') {
                 const fechaBase = new Date(1899, 11, 30);
-                return new Date(fechaBase.getTime() + fechaRaw * 86400000);
+                return new Date(fechaBase.getTime() + valor * 86400000);
             }
-            if (typeof fechaRaw === 'string') {
-                let fechaStr = fechaRaw.trim();
-                if (fechaStr.startsWith("Date(") && fechaStr.endsWith(")")) {
-                    let contenido = fechaStr.substring(5, fechaStr.length - 1);
+            if (typeof valor === 'string') {
+                let str = valor.trim();
+                if (str.startsWith("Date(") && str.endsWith(")")) {
+                    let contenido = str.substring(5, str.length - 1);
                     let partes = contenido.split(',');
                     if (partes.length === 3) {
-                        let anio = parseInt(partes[0], 10);
-                        let mes = parseInt(partes[1], 10);
-                        let dia = parseInt(partes[2], 10);
-                        if (!isNaN(anio) && !isNaN(mes) && !isNaN(dia)) {
-                            return new Date(anio, mes, dia);
-                        }
+                        let anio = parseInt(partes[0], 10), mes = parseInt(partes[1], 10), dia = parseInt(partes[2], 10);
+                        if (!isNaN(anio) && !isNaN(mes) && !isNaN(dia)) return new Date(anio, mes, dia);
                     }
                 }
-                let partes = fechaStr.split('/');
+                let partes = str.split(/[-/]/);
                 if (partes.length === 3) {
-                    let dia = parseInt(partes[0], 10);
-                    let mes = parseInt(partes[1], 10) - 1;
-                    let anio = parseInt(partes[2], 10);
-                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
-                        return new Date(anio, mes, dia);
-                    }
+                    let dia = parseInt(partes[0], 10), mes = parseInt(partes[1], 10) - 1, anio = parseInt(partes[2], 10);
+                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) return new Date(anio, mes, dia);
                 }
-                let d = new Date(fechaStr);
+                let d = new Date(str);
                 if (!isNaN(d.getTime())) return d;
             }
             return null;
         }
 
-        function formatearFechaLarga(fecha) {
-            if (!fecha || isNaN(fecha.getTime())) return null;
-            const opciones = { year: 'numeric', month: 'long', day: 'numeric' };
-            let fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
-            fechaFormateada = fechaFormateada.replace(',', '');
-            const partes = fechaFormateada.split(' ');
-            if (partes.length === 3) {
-                return `${partes[0]} de ${partes[1]} del ${partes[2]}`;
-            }
-            return fechaFormateada;
-        }
-
-        // ==================== CARGA DE ALUMNOS CON CSV (VERSIÓN CORREGIDA) ====================
+        // ==================== CARGA DE ALUMNOS (modificado: lee columna B) ====================
         async function cargarAlumnos() {
-            const errorBox = document.getElementById('error-box');
             try {
                 const response = await fetch(LAYOUT_CSV_URL);
                 const csvText = await response.text();
-                
-                // Forzar encoding UTF-8
-                const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
-                const text = await blob.text();
-                
-                const result = Papa.parse(text, { 
-                    header: false, 
-                    skipEmptyLines: true,
-                    encoding: "UTF-8"
-                });
+                const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
                 const filas = result.data;
                 baseAlumnos = {};
-
-                console.log("Total filas en CSV:", filas.length);
-
+                alumnosPorIdNormalizado.clear();
                 for (let idx = 0; idx < filas.length; idx++) {
                     const fila = filas[idx];
-                    
-                    // Verificar que la fila tenga suficientes columnas
-                    if (!fila || fila.length < 10) {
-                        continue;
-                    }
-
-                    // Obtener ID - columna 3 (cuarta columna)
-                    const idRaw = fila[3] ? String(fila[3]).trim() : "";
-                    // Si el ID está vacío o es "N/A", saltar
-                    if (!idRaw || idRaw === "" || idRaw.toUpperCase() === "N/A") {
-                        continue;
-                    }
-                    
-                    const id = idRaw.toUpperCase();
-                    
-                    // Obtener nombre - columna 6 (séptima columna)
-                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : '';
-                    if (!nombreAlumno || nombreAlumno === "") {
-                        continue; // Saltar filas sin nombre
-                    }
-
-                    let tieneServicio = false, esPrecioMoradoEspecial = false;
-                    // Condición - columna 43
+                    if (fila.length < 4) continue; // solo requiere al menos el ID (índice 3)
+                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
+                    if (!id) continue;
+                    let tieneServicio = false;
                     const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
-                    if (condicionTexto === "MORADO") esPrecioMoradoEspecial = true;
-                    else if (condicionTexto === "SERVICIO") tieneServicio = true;
-
+                    if (condicionTexto === "SERVICIO") tieneServicio = true;
+                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
                     let correoAlumno = 'No registrado';
                     if (fila[8]) correoAlumno = String(fila[8]).trim();
-
                     let celularAlumno = 'No registrado';
                     if (fila[9] && fila[9].toString().trim() !== "") {
-                        celularAlumno = limpiarTelefono(fila[9].toString().trim());
+                        let limpio = fila[9].toString().trim().replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
+                        celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
                     }
-
+                    // ====== Mostrar EXACTAMENTE lo que está en la columna K (índice 10) ======
                     const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
-
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
                     if (programaRaw.includes("PTEEN")) programaNombre = "PTEEN";
                     else if (programaRaw.includes("KIDS")) programaNombre = "KIDS";
                     else if (programaRaw.includes("TEENS")) programaNombre = "TEENS";
-                    
                     let programaTexto = "";
                     if (programaNombre === "PTEEN") programaTexto = "PTEEN";
                     else if (programaNombre === "KIDS") programaTexto = "Kids";
                     else if (programaNombre === "TEENS") programaTexto = "Teens";
                     else programaTexto = "Adulto";
-
-                    let programaCalculado = "04"; 
-                    if (programaRaw.includes("PTEEN") || programaRaw.includes("TEENS") || programaRaw.includes("KIDS")) {
-                        programaCalculado = "08";
-                    }
-
-                    // Curso siguiente - columna 14
+                    let programaCalculado = "04";
+                    if (programaRaw.includes("PTEEN") || programaRaw.includes("TEENS") || programaRaw.includes("KIDS")) programaCalculado = "08";
                     const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
                     let nivelSiguiente = 1;
                     const numeroMatch = cursoSiguienteText.match(/\d+/);
                     if (numeroMatch) nivelSiguiente = parseInt(numeroMatch[0]);
                     const nivelActual = Math.max(0, nivelSiguiente - 1);
                     const textoCursoVisualizado = cursoSiguienteText.replace(/\d+/, nivelActual);
-
-                    // Horario - columna 15
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
-                    let modalidadCalculada = "FFI"; 
+                    let modalidadCalculada = "FFI";
                     const horarioUpper = horarioTexto.toUpperCase();
-                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
-                        modalidadCalculada = "SA";
-                    } else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM")) {
-                        modalidadCalculada = "DO";
-                    }
-
-                    // Beca - columna 40
+                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) modalidadCalculada = "SA";
+                    else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM")) modalidadCalculada = "DO";
                     let becaVal = 0;
                     if (fila[40]) {
-                        const becaStr = String(fila[40]).replace('%', '').trim();
-                        becaVal = parseFloat(becaStr);
+                        becaVal = parseFloat(fila[40]);
                         if (isNaN(becaVal)) becaVal = 0;
                         if (becaVal > 1) becaVal = becaVal / 100;
                     }
+                    // ===== NUEVO: Periodo siguiente (columna B, índice 1) =====
+                    const periodoSiguiente = fila[1] ? String(fila[1]).trim() : '';
+                    // ===== NUEVO: Tipo de clase para el calendario =====
+                    // SA/SM/SV o DO/DOM → sábados; horas → entre semana
+                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+                    // ===== NUEVO: Cursos por volumen (columna AD, índice 29) =====
+                    const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
+                    // ===== NUEVO: Pago registrado (columna C, índice 2) =====
+                    const tieneR = fila[2] ? String(fila[2]).trim().toUpperCase() === 'R' : false;
 
-                    baseAlumnos[id] = {
-                        idOriginal: id,
-                        nombre: nombreAlumno,
-                        correo: correoAlumno,
-                        celular: celularAlumno,
-                        modalidad: modalidadTexto,
-                        programaTexto: programaTexto,
-                        programaNombre: programaNombre,
-                        prefijoMod: modalidadCalculada,
-                        programa: programaCalculado,
-                        nivelActual: nivelActual,
-                        cursoVisual: textoCursoVisualizado,
-                        horario: horarioTexto,
-                        beca: becaVal,
+                    // ===== NUEVO: Codigo de clase del alumno (columna M, índice 12) =====
+                    const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+
+                    const alumno = {
+                        idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
+                        modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre,
+                        prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
+                        cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
                         cargoServicio: tieneServicio ? 90 : 0,
-                        precioFijoMorado: esPrecioMoradoEspecial
+                        periodoSiguiente: periodoSiguiente,
+                        tipoClaseCal: tipoClaseCal,
+                        volumen: volumenInfo,
+                        tieneR: tieneR,
+                        codigoClase: codigoClaseLayout  // NUEVO
                     };
+                    baseAlumnos[id] = alumno;
+                    const idNorm = String(id).replace(/^0+/, '');
+                    if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                 }
-
-                console.log("✅ Alumnos cargados exitosamente:", Object.keys(baseAlumnos).length);
-                errorBox.classList.add('hidden');
-                
-                if (Object.keys(baseAlumnos).length === 0) {
-                    errorBox.innerText = "No se encontraron alumnos. Verifica que el CSV tenga datos en las columnas correctas.";
-                    errorBox.classList.remove('hidden');
-                }
+                console.log("Alumnos cargados:", Object.keys(baseAlumnos).length);
             } catch (error) {
                 console.error("Error cargando CSV:", error);
-                errorBox.innerText = `Error al cargar datos: ${error.message}`;
-                errorBox.classList.remove('hidden');
             }
         }
 
-        // ==================== CARGA DE PRECIOS (gviz) ====================
+        // ===== NUEVO: Parsear fecha formato DD/MM/YYYY del calendario =====
+        function parseFechaCalendario(fechaStr) {
+            if (!fechaStr) return null;
+            const p = fechaStr.split('/');
+            if (p.length !== 3) return null;
+            const dia = parseInt(p[0], 10), mes = parseInt(p[1], 10) - 1, anio = parseInt(p[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+            return new Date(anio, mes, dia);
+        }
+
+        // ===== NUEVO: Cargar CSV de periodos (mismo que usa calendario.html) =====
+        async function cargarPeriodosCalendario() {
+            try {
+                const response = await fetch(CAL_CSV_URL);
+                const csvText = await response.text();
+                const lineas = csvText.split('\n').filter(l => l.trim() !== '');
+                periodosCalendario = [];
+                for (let i = 1; i < lineas.length; i++) {
+                    const cols = lineas[i].split(',');
+                    if (cols.length < 3) continue;
+                    const periodo = cols[0].trim();
+                    const inicio = parseFechaCalendario(cols[1].trim());
+                    const fin    = parseFechaCalendario(cols[2].trim());
+                    if (periodo && inicio && fin) periodosCalendario.push({ periodo, inicio, fin });
+                }
+                console.log("Periodos calendario cargados:", periodosCalendario.length);
+            } catch (error) {
+                console.warn("Error cargando periodos calendario, usando fallback:", error);
+                periodosCalendario = [
+                    { periodo:'260401', inicio:new Date(2026,0,19),  fin:new Date(2026,1,15)  },
+                    { periodo:'260402', inicio:new Date(2026,1,16),  fin:new Date(2026,2,15)  },
+                    { periodo:'260403', inicio:new Date(2026,2,16),  fin:new Date(2026,3,19)  },
+                    { periodo:'260404', inicio:new Date(2026,3,20),  fin:new Date(2026,4,17)  },
+                    { periodo:'260405', inicio:new Date(2026,4,18),  fin:new Date(2026,5,14)  },
+                    { periodo:'260406', inicio:new Date(2026,5,15),  fin:new Date(2026,6,11)  },
+                    { periodo:'260407', inicio:new Date(2026,6,13),  fin:new Date(2026,7,9)   },
+                    { periodo:'260408', inicio:new Date(2026,7,10),  fin:new Date(2026,8,6)   },
+                    { periodo:'260409', inicio:new Date(2026,8,7),   fin:new Date(2026,9,4)   },
+                    { periodo:'260410', inicio:new Date(2026,9,5),   fin:new Date(2026,10,1)  },
+                    { periodo:'260411', inicio:new Date(2026,10,2),  fin:new Date(2026,10,29) },
+                    { periodo:'260412', inicio:new Date(2026,10,30), fin:new Date(2026,11,20) },
+                    { periodo:'260801', inicio:new Date(2026,0,19),  fin:new Date(2026,2,15)  },
+                    { periodo:'260803', inicio:new Date(2026,2,16),  fin:new Date(2026,4,17)  },
+                    { periodo:'260805', inicio:new Date(2026,4,18),  fin:new Date(2026,6,12)  },
+                    { periodo:'260807', inicio:new Date(2026,6,13),  fin:new Date(2026,8,6)   },
+                    { periodo:'260809', inicio:new Date(2026,8,7),   fin:new Date(2026,10,1)  },
+                    { periodo:'260811', inicio:new Date(2026,10,2),  fin:new Date(2026,11,20) },
+                    { periodo:'260802', inicio:new Date(2026,1,16),  fin:new Date(2026,3,19)  },
+                    { periodo:'260804', inicio:new Date(2026,3,20),  fin:new Date(2026,5,14)  },
+                    { periodo:'260806', inicio:new Date(2026,5,15),  fin:new Date(2026,7,9)   },
+                    { periodo:'260808', inicio:new Date(2026,7,10),  fin:new Date(2026,9,4)   },
+                    { periodo:'260810', inicio:new Date(2026,9,5),   fin:new Date(2026,10,29) }
+                ];
+            }
+        }
+
+        // ===== NUEVO: Calcular periodo anterior =====
+        function calcularPeriodoAnterior(periodo) {
+            if (!periodo || periodo.length < 6) return null;
+            const anio = periodo.substring(0, 2);
+            const mod  = periodo.substring(2, 4);
+            const mesNum = parseInt(periodo.substring(4, 6), 10);
+            if (isNaN(mesNum)) return null;
+            // Adultos: -1 mes; Kids/08: -2 meses
+            let mesAnterior = mesNum - (mod === '04' ? 1 : 2);
+            if (mesAnterior <= 0) mesAnterior += 12;
+            return `${anio}${mod}${String(mesAnterior).padStart(2, '0')}`;
+        }
+
+        // ===== NUEVO: Sumar periodos (volumen) =====
+        function calSumarPeriodos(periodoBase, cantidadSumar) {
+            if (!periodoBase || periodoBase.length !== 6) return periodoBase;
+            const anio = parseInt(periodoBase.substring(0, 2), 10);
+            const mod = periodoBase.substring(2, 4);
+            let mes = parseInt(periodoBase.substring(4, 6), 10);
+            const incremento = mod === '04' ? 1 : 2;
+            let mesesSumar = cantidadSumar * incremento;
+            mes += mesesSumar;
+            let anioSumar = Math.floor((mes - 1) / 12);
+            mes = mes - (anioSumar * 12);
+            let nuevoAnio = anio + anioSumar;
+            return `${nuevoAnio}${mod}${String(mes).padStart(2, '0')}`;
+        }
+
+        // ===== NUEVO: Formatear fecha legible =====
+        function formatearFechaLinda(date) {
+            if (!date) return 'No disponible';
+            return date.toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+        }
+
+        // ===== NUEVO: Obtener datos de un periodo =====
+        function obtenerDatosPeriodo(codigo) {
+            return periodosCalendario.find(p => p.periodo === codigo) || null;
+        }
+
+        // ===== NUEVO: Obtener rango de fechas de pago =====
+        function obtenerRangoPago(datos, mod) {
+            if (!datos || !datos.inicio) return 'No disponible';
+            const ini = new Date(datos.inicio); // Usamos inicio original del CSV
+            let inicioPago = new Date(ini);
+            let finPago = new Date(ini);
+            if (mod === '04') {
+                inicioPago.setDate(inicioPago.getDate() + 0);
+                finPago.setDate(finPago.getDate() + 12);
+            } else {
+                inicioPago.setDate(inicioPago.getDate() + 28);
+                finPago.setDate(finPago.getDate() + 41);
+            }
+            const ops = { day:'numeric', month:'short' };
+            return `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
+        }
+
+        // ===== NUEVO: Mostrar fechas de periodo en la ficha =====
+        function mostrarFechasPeriodo() {
+            const seccion = document.getElementById('seccion-periodos');
+            if (!alumnoActual || !alumnoActual.periodoSiguiente) {
+                seccion.classList.add('hidden');
+                return;
+            }
+            const periodoSig = alumnoActual.periodoSiguiente;
+            const periodoAnt = calcularPeriodoAnterior(periodoSig);
+            const datosAnt   = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
+            const datosSig   = obtenerDatosPeriodo(periodoSig);
+            const tipoClase  = alumnoActual.tipoClaseCal; // 'entre-semana' o 'sabado'
+
+            let inicioAntStr = 'No disponible', finAntStr = 'No disponible';
+            let inicioSigStr = 'No disponible', finSigStr = 'No disponible';
+
+            if (datosAnt) {
+                let ini = new Date(datosAnt.inicio);
+                let fin = new Date(datosAnt.fin);
+                if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                fin = calAjustarFin(fin, tipoClase);
+                inicioAntStr = formatearFechaLinda(ini);
+                finAntStr = formatearFechaLinda(fin);
+            }
+            
+            if (datosSig) {
+                let ini = new Date(datosSig.inicio);
+                let fin = new Date(datosSig.fin);
+                if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                fin = calAjustarFin(fin, tipoClase);
+                inicioSigStr = formatearFechaLinda(ini);
+                finSigStr = formatearFechaLinda(fin);
+            }
+
+            document.getElementById('lbl-periodo-actual').innerText    = periodoAnt || '—';
+            document.getElementById('lbl-inicio-actual').innerText     = inicioAntStr;
+            document.getElementById('lbl-fin-actual').innerText        = finAntStr;
+            document.getElementById('lbl-periodo-siguiente').innerText = periodoSig;
+            document.getElementById('lbl-inicio-siguiente').innerText  = inicioSigStr;
+            document.getElementById('lbl-fin-siguiente').innerText     = finSigStr;
+
+            const secVolumen = document.getElementById('seccion-volumen');
+            const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
+            const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
+            
+            if (alumnoActual.volumen === "TERMINA") {
+                secVolumen.classList.remove('hidden');
+                lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+            } else if (alumnoActual.volumen.includes(" DE ")) {
+                const partesVol = alumnoActual.volumen.split(" DE ");
+                const currentCourse = parseInt(partesVol[0].trim());
+                const totalCourses = parseInt(partesVol[1].trim());
+                if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                    const cursosRestantes = totalCourses - currentCourse; // Corregido: ya no se suma +1
+                    const nextPaymentPeriod = calSumarPeriodos(periodoSig, cursosRestantes);
+                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                    
+                    secVolumen.classList.remove('hidden');
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.innerText = `Cursos pagados: ${totalCourses}`;
+                    lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
+                } else {
+                    secVolumen.classList.add('hidden');
+                }
+            } else {
+                // Estudiante normal (vacío), mostrar la próxima fecha de pago
+                secVolumen.classList.remove('hidden');
+                lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+            }
+
+            seccion.classList.remove('hidden');
+        }
+
+        // ==================== CARGA DE PRECIOS / PROMOS / LIBROS ====================
         async function cargarPrecios() {
             try {
                 const res = await fetch(URL_PRECIOS);
@@ -436,209 +911,122 @@
                 const filas = json.table.rows;
                 tablaPrecios = {};
                 filas.forEach(f => {
-                    if (f.c[0]) {
-                        const mod = String(f.c[0].v).trim().toUpperCase();
-                        const prog = f.c[1] ? String(f.c[1].v).trim().padStart(2, '0') : '';
+                    if (f.c && f.c[0] && f.c[0].v) {
+                        const mod   = String(f.c[0].v).trim().toUpperCase();
+                        const prog  = f.c[1] && f.c[1].v ? String(f.c[1].v).trim().padStart(2, '0') : '';
                         const nivel = f.c[2] && f.c[2].v ? String(f.c[2].v).trim() : 'BAJO';
-                        const precio = f.c[3] ? parseFloat(f.c[3].v) : 0;
-                        tablaPrecios[`${mod}${prog}${nivel}`] = precio;
+                        const precio = f.c[3] && f.c[3].v ? parseFloat(f.c[3].v) : 0;
+                        if (precio > 0) tablaPrecios[`${mod}${prog}${nivel}`] = precio;
                     }
                 });
                 console.log("Precios cargados:", Object.keys(tablaPrecios).length);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.warn("Error cargando precios:", e); tablaPrecios = {}; }
         }
 
-        // ==================== CARGA DE PROMOCIONES DE CURSOS (VOLUMEN) ====================
         async function cargarPromosVolumen() {
             try {
                 const res = await fetch(URL_VOLUMEN);
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                promosVolumen = [];
-                textoPromocionalF1 = "";
-                fechaVigenciaBecaBase = null;
-                if (filas.length > 0 && filas[0].c && filas[0].c[5] && filas[0].c[5].v) {
-                    textoPromocionalF1 = String(filas[0].c[5].v).trim();
-                }
+                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null;
+                if (filas.length > 0 && filas[0].c && filas[0].c[5] && filas[0].c[5].v) textoPromocionalF1 = String(filas[0].c[5].v).trim();
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
                     if (!fila.c || fila.c.length < 4) continue;
-                    const cantRaw = fila.c[0] ? fila.c[0].v : null;
-                    const dctoRaw = fila.c[1] ? fila.c[1].v : null;
-                    const motivoRaw = fila.c[2] ? String(fila.c[2].v).trim() : "";
-                    const fechaRaw = fila.c[3] ? fila.c[3].v : null;
+                    const cantRaw = fila.c[0] ? fila.c[0].v : null, dctoRaw = fila.c[1] ? fila.c[1].v : null;
+                    const motivoRaw = fila.c[2] ? String(fila.c[2].v).trim() : "", fechaRaw = fila.c[3] ? fila.c[3].v : null;
                     if (cantRaw === null || dctoRaw === null) continue;
-                    let cantidad = parseInt(cantRaw);
-                    if (isNaN(cantidad)) continue;
-                    let descuento = parseFloat(dctoRaw);
-                    if (isNaN(descuento)) continue;
+                    let cantidad = parseInt(cantRaw); if (isNaN(cantidad)) continue;
+                    let descuento = parseFloat(dctoRaw); if (isNaN(descuento)) continue;
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
-                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) {
-                        fechaVigenciaBecaBase = fechaFin;
-                    }
-                    promosVolumen.push({ cantidadMinima: cantidad, descuento: descuento, motivo: motivoRaw, fechaFin: fechaFin });
+                    if (fechaRaw !== null && fechaFin === null) continue;
+                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) fechaVigenciaBecaBase = fechaFin;
+                    promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                 }
                 promosVolumen.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                if (!fechaVigenciaBecaBase) {
-                    for (let p of promosVolumen) {
-                        if (p.motivo.toUpperCase().includes("SEMANA") && p.fechaFin) {
-                            fechaVigenciaBecaBase = p.fechaFin;
-                            break;
-                        }
-                    }
-                }
-            } catch (e) { console.error(e); }
+                console.log("Promos volumen cargadas:", promosVolumen.length);
+            } catch (e) { console.warn("Error cargando promos volumen:", e); promosVolumen = []; }
         }
 
-        function obtenerMejorPromoVigente(cantidadCursos) {
-            if (!promosVolumen.length) return null;
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-            const promosAplicables = promosVolumen.filter(promo => {
-                if (cantidadCursos < promo.cantidadMinima) return false;
-                if (promo.fechaFin) {
-                    const fechaFin = new Date(promo.fechaFin);
-                    fechaFin.setHours(23, 59, 59, 999);
-                    if (fechaFin < hoy) return false;
-                }
-                return true;
-            });
-            if (promosAplicables.length === 0) return null;
-            return promosAplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev, promosAplicables[0]);
-        }
-
-        // ==================== CARGA DE LIBROS Y PROMOS DE LIBROS ====================
         async function cargarLibros() {
             try {
                 const res = await fetch(URL_LIBROS);
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                librosMap.clear();
-                promosLibros = [];
-                console.log("=== Cargando LIBROS ===");
-                
+                librosMap.clear(); promosLibros = [];
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
                     if (!fila.c) continue;
-                    
-                    // ---------- Libros por nivel (columnas A-D) ----------
                     const nivelRaw = fila.c[0] ? fila.c[0].v : null;
                     const programaRaw = fila.c[1] ? String(fila.c[1].v).trim().toUpperCase() : "";
                     const libroRaw = fila.c[2] ? String(fila.c[2].v).trim() : "";
                     const precioRaw = fila.c[3] ? fila.c[3].v : null;
-                    
                     if (nivelRaw !== null && programaRaw && libroRaw && precioRaw !== null) {
                         let nivel = parseInt(nivelRaw);
                         if (!isNaN(nivel)) {
                             let precio = parseFloat(precioRaw);
-                            if (!isNaN(precio)) {
-                                const key = `${programaRaw}_${nivel}`;
-                                librosMap.set(key, { nombre: libroRaw, precio: precio });
-                            }
+                            if (!isNaN(precio)) librosMap.set(`${programaRaw}_${nivel}`, { nombre: libroRaw, precio });
                         }
                     }
-                    
-                    // ---------- Promociones de libros (columnas G-J: índices 6,7,8,9) ----------
-                    const cantRaw = fila.c[6] ? fila.c[6].v : null;
-                    const dctoRaw = fila.c[7] ? fila.c[7].v : null;
-                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "";
-                    const fechaRaw = fila.c[9] ? fila.c[9].v : null;
-                    
+                    const cantRaw = fila.c[6] ? fila.c[6].v : null, dctoRaw = fila.c[7] ? fila.c[7].v : null;
+                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "", fechaRaw = fila.c[9] ? fila.c[9].v : null;
                     if (cantRaw !== null && dctoRaw !== null) {
                         let cantidad = parseInt(cantRaw);
                         if (!isNaN(cantidad)) {
-                            let descuento = parseFloat(dctoRaw);
-                            if (isNaN(descuento)) continue;
+                            let descuento = parseFloat(dctoRaw); if (isNaN(descuento)) continue;
                             if (descuento > 1) descuento = descuento / 100;
                             let fechaFin = parseFecha(fechaRaw);
-                            promosLibros.push({
-                                cantidadMinima: cantidad,
-                                descuento: descuento,
-                                motivo: motivoRaw || "Promoción especial",
-                                fechaFin: fechaFin
-                            });
-                            console.log(`📦 Promo libro leída: ${cantidad} cursos → ${Math.round(descuento*100)}% (${motivoRaw}) hasta ${fechaFin}`);
+                            if (fechaRaw !== null && fechaFin === null) continue;
+                            promosLibros.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                         }
                     }
                 }
-                
                 promosLibros.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log(`Total promos libros cargadas: ${promosLibros.length}`);
-            } catch (e) {
-                console.error("Error cargando LIBROS:", e);
-            }
+                console.log("Libros cargados:", librosMap.size);
+            } catch (e) { console.warn("Error cargando libros:", e); }
         }
 
-        function aplicarDescuentoLibros(cantidadCursos, libros, librosActivosIndices = null) {
-            if (!libros || libros.length === 0) return { totalOriginal: 0, totalFinal: 0, listaConPrecios: [] };
-            
-            if (librosActivosIndices === null) {
-                librosActivosIndices = libros.map((_, idx) => idx);
-            }
-            
-            const hoyLibros = new Date(); hoyLibros.setHours(0, 0, 0, 0);
+        function obtenerMejorPromoVigente(cantidadCursos) {
+            if (!promosVolumen.length) return null;
+            const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+            const aplicables = promosVolumen.filter(p => {
+                if (cantidadCursos < p.cantidadMinima) return false;
+                if (p.fechaFin) { const f = new Date(p.fechaFin); f.setHours(23,59,59,999); if (f < hoy) return false; }
+                return true;
+            });
+            if (!aplicables.length) return null;
+            return aplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev);
+        }
+
+        function aplicarDescuentoLibrosDetallado(cantidadCursos, libros, indicesActivos) {
+            if (!libros.length || indicesActivos.length === 0) return { totalOriginal: 0, totalFinal: 0, librosConPrecio: [] };
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
             let mejorPromo = null;
             for (let promo of promosLibros) {
                 if (cantidadCursos >= promo.cantidadMinima) {
-                    if (promo.fechaFin) {
-                        const fechaLimite = new Date(promo.fechaFin);
-                        fechaLimite.setHours(23, 59, 59, 999);
-                        if (fechaLimite < hoyLibros) continue;
-                    }
-                    mejorPromo = promo;
-                    break;
+                    if (promo.fechaFin) { const f = new Date(promo.fechaFin); f.setHours(23,59,59,999); if (f < hoy) continue; }
+                    mejorPromo = promo; break;
                 }
             }
-            
             let descuento = mejorPromo ? mejorPromo.descuento : 0;
-            let librosConDescuentoMax = mejorPromo ? (mejorPromo.cantidadMinima / 4) : 0;
-            
-            let totalOriginal = 0;
-            let totalFinal = 0;
-            let listaConPrecios = [];
-            let contadorDescuentosAplicados = 0;
-            
+            let maxConDescuento = mejorPromo ? Math.floor(mejorPromo.cantidadMinima / 4) : 0;
+            let totalOriginal = 0, totalFinal = 0, contador = 0;
+            const librosConPrecio = [];
             for (let i = 0; i < libros.length; i++) {
-                const libro = libros[i];
-                const estaActivo = librosActivosIndices.includes(i);
-                
-                if (!estaActivo) {
-                    listaConPrecios.push({
-                        ...libro,
-                        precioOriginal: libro.precio,
-                        precioFinal: 0,
-                        descuentado: false,
-                        activo: false
-                    });
-                    continue;
-                }
-                
-                const precio = libro.precio;
-                totalOriginal += precio;
-                
-                let precioFinal = precio;
-                let descontado = false;
-                
-                if (contadorDescuentosAplicados < librosConDescuentoMax && descuento > 0) {
-                    precioFinal = Math.round(precio * (1 - descuento));
-                    descontado = true;
-                    contadorDescuentosAplicados++;
-                }
-                
-                totalFinal += precioFinal;
-                listaConPrecios.push({
-                    ...libro,
-                    precioOriginal: precio,
-                    precioFinal: precioFinal,
-                    descuentado: descontado,
-                    activo: true
-                });
+                const activo = indicesActivos.includes(i);
+                const precio = libros[i].precio;
+                let precioFinal = precio, tieneDescuento = false;
+                if (activo) {
+                    totalOriginal += precio;
+                    if (contador < maxConDescuento && descuento > 0) { precioFinal = Math.round(precio * (1 - descuento)); tieneDescuento = true; contador++; }
+                    totalFinal += precioFinal;
+                } else { precioFinal = 0; }
+                librosConPrecio.push({ ...libros[i], activo, precioOriginal: precio, precioFinal, tieneDescuento });
             }
-            
-            return { totalOriginal, totalFinal, listaConPrecios };
+            return { totalOriginal, totalFinal, librosConPrecio };
         }
 
         function calcularLibrosNecesarios(nivelActual, programaNombre, cantidadCursos) {
@@ -649,444 +1037,350 @@
             for (let niv = nivelActual + 1; niv <= nivelActual + cantidadCursos; niv++) {
                 const key = `${programaNombre}_${niv}`;
                 const libro = librosMap.get(key);
-                if (libro && libro.nombre !== libroActual.nombre && !librosNecesarios.has(libro.nombre)) {
+                if (libro && libro.nombre !== libroActual.nombre && !librosNecesarios.has(libro.nombre))
                     librosNecesarios.set(libro.nombre, { nombre: libro.nombre, precio: libro.precio, nivelCambio: niv });
-                }
             }
             const lista = Array.from(librosNecesarios.values());
-            const totalOriginal = lista.reduce((sum, item) => sum + item.precio, 0);
-            return { cantidad: lista.length, libros: lista, precioOriginal: totalOriginal };
+            return { cantidad: lista.length, libros: lista, precioOriginal: lista.reduce((s,i)=>s+i.precio,0) };
         }
 
-        // ==================== LÓGICA PRINCIPAL ====================
-        function buscarAlumnosFiltrados(query) {
-            if (!query || query.trim() === "") return [];
-            const normalizedQuery = query.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const queryDigits = query.replace(/\D/g, "");
+        // Contador de reintentos (evita bucle infinito)
+        let _buscarReintentos = 0;
+
+        // ==================== AUTOCOMPLETE ====================
+        function normalizarTexto(txt) {
+            return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        }
+
+        function filtrarAlumnosBuscador() {
+            const input = document.getElementById('alumno-id');
+            const val = input.value.trim();
+            const list = document.getElementById('autocomplete-list');
+            list.innerHTML = '';
             
+            if (val.length < 2) {
+                list.classList.add('hidden');
+                return;
+            }
+            
+            const searchStr = normalizarTexto(val);
             const matches = [];
-            for (const id in baseAlumnos) {
-                const alumno = baseAlumnos[id];
-                const normalizedNombre = alumno.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanCelular = alumno.celular.replace(/\D/g, "");
-                
-                const matchId = id.toLowerCase().includes(normalizedQuery);
-                const matchNombre = normalizedNombre.includes(normalizedQuery);
-                const matchCelular = queryDigits !== "" && cleanCelular.includes(queryDigits);
-                
-                if (matchId || matchNombre || matchCelular) {
-                    matches.push(alumno);
-                }
-            }
-            return matches;
-        }
-
-        function manejarInputBusqueda(event) {
-            const query = event.target.value;
-            const resultadosDiv = document.getElementById('resultados-busqueda');
             
-            if (event.key === 'Enter') {
-                const matches = buscarAlumnosFiltrados(query);
-                if (matches.length > 0) {
-                    seleccionarAlumno(matches[0].idOriginal);
+            for (const key in baseAlumnos) {
+                const al = baseAlumnos[key];
+                const celRaw = normalizarTexto(String(al.celular));
+                const nombreNorm = normalizarTexto(al.nombre);
+                const idNorm = normalizarTexto(al.idOriginal);
+                
+                if (nombreNorm.includes(searchStr) || idNorm.includes(searchStr) || celRaw.includes(searchStr)) {
+                    matches.push(al);
                 }
+                if (matches.length > 20) break;
+            }
+            
+            if (matches.length === 0) {
+                list.classList.add('hidden');
                 return;
             }
             
-            const matches = buscarAlumnosFiltrados(query);
-            
-            if (matches.length === 0 || query.trim() === "") {
-                resultadosDiv.innerHTML = '';
-                resultadosDiv.classList.add('hidden');
-                return;
-            }
-            
-            resultadosDiv.innerHTML = '';
-            resultadosDiv.classList.remove('hidden');
-            
-            const matchesToShow = matches.slice(0, 8);
-            matchesToShow.forEach(alumno => {
-                const item = document.createElement('div');
-                item.className = 'p-3 hover:bg-blue-50 cursor-pointer transition duration-150 flex flex-col';
-                item.onclick = () => seleccionarAlumno(alumno.idOriginal);
-                item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-gray-800 text-xs">${alumno.nombre}</span>
-                        <span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded font-mono font-bold">${alumno.idOriginal}</span>
+            matches.forEach(m => {
+                const li = document.createElement('li');
+                li.className = 'p-3 hover:bg-blue-50 cursor-pointer transition flex items-center justify-between text-left';
+                li.onclick = () => {
+                    input.value = m.idOriginal;
+                    list.classList.add('hidden');
+                    buscarAlumno();
+                };
+                
+                li.innerHTML = `
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="font-bold text-gray-800 text-sm truncate uppercase">${m.nombre}</span>
+                        <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                            <div class="flex items-center gap-1">
+                                <svg class="w-3 h-3 text-pink-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
+                                <span>${m.celular}</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span class="flex items-center justify-center w-4 h-4 rounded bg-green-100 text-[10px] text-green-700">📚</span>
+                                <span>${m.nivelActual}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center text-[10px] text-gray-500 mt-1">
-                        <span>📞 ${alumno.celular}</span>
-                        <span>📚 ${alumno.cursoVisual}</span>
+                    <div class="flex-shrink-0 ml-2">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded shadow-sm">${m.idOriginal}</span>
                     </div>
                 `;
-                resultadosDiv.appendChild(item);
+                list.appendChild(li);
             });
+            list.classList.remove('hidden');
         }
 
-        function seleccionarAlumno(id) {
-            document.getElementById('alumno-id').value = id;
-            document.getElementById('resultados-busqueda').classList.add('hidden');
-            buscarAlumno();
-        }
+        document.addEventListener('click', function(e) {
+            const input = document.getElementById('alumno-id');
+            const list = document.getElementById('autocomplete-list');
+            if (input && list && e.target !== input && !list.contains(e.target)) {
+                list.classList.add('hidden');
+            }
+        });
 
-        function cambiarVista(vista) {
-            vistaActual = vista;
-            const btnAlumno = document.getElementById('btn-vista-alumno');
-            const btnCobrador = document.getElementById('btn-vista-cobrador');
-            const compServicios = document.getElementById('comparativa-servicios');
-            const servicioOverride = document.getElementById('servicio-override-container');
-            const lblBusqueda = document.getElementById('lbl-busqueda');
-            const inputBusqueda = document.getElementById('alumno-id');
-            
-            if (vista === 'alumno') {
-                btnAlumno.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 bg-white text-gray-800 shadow-sm";
-                btnCobrador.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 text-gray-500 hover:text-gray-800";
-                lblBusqueda.innerText = "Ingresa tu ID";
-                inputBusqueda.placeholder = "Ej. 991122";
-                if (compServicios) compServicios.classList.add('hidden');
-                if (servicioOverride) servicioOverride.classList.add('hidden');
+        // ==================== BÚSQUEDA ====================
+        function buscarAlumno() {
+            const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
+            if (!idInput) return;
+            const ficha = document.getElementById('ficha-alumno');
+            const calculos = document.getElementById('seccion-calculos');
+            const errorBox = document.getElementById('error-box');
+            // Si los alumnos aún no han cargado
+            if (Object.keys(baseAlumnos).length === 0) {
+                if (_buscarReintentos >= 5) {
+                    // Demasiados reintentos: pedir que recargue
+                    _buscarReintentos = 0;
+                    errorBox.innerText = "No se pudieron cargar los datos. Por favor recarga la página (F5).";
+                    errorBox.classList.remove('hidden');
+                    return;
+                }
+                _buscarReintentos++;
+                errorBox.innerText = `Cargando datos... (intento ${_buscarReintentos}/5)`;
+                errorBox.classList.remove('hidden');
+                // Reintentar en 2 segundos sin deshabilitar el botón
+                setTimeout(function() {
+                    errorBox.classList.add('hidden');
+                    buscarAlumno();
+                }, 2000);
+                return;
+            }
+            // Datos cargados: resetear contador
+            _buscarReintentos = 0;
+            const idNorm = String(idInput).replace(/^0+/, '');
+            const alumnoEncontrado = alumnosPorIdNormalizado.get(idNorm);
+            if (alumnoEncontrado) {
+                alumnoActual = alumnoEncontrado;
+                errorBox.classList.add('hidden');
+                document.getElementById('lbl-id').innerText       = alumnoActual.idOriginal;
+                document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
+                document.getElementById('lbl-celular').innerText  = alumnoActual.celular;
+                document.getElementById('lbl-correo').innerText   = alumnoActual.correo;
+                document.getElementById('lbl-curso').innerText    = alumnoActual.cursoVisual;
+                document.getElementById('lbl-programa').innerText = alumnoActual.programaTexto;
+                document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
+                document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
+                document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
+                
+                // NUEVO: Saludo en el menú principal
+                document.getElementById('menu-saludo-nombre').innerText = `¡Hola, ${alumnoActual.nombre}!`;
+                document.getElementById('menu-saludo-id').innerText = `ID: ${alumnoActual.idOriginal}`;
+                
+                // NUEVO: Buscar salón si es presencial
+                const contSalon = document.getElementById('contenedor-salon');
+                const contTeacher = document.getElementById('contenedor-teacher');
+                contSalon.classList.add('hidden');
+                contTeacher.classList.add('hidden');
+
+                if (alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
+                    const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
+                    const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado);
+                    if (salonObj) {
+                        document.getElementById('lbl-salon').innerText = salonObj.salon;
+                        document.getElementById('lbl-teacher').innerText = salonObj.teacher;
+                        contSalon.classList.remove('hidden');
+                        contTeacher.classList.remove('hidden');
+                    }
+                }
+
+                // PASO 2: ocultar búsqueda, mostrar solo botones
+                document.getElementById('seccion-busqueda').classList.add('hidden');
+                document.getElementById('menu-principal').classList.remove('hidden');
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
             } else {
-                btnAlumno.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 text-gray-500 hover:text-gray-800";
-                btnCobrador.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition duration-200 bg-white text-gray-800 shadow-sm";
-                lblBusqueda.innerText = "Buscar Alumno (ID, Nombre o Celular)";
-                inputBusqueda.placeholder = "Escribe para buscar...";
-                if (compServicios) compServicios.classList.remove('hidden');
-                if (servicioOverride) servicioOverride.classList.remove('hidden');
+                alumnoActual = null;
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
+                document.getElementById('menu-principal').classList.add('hidden');
+                document.getElementById('seccion-periodos').classList.add('hidden');
+                errorBox.innerText = "ID no encontrado. Verifica tu matrícula (ej. 991122 o 00991122).";
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        // ===== Regresar al buscador (paso 1) =====
+        function regresarBusqueda() {
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-busqueda').classList.remove('hidden');
+            document.getElementById('error-box').classList.add('hidden');
+            document.getElementById('alumno-id').value = '';
+            alumnoActual = null;
+        }
+
+        // ===== Regresar al menu de botones (paso 2) =====
+        function regresarMenu() {
+            document.getElementById('ficha-alumno').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            document.getElementById('menu-principal').classList.remove('hidden');
+        }
+
+        // ===== Mostrar sección de pagos (paso 3) =====
+        function mostrarSeccionPagos() {
+            // PASO 3: ocultar botones, mostrar ficha + calculos
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.remove('hidden');
+            document.getElementById('seccion-calculos').classList.remove('hidden');
+            // Cargar fechas de periodo
+            mostrarFechasPeriodo();
+            if (textoPromocionalF1 && textoPromocionalF1 !== "") {
+                document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
+                document.getElementById('info-promo-adicional').classList.remove('hidden');
+            } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
+            const slider = document.getElementById('cursos-slider');
+            const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
+            slider.max = maxCursos; slider.value = 1;
+            document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
+            document.getElementById('libro-toggle').checked = true;
+            librosSeleccionadosIndices = []; ultimosLibrosClave = "";
+            
+            const reqServ = (alumnoActual.cargoServicio > 0);
+            document.getElementById('servicio-toggle').checked = reqServ;
+            const statusEl = document.getElementById('servicio-status');
+            if (reqServ) {
+                statusEl.innerText = "ESTADO EN SISTEMA: REQUIERE COBRO";
+                statusEl.className = "text-[10px] font-bold mt-1 text-red-600";
+            } else {
+                statusEl.innerText = "ESTADO EN SISTEMA: EXENTO";
+                statusEl.className = "text-[10px] font-bold mt-1 text-green-600";
             }
             
             actualizarCalculos();
         }
 
         function toggleLibroIndividual(idx) {
-            const idxPos = librosSeleccionadosIndices.indexOf(idx);
-            if (idxPos > -1) {
-                librosSeleccionadosIndices.splice(idxPos, 1);
-            } else {
-                librosSeleccionadosIndices.push(idx);
-            }
-            
-            const toggle = document.getElementById('libro-toggle');
-            if (librosSeleccionadosIndices.length === 0) {
-                toggle.checked = false;
-                libroActivo = false;
-            } else {
-                toggle.checked = true;
-                libroActivo = true;
-            }
+            const pos = librosSeleccionadosIndices.indexOf(idx);
+            if (pos > -1) librosSeleccionadosIndices.splice(pos, 1); else librosSeleccionadosIndices.push(idx);
+            const tg = document.getElementById('libro-toggle');
+            if (librosSeleccionadosIndices.length === infoLibros.libros.length) tg.checked = true;
+            else if (librosSeleccionadosIndices.length === 0) tg.checked = false;
+            else tg.indeterminate = true;
             actualizarCalculos();
-        }
-
-        document.addEventListener('click', function(e) {
-            const resultadosDiv = document.getElementById('resultados-busqueda');
-            const inputBusqueda = document.getElementById('alumno-id');
-            if (resultadosDiv && !resultadosDiv.contains(e.target) && e.target !== inputBusqueda) {
-                resultadosDiv.classList.add('hidden');
-            }
-        });
-
-        function buscarAlumno() {
-            const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
-            const ficha = document.getElementById('ficha-alumno');
-            const calculos = document.getElementById('seccion-calculos');
-            const errorBox = document.getElementById('error-box');
-            const infoAdicionalDiv = document.getElementById('info-promo-adicional');
-
-            if (Object.keys(baseAlumnos).length === 0) {
-                errorBox.innerText = "Sincronizando datos... intenta de nuevo en un segundo.";
-                errorBox.classList.remove('hidden');
-                return;
-            }
-
-            if (baseAlumnos[idInput]) {
-                alumnoActual = baseAlumnos[idInput];
-                errorBox.classList.add('hidden');
-
-                document.getElementById('lbl-nombre').innerText = alumnoActual.nombre;
-                document.getElementById('lbl-celular').innerText = alumnoActual.celular;
-                document.getElementById('lbl-correo').innerText = alumnoActual.correo;
-                document.getElementById('lbl-curso').innerText = alumnoActual.cursoVisual; 
-                document.getElementById('lbl-programa').innerText = alumnoActual.programaTexto;
-                document.getElementById('lbl-modalidad').innerText = alumnoActual.modalidad;
-                document.getElementById('lbl-horario').innerText = alumnoActual.horario;
-                document.getElementById('lbl-beca').innerText = Math.round(alumnoActual.beca * 100) + "%";
-                
-                const lblServicioBase = document.getElementById('lbl-servicio-base');
-                if (lblServicioBase) {
-                    lblServicioBase.innerHTML = alumnoActual.cargoServicio > 0 
-                        ? '<span class="text-red-600">Sí (+$90 por curso)</span>' 
-                        : '<span class="text-green-600">No ($0)</span>';
-                }
-
-                ficha.classList.remove('hidden');
-                calculos.classList.remove('hidden');
-
-                if (textoPromocionalF1 && textoPromocionalF1 !== "") {
-                    infoAdicionalDiv.innerText = textoPromocionalF1;
-                    infoAdicionalDiv.classList.remove('hidden');
-                } else {
-                    infoAdicionalDiv.classList.add('hidden');
-                }
-
-                const slider = document.getElementById('cursos-slider');
-                const maxCursosPermitidos = Math.max(1, 24 - alumnoActual.nivelActual); 
-                slider.max = maxCursosPermitidos; 
-                slider.value = 1; 
-                document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible para tu plan: ${maxCursosPermitidos} niveles.`;
-
-                ultimosLibrosClave = ""; 
-                const toggle = document.getElementById('libro-toggle');
-                if (toggle) toggle.checked = true;
-                libroActivo = true;
-                
-                const servicioToggle = document.getElementById('servicio-toggle');
-                if (servicioToggle) {
-                    servicioToggle.checked = alumnoActual.cargoServicio > 0;
-                }
-                
-                actualizarCalculos();
-            } else {
-                alumnoActual = null;
-                ficha.classList.add('hidden');
-                calculos.classList.add('hidden');
-                errorBox.innerText = "ID o alumno no encontrado. Verifica de nuevo.";
-                errorBox.classList.remove('hidden');
-            }
         }
 
         function actualizarCalculos() {
             if (!alumnoActual) return;
-
             const cantCursos = parseInt(document.getElementById('cursos-slider').value);
             document.getElementById('cursos-val').innerText = cantCursos;
-            const infoAdicionalDiv = document.getElementById('info-promo-adicional');
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
             const ahorroContainer = document.getElementById('ahorro-container');
-            const lblAhorro = document.getElementById('lbl-ahorro');
-            
-            // ====== 1. Cálculo de precios de cursos ======
             const nivelActual = alumnoActual.nivelActual;
-            const primerNivel = nivelActual + 1;
-            const ultimoNivel = primerNivel + cantCursos - 1;
-            
+            const primerNivel = nivelActual + 1, ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
-            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
-                if (nivel >= 21) cursosAltos++;
-                else cursosBajos++;
-            }
-            
+            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) (nivel >= 21) ? cursosAltos++ : cursosBajos++;
             const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
             const llaveAlta = `${alumnoActual.prefijoMod}${alumnoActual.programa}21`;
-            let precioBaseBajo = tablaPrecios[llaveBaja] || 3500;
-            let precioBaseAlto = tablaPrecios[llaveAlta] || 3500;
-            
-            let extraServicio = alumnoActual.cargoServicio;
-            if (vistaActual === 'cobrador') {
-                const servicioToggle = document.getElementById('servicio-toggle');
-                extraServicio = (servicioToggle && servicioToggle.checked) ? 90 : 0;
-            }
-            
-            const unitarioListaBajo = precioBaseBajo + extraServicio;
-            const unitarioListaAlto = precioBaseAlto + extraServicio;
-            const totalListaCursosCalc = (unitarioListaBajo * cursosBajos) + (unitarioListaAlto * cursosAltos);
-            
-            // ====== 2. Descuento a aplicar ======
+            let precioBaseBajo = tablaPrecios[llaveBaja] || 0;
+            let precioBaseAlto = tablaPrecios[llaveAlta] || 0;
+            const toggleServicio = document.getElementById('servicio-toggle');
+            let extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
+            if (precioBaseBajo === 0) console.warn(`Precio no encontrado para ${llaveBaja}`);
+            if (precioBaseAlto === 0) console.warn(`Precio no encontrado para ${llaveAlta}`);
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
-            
-            let becaBaseVigente = alumnoActual.beca;
+            let becaBaseVigente = 0;
             if (fechaVigenciaBecaBase) {
-                const fechaLimiteBeca = new Date(fechaVigenciaBecaBase);
-                fechaLimiteBeca.setHours(23, 59, 59, 999);
-                if (fechaLimiteBeca < hoy) {
-                    becaBaseVigente = 0;
-                }
+                const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
+                if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
             }
-            
-            let descuentoAplicar = 0;
-            let nombreDescuento = "Total Precio de Lista";
-            let etiquetaPromo = "Sin promoción";
-            let fechaTexto = "";
-            
+            let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
             if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
-                descuentoAplicar = promoVolumen.descuento;
-                nombreDescuento = `Total con ${promoVolumen.motivo}`;
-                etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fechaLarga = formatearFechaLarga(promoVolumen.fechaFin);
-                    if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
-                }
+                descuentoAplicar = promoVolumen.descuento; nombreDescuento = `Total con ${promoVolumen.motivo}`; etiquetaPromo = promoVolumen.motivo;
+                if (promoVolumen.fechaFin) { const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
             } else if (becaBaseVigente > 0) {
-                descuentoAplicar = becaBaseVigente;
-                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
-                etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaBecaBase) {
-                    const fechaLarga = formatearFechaLarga(fechaVigenciaBecaBase);
-                    if (fechaLarga) fechaTexto = `Beneficio vigente hasta: ${fechaLarga}`;
-                }
-            } else {
-                descuentoAplicar = 0;
-                nombreDescuento = "Total Precio de Lista";
-                etiquetaPromo = "Sin promoción activa";
+                descuentoAplicar = becaBaseVigente; nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`; etiquetaPromo = "Beca asignada";
+                if (fechaVigenciaBecaBase) { const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
             }
-            
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
-            
-            if (fechaTexto) {
-                fechaVigenciaSpan.innerText = fechaTexto;
-                fechaVigenciaSpan.classList.remove('hidden');
-            } else {
-                fechaVigenciaSpan.classList.add('hidden');
+            if (fechaTexto) { fechaVigenciaSpan.innerText = fechaTexto; fechaVigenciaSpan.classList.remove('hidden'); }
+            else { fechaVigenciaSpan.classList.add('hidden'); }
+            const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
+            const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - descuentoAplicar));
+            const totalCursosSinServicio  = (unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos);
+            const librosData = calcularLibrosNecesarios(nivelActual, alumnoActual.programaNombre, cantCursos);
+            infoLibros = librosData;
+            const claveActual = infoLibros.libros.map(l => l.nombre).join('|');
+            if (claveActual !== ultimosLibrosClave) {
+                ultimosLibrosClave = claveActual;
+                librosSeleccionadosIndices = infoLibros.libros.map((_, idx) => idx);
+                document.getElementById('libro-toggle').checked = true;
             }
-            
-            const unitarioDescBajo = Math.round(precioBaseBajo * (1 - descuentoAplicar)) + extraServicio;
-            const unitarioDescAlto = Math.round(precioBaseAlto * (1 - descuentoAplicar)) + extraServicio;
-            const totalConDescuentoCursosCalc = (unitarioDescBajo * cursosBajos) + (unitarioDescAlto * cursosAltos);
-            
-            // ====== 3. Cálculo de libros ======
-            infoLibros = calcularLibrosNecesarios(nivelActual, alumnoActual.programaNombre, cantCursos);
-            let librosOriginal = 0, librosFinal = 0;
-            
+            let librosFinal = 0;
             if (infoLibros.cantidad > 0) {
-                const claveActual = infoLibros.libros.map(l => l.nombre).join('|');
-                if (claveActual !== ultimosLibrosClave) {
-                    ultimosLibrosClave = claveActual;
-                    librosSeleccionadosIndices = infoLibros.libros.map((_, idx) => idx);
-                }
-                
-                libroActivo = document.getElementById('libro-toggle').checked;
-                
-                const indicesAcalcular = libroActivo ? librosSeleccionadosIndices : [];
-                
-                const resultadoLibros = aplicarDescuentoLibros(cantCursos, infoLibros.libros, indicesAcalcular);
-                librosOriginal = resultadoLibros.totalOriginal;
-                librosFinal = resultadoLibros.totalFinal;
-                
+                const resultado = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
+                librosFinal = resultado.totalFinal;
                 libroContainer.classList.remove('hidden');
-                
-                const labelToggle = document.getElementById('libro-toggle-label');
-                const desgloseLibrosDiv = document.getElementById('lista-libros-desglose');
-                
-                labelToggle.innerText = "Incluir todos";
-                desgloseLibrosDiv.classList.remove('hidden');
-                desgloseLibrosDiv.innerHTML = '';
-                
-                infoLibros.libros.forEach((libro, idx) => {
-                    const estaActivo = librosSeleccionadosIndices.includes(idx);
-                    const libroPriced = resultadoLibros.listaConPrecios[idx];
-                    const precioOriginalStr = `$${libro.precio.toLocaleString('es-MX')}`;
-                    let precioFinalStr = '';
-                    
-                    if (estaActivo) {
-                        if (libroPriced && libroPriced.descuentado) {
-                            precioFinalStr = `<span class="text-gray-400 line-through mr-1">${precioOriginalStr}</span><span class="font-bold text-green-700">$${libroPriced.precioFinal.toLocaleString('es-MX')}</span>`;
-                        } else {
-                            precioFinalStr = `<span class="font-bold text-gray-800">${libroPriced ? '$' + libroPriced.precioFinal.toLocaleString('es-MX') : precioOriginalStr}</span>`;
-                        }
-                    } else {
-                        precioFinalStr = `<span class="text-gray-400 italic">Excluido</span>`;
-                    }
-                    
+                const detalleDiv = document.getElementById('lista-libros-detalle');
+                detalleDiv.innerHTML = '';
+                resultado.librosConPrecio.forEach((libro, idx) => {
                     const div = document.createElement('div');
                     div.className = 'flex items-center justify-between bg-white/70 p-2 rounded-lg border border-blue-100/50';
+                    let precioHTML = '';
+                    if (libro.activo) {
+                        if (libro.tieneDescuento) precioHTML = `<span class="text-gray-400 line-through text-xs">$${libro.precioOriginal.toLocaleString('es-MX')}</span> <span class="font-bold text-green-700">$${libro.precioFinal.toLocaleString('es-MX')}</span>`;
+                        else precioHTML = `<span class="font-bold text-gray-800">$${libro.precioOriginal.toLocaleString('es-MX')}</span>`;
+                    } else { precioHTML = `<span class="text-gray-400 italic">Excluido</span>`; }
                     div.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <input type="checkbox" id="libro-chk-${idx}" ${estaActivo && libroActivo ? 'checked' : ''} ${!libroActivo ? 'disabled' : ''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                            <label for="libro-chk-${idx}" class="text-gray-700 font-medium cursor-pointer ${!libroActivo ? 'text-gray-400' : ''}">
-                                ${libro.nombre} <span class="text-[10px] text-gray-400">(Nivel ${libro.nivelCambio})</span>
-                            </label>
+                            <input type="checkbox" id="libro-chk-${idx}" ${libro.activo?'checked':''} onchange="toggleLibroIndividual(${idx})" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                            <label for="libro-chk-${idx}" class="text-gray-700 font-medium cursor-pointer">${libro.nombre} <span class="text-[10px] text-gray-400">(Nivel ${libro.nivelCambio})</span></label>
                         </div>
-                        <div class="text-right">
-                            ${precioFinalStr}
-                        </div>
-                    `;
-                    desgloseLibrosDiv.appendChild(div);
+                        <div class="text-right text-xs">${precioHTML}</div>`;
+                    detalleDiv.appendChild(div);
                 });
-                
-                document.getElementById('libro-mensaje').innerHTML = `Libros para este avance (selecciona los que deseas):`;
-            } else {
-                libroContainer.classList.add('hidden');
-            }
-            
-            // ====== 4. Totales dinámicos ======
-            const totalListaGeneral = totalListaCursosCalc + librosOriginal;
-            const totalConDescuentoGeneral = totalConDescuentoCursosCalc + librosFinal;
-            
-            totalListaCursos = totalListaCursosCalc;
-            totalConDescuentoCursos = totalConDescuentoCursosCalc;
-            totalListaLibrosOriginal = librosOriginal;
+                document.getElementById('libro-mensaje').innerHTML = `Selecciona los libros que deseas incluir:`;
+            } else { libroContainer.classList.add('hidden'); }
+            totalConDescuentoSinServicio = totalCursosSinServicio;
             totalListaLibrosFinal = librosFinal;
-            
-            const formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
-            
-            // ====== 5. Comparativa de Servicios (Solo Cobrador) ======
-            if (vistaActual === 'cobrador') {
-                const primerNivelEsAlto = primerNivel >= 21;
-                const precioBaseEjemplo = primerNivelEsAlto ? precioBaseAlto : precioBaseBajo;
-                
-                const unitarioListaSin = precioBaseEjemplo;
-                const unitarioDescSin = Math.round(precioBaseEjemplo * (1 - descuentoAplicar));
-                const totalCursosSin = (precioBaseBajo * (1 - descuentoAplicar) * cursosBajos) + (precioBaseAlto * (1 - descuentoAplicar) * cursosAltos);
-                const totalGeneralSin = totalCursosSin + librosFinal;
-                
-                const unitarioListaCon = precioBaseEjemplo + 90;
-                const unitarioDescCon = Math.round(precioBaseEjemplo * (1 - descuentoAplicar)) + 90;
-                const totalCursosCon = ((precioBaseBajo * (1 - descuentoAplicar) + 90) * cursosBajos) + ((precioBaseAlto * (1 - descuentoAplicar) + 90) * cursosAltos);
-                const totalGeneralCon = totalCursosCon + librosFinal;
-                
-                const format = val => formatoMoneda.format(val);
-                
-                document.getElementById('comp-lista-sin').innerText = format(unitarioListaSin);
-                document.getElementById('comp-desc-sin').innerText = format(unitarioDescSin);
-                document.getElementById('comp-total-cursos-sin').innerText = format(totalCursosSin);
-                document.getElementById('comp-total-general-sin').innerText = format(totalGeneralSin);
-                
-                document.getElementById('comp-lista-con').innerText = format(unitarioListaCon);
-                document.getElementById('comp-desc-con').innerText = format(unitarioDescCon);
-                document.getElementById('comp-total-cursos-con').innerText = format(totalCursosCon);
-                document.getElementById('comp-total-general-con').innerText = format(totalGeneralCon);
-            }
-            
-            // ====== 6. Mostrar en interfaz ======
-            const primerNivelEsAlto = primerNivel >= 21;
-            const precioBaseEjemplo = primerNivelEsAlto ? precioBaseAlto : precioBaseBajo;
-            const unitarioListaEjemplo = precioBaseEjemplo + extraServicio;
-            const unitarioDescEjemplo = Math.round(precioBaseEjemplo * (1 - descuentoAplicar)) + extraServicio;
-            
-            document.getElementById('lbl-uni-desc').innerHTML = `Precio con dto (${porcentajeDescuentoActual}%):`;
-            document.getElementById('uni-lista').innerHTML = formatoMoneda.format(unitarioListaEjemplo);
-            document.getElementById('uni-desc').innerHTML = formatoMoneda.format(unitarioDescEjemplo);
-            document.getElementById('lbl-tipo-descuento').innerHTML = nombreDescuento;
-            document.getElementById('tag-promo').innerHTML = etiquetaPromo;
-            document.getElementById('res-lista').innerHTML = formatoMoneda.format(totalListaGeneral);
-            document.getElementById('res-descuento-total').innerHTML = formatoMoneda.format(totalConDescuentoGeneral);
-            
+            const totalCursosConServicio  = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
+            const totalConDescuentoGeneral = totalCursosConServicio + librosFinal;
+            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + (infoLibros.cantidad ? infoLibros.libros.reduce((s,l)=>s+l.precio,0):0);
+            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+            const primerEsAlto = primerNivel >= 21;
+            const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
+            const unitarioLista = precioBaseEjemplo + extraServicio;
+            const unitarioDesc  = (primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ) + extraServicio;
+            document.getElementById('lbl-uni-desc').innerHTML         = `Precio con dto (${porcentajeDescuentoActual}%):`;
+            document.getElementById('uni-lista').innerHTML            = fmt.format(unitarioLista);
+            document.getElementById('uni-desc').innerHTML             = fmt.format(unitarioDesc);
+            document.getElementById('lbl-tipo-descuento').innerHTML   = nombreDescuento;
+            document.getElementById('tag-promo').innerHTML            = etiquetaPromo;
+            document.getElementById('res-lista').innerHTML            = fmt.format(totalListaGeneral);
+            document.getElementById('res-descuento-total').innerHTML  = fmt.format(totalConDescuentoGeneral);
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
-            if (ahorro > 0) {
-                ahorroContainer.classList.remove('hidden');
-                lblAhorro.innerText = formatoMoneda.format(ahorro);
-            } else {
-                ahorroContainer.classList.add('hidden');
-            }
-            
-            if (textoPromocionalF1 && textoPromocionalF1 !== "") {
-                if (infoAdicionalDiv) {
-                    infoAdicionalDiv.innerText = textoPromocionalF1;
-                    infoAdicionalDiv.classList.remove('hidden');
-                }
-            } else {
-                if (infoAdicionalDiv) infoAdicionalDiv.classList.add('hidden');
-            }
+            if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); document.getElementById('lbl-ahorro').innerText = fmt.format(ahorro); }
+            else { ahorroContainer.classList.add('hidden'); }
+
+            const unitarioSin = primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ;
+            const unitarioCon = unitarioSin + 90;
+            const totCurSin = totalCursosSinServicio;
+            const totCurCon = ((unitarioDescBajoSinServ + 90) * cursosBajos) + ((unitarioDescAltoSinServ + 90) * cursosAltos);
+            const totLibSin = totCurSin + librosFinal;
+            const totLibCon = totCurCon + librosFinal;
+
+            document.getElementById('desglose-uni-sin').innerText = fmt.format(unitarioSin);
+            document.getElementById('desglose-uni-con').innerText = fmt.format(unitarioCon);
+            document.getElementById('desglose-tot-cur-sin').innerText = fmt.format(totCurSin);
+            document.getElementById('desglose-tot-cur-con').innerText = fmt.format(totCurCon);
+            document.getElementById('desglose-tot-lib-sin').innerText = fmt.format(totLibSin);
+            document.getElementById('desglose-tot-lib-con').innerText = fmt.format(totLibCon);
         }
 
         document.addEventListener('change', function(e) {
             if (e.target && e.target.id === 'libro-toggle') {
-                libroActivo = e.target.checked;
-                if (libroActivo) {
-                    librosSeleccionadosIndices = infoLibros.libros.map((_, idx) => idx);
-                } else {
-                    librosSeleccionadosIndices = [];
-                }
+                const activar = e.target.checked;
+                if (activar) librosSeleccionadosIndices = infoLibros.libros.map((_,idx)=>idx);
+                else librosSeleccionadosIndices = [];
                 actualizarCalculos();
             }
         });
@@ -1097,67 +1391,778 @@
             let indiceSiguiente = (indiceActual + 1) % NUMEROS_ATENCION.length;
             localStorage.setItem('ultimo_indice_wa', indiceSiguiente);
             const numeroDestino = NUMEROS_ATENCION[indiceSiguiente];
-            const cantCursos = document.getElementById('cursos-slider').value;
-            
-            let extraServicio = alumnoActual.cargoServicio;
-            if (vistaActual === 'cobrador') {
-                const servicioToggle = document.getElementById('servicio-toggle');
-                extraServicio = (servicioToggle && servicioToggle.checked) ? 90 : 0;
-            }
-            
-            const totalFinal = totalConDescuentoCursos + totalListaLibrosFinal;
+            const cantCursos = parseInt(document.getElementById('cursos-slider').value);
+            const toggleServicio = document.getElementById('servicio-toggle');
+            const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
+            const subtotal = totalConDescuentoSinServicio + totalListaLibrosFinal;
+            const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
-            if (promoActiva && promoActiva.descuento > alumnoActual.beca) stringDescuento += ` (${promoActiva.motivo})`;
-            else if (alumnoActual.beca > 0) stringDescuento += " (Beca base)";
+            let promo = obtenerMejorPromoVigente(cantCursos);
+            if (promo && promo.descuento > alumnoActual.beca) stringDescuento += ` (${promo.motivo})`;
+            else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
-            
-            let servicioDetalle = "";
-            if (extraServicio > 0) {
-                servicioDetalle = `\n• *Servicio:* Sí ($${(extraServicio * cantCursos).toLocaleString('es-MX')} MXN)`;
-            } else {
-                servicioDetalle = `\n• *Servicio:* No`;
-            }
-            
-            let mensajeLibro = "";
-            if (infoLibros.cantidad > 0 && libroActivo) {
-                const indicesActivos = vistaActual === 'cobrador' ? librosSeleccionadosIndices : infoLibros.libros.map((_, i) => i);
-                const librosActivos = infoLibros.libros.filter((_, idx) => indicesActivos.includes(idx));
-                if (librosActivos.length > 0) {
-                    let librosTexto = librosActivos.map(l => `${l.nombre}`).join(', ');
-                    mensajeLibro = `\n• *Libros incluidos:* ${librosTexto} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
-                } else {
-                    mensajeLibro = `\n• *Libros incluidos:* Ninguno`;
-                }
-            } else if (infoLibros.cantidad > 0) {
-                mensajeLibro = `\n• *Libros incluidos:* No (se excluyeron todos)`;
-            }
-            
+            let librosTexto = "";
+            if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
+                const librosActivos = infoLibros.libros.filter((_,idx)=>librosSeleccionadosIndices.includes(idx));
+                librosTexto = `\n• *Libros incluidos:* ${librosActivos.map(l=>l.nombre).join(", ")} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
+            } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
+            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const mensaje = `Hola, solicito mis fichas de pago por favor.
       
 *Mis Datos:*
 • *ID:* ${alumnoActual.idOriginal}
 • *Nombre:* ${alumnoActual.nombre}
-• *Curso Registrado:* ${alumnoActual.cursoVisual}
+• *Curso:* ${alumnoActual.cursoVisual}
 • *Programa:* ${alumnoActual.programaTexto}
 • *Modalidad:* ${alumnoActual.modalidad}
 • *Horario:* ${alumnoActual.horario}
 
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
-• *Descuento/Condición:* ${stringDescuento}${servicioDetalle}${mensajeLibro}
-• *Total a pagar:* $${totalFinal.toLocaleString('es-MX')} MXN`;
-
-            const urlWhatsApp = `https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`;
-            window.open(urlWhatsApp, '_blank');
+• *Descuento:* ${stringDescuento}
+• *Subtotal:* ${fmt.format(subtotal)}${librosTexto}
+• *Total a pagar:* ${fmt.format(totalFinal)}`;
+            window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
-        async function inicializarTodo() {
-            await cargarLibros();
-            await cargarPromosVolumen();
-            await cargarPrecios();
-            await cargarAlumnos();
+        // ==================== MODAL CALENDARIO ====================
+
+        function abrirModalCalendario() {
+            if (!alumnoActual) return;
+            const modalidad = alumnoActual.programa;        // '04' o '08'
+            const tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
+            // Filtro NON/PAR deducido del código de periodo
+            let filtroMes = 'non';
+            if (alumnoActual.periodoSiguiente && alumnoActual.periodoSiguiente.length >= 6) {
+                const mesNum = parseInt(alumnoActual.periodoSiguiente.substring(4, 6), 10);
+                filtroMes = (mesNum % 2 === 0) ? 'par' : 'non';
+            }
+            // Pre-configurar selectores
+            document.getElementById('cal-modalidad').value  = modalidad;
+            document.getElementById('cal-tipoClase').value  = tipoClase;
+            document.getElementById('cal-filtroMes').value  = filtroMes;
+            document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
+            // Mostrar modal
+            document.getElementById('modal-calendario').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            renderizarCalendarioModal();
         }
 
+        function cerrarModalCalendario() {
+            document.getElementById('modal-calendario').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') cerrarModalCalendario();
+        });
+
+        function renderizarCalendarioModal() {
+            const modalidad = document.getElementById('cal-modalidad').value;
+            const tipoClase = document.getElementById('cal-tipoClase').value;
+            const filtroMes = document.getElementById('cal-filtroMes').value;
+            document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
+            const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids / Teens';
+            const nombreTipo  = tipoClase === 'entre-semana' ? 'Lunes a Jueves' : 'Sábados';
+            const nombreFiltro = modalidad === '08' ? ` · Meses ${filtroMes.toUpperCase()}` : '';
+            const nombreAlumno = alumnoActual ? alumnoActual.nombre.split(' ').slice(0,2).join(' ') : '';
+            document.getElementById('cal-subtitulo').innerText = `${nombreAlumno} · ${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+            const filtrados = filtrarPeriodosModal(modalidad, filtroMes);
+            const hoyStr = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
+            document.getElementById('cal-info-bar').innerHTML = `${filtrados.length} períodos · Hoy: ${hoyStr}`;
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = '';
+            for (let mes = 0; mes < 12; mes++) {
+                grid.appendChild(generarMesModal(mes, 2026, filtrados, modalidad, tipoClase));
+            }
+        }
+
+        function filtrarPeriodosModal(modalidad, filtroMes) {
+            return periodosCalendario.filter(item => {
+                const p = item.periodo;
+                if (!p || p.length < 6) return false;
+                if (p.substring(2, 4) !== modalidad) return false;
+                if (modalidad === '08') {
+                    const mesNum = parseInt(p.substring(4, 6), 10);
+                    const esPar = mesNum % 2 === 0;
+                    if (filtroMes === 'non' && esPar) return false;
+                    if (filtroMes === 'par' && !esPar) return false;
+                }
+                return true;
+            });
+        }
+
+        // ── Funciones auxiliares del calendario (adaptadas de calendario.html) ──
+        function calIsSameDay(d1, d2) {
+            return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate();
+        }
+        function calIsInRange(date, start, end) {
+            const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+            const s=new Date(start.getFullYear(),start.getMonth(),start.getDate());
+            const e=new Date(end.getFullYear(),end.getMonth(),end.getDate());
+            return d>=s && d<=e;
+        }
+        function calAddDays(date, days) { const r=new Date(date); r.setDate(r.getDate()+days); return r; }
+        function calAjustarInicioSabado(fecha) {
+            const dia=fecha.getDay(); if(dia===6) return new Date(fecha);
+            return calAddDays(fecha, (6-dia+7)%7);
+        }
+        function calAjustarFinSabado(fecha) {
+            const dia=fecha.getDay();
+            if(dia===0) return calAddDays(fecha,-1);
+            if(dia===6) return new Date(fecha);
+            return calAddDays(fecha,-(dia+1));
+        }
+        function calAjustarFinEntreSemana(fecha) {
+            const dia=fecha.getDay();
+            if(dia===6) return calAddDays(fecha,-2);
+            if(dia===0) return calAddDays(fecha,-3);
+            return new Date(fecha);
+        }
+        function calAjustarFin(fecha, tipoClase) {
+            return tipoClase==='sabado' ? calAjustarFinSabado(fecha) : calAjustarFinEntreSemana(fecha);
+        }
+
+        function generarMesModal(mes, anio, periodosFiltrados, modalidad, tipoClase) {
+            const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const HOY = new Date();
+            const wrapper = document.createElement('div'); wrapper.className='cal-mes';
+            const tit = document.createElement('div'); tit.className='cal-mes-tit'; tit.textContent=MESES[mes]; wrapper.appendChild(tit);
+            const wdays = document.createElement('div'); wdays.className='cal-wdays';
+            ['L','M','X','J','V','S','D'].forEach((d,i)=>{
+                const div=document.createElement('div'); div.className='cal-wday'+(i===6?' dom':''); div.textContent=d; wdays.appendChild(div);
+            }); wrapper.appendChild(wdays);
+            const grid = document.createElement('div'); grid.className='cal-dgrid';
+            const firstDay = new Date(anio,mes,1);
+            const startDow = firstDay.getDay();
+            const offset = startDow===0 ? 6 : startDow-1;
+            const daysInMonth = new Date(anio,mes+1,0).getDate();
+            const daysInPrev  = new Date(anio,mes,0).getDate();
+            const inicioMes = new Date(anio,mes,1), finMes = new Date(anio,mes+1,0);
+            const periodosActivos = periodosFiltrados.filter(p => {
+                const finExt = new Date(p.fin.getFullYear(),p.fin.getMonth()+1,0);
+                return inicioMes<=finExt && finMes>=p.inicio;
+            });
+            for (let i=0; i<42; i++) {
+                const cell = document.createElement('div'); cell.className='cal-d';
+                let dayNum, isCurrent;
+                if (i<offset) { dayNum=daysInPrev-offset+i+1; isCurrent=false; }
+                else if (i>=offset+daysInMonth) { dayNum=i-(offset+daysInMonth)+1; isCurrent=false; }
+                else { dayNum=i-offset+1; isCurrent=true; }
+                cell.textContent=dayNum;
+                if (!isCurrent) { cell.classList.add('otro-mes'); }
+                else {
+                    const cur = new Date(anio,mes,dayNum);
+                    const dow=cur.getDay(), esDom=dow===0, esSab=dow===6;
+                    let esInicio=false, esFin=false, esPago=false, esClase=false;
+                    for (const p of periodosActivos) {
+                        let iniA=new Date(p.inicio), finA=new Date(p.fin);
+                        const iniOrig=new Date(p.inicio);
+                        if (tipoClase==='sabado') iniA=calAjustarInicioSabado(iniA);
+                        finA=calAjustarFin(finA,tipoClase);
+                        if (calIsSameDay(cur,iniA)) esInicio=true;
+                        if (calIsSameDay(cur,finA)) esFin=true;
+                        const enRango=calIsInRange(cur,iniA,finA);
+                        if (enRango && !esDom) {
+                            if (tipoClase==='entre-semana' && dow>=1 && dow<=4) esClase=true;
+                            else if (tipoClase==='sabado' && esSab) esClase=true;
+                        }
+                        const diffDias=Math.floor((cur-iniOrig)/(1000*60*60*24));
+                        if (modalidad==='04' && diffDias>=0 && diffDias<=12) esPago=true;
+                        else if (modalidad==='08' && diffDias>=28 && diffDias<=41) esPago=true;
+                    }
+                    if (esInicio) cell.classList.add('cal-inicio');
+                    if (esFin)    cell.classList.add('cal-fin');
+                    if (esDom && !esInicio && !esFin) { cell.classList.add('cal-dom'); }
+                    else if (!esDom) {
+                        if (esClase && !esInicio && !esFin) cell.classList.add(tipoClase==='sabado'?'cal-sab':'cal-clase');
+                        if (esPago && !esInicio && !esFin)  cell.classList.add('cal-pago');
+                    }
+                    if (calIsSameDay(cur,HOY)) cell.classList.add('cal-hoy');
+                }
+                grid.appendChild(cell);
+            }
+            wrapper.appendChild(grid);
+            return wrapper;
+        }
+
+        // ==================== INICIALIZACIÓN ====================
+        function inicializarTodo() {
+            const btn = document.querySelector('button[onclick="buscarAlumno()"]');
+            const timeoutSeguridad = setTimeout(() => {
+                if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
+            }, 10000);
+            Promise.allSettled([
+                cargarAlumnos(),
+                cargarPeriodosCalendario(),
+                cargarHorariosRecuperacion(),
+                cargarSalones()
+            ]).then(() => {
+                clearTimeout(timeoutSeguridad);
+                if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
+                console.log('✅ Datos listos.');
+            });
+            cargarLibros();
+            cargarPromosVolumen();
+            cargarPrecios();
+        }
+
+        // ==================== SALONES Y MAESTROS ====================
+        async function cargarSalones() {
+            try {
+                // Añadimos un parámetro de tiempo para evitar que el navegador guarde la versión vieja
+                const urlSinCache = SALONES_CSV_URL + '&t=' + new Date().getTime();
+                const res = await fetch(urlSinCache);
+                const txt = await res.text();
+                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                const filas = parsed.data;
+                if (filas.length < 3) return;
+
+                matrizSalones.salones = filas[0].map(s => String(s).trim());
+                matrizSalones.teachers = filas[1].map(t => String(t).trim());
+                matrizSalones.filas = [];
+                matrizSalones.filasSabado = [];
+
+                let esSabado = false;
+                for (let i = 2; i < filas.length; i++) {
+                    const f = filas[i];
+                    const hor = String(f[0] || '').trim().toUpperCase();
+                    if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
+                        esSabado = true;
+                        continue;
+                    }
+                    if (!hor) continue;
+
+                    // Formatear hora (ej. 9:00 -> 09:00)
+                    let [h, m] = hor.split(':');
+                    if (!m) m = '00';
+                    let hStr = h.padStart(2, '0') + ':' + m;
+
+                    const obj = { horaFmt: hStr, celdas: f };
+                    if (esSabado) matrizSalones.filasSabado.push(obj);
+                    else matrizSalones.filas.push(obj);
+                }
+                console.log('✅ Salones cargados. Horarios entre semana:', matrizSalones.filas.length, 'Sábados:', matrizSalones.filasSabado.length);
+            } catch (err) {
+                console.error('Error cargando salones:', err);
+            }
+        }
+
+        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado) {
+            if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
+            
+            // Extraer estrictamente los números de la hora (ej. "09:00 a. m." -> "09:00")
+            let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
+            if (!matchHorario) return null;
+            let hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+
+            // Determinar texto a buscar (Solo nivel actual exacto)
+            let textoBuscar = String(nivelActual);
+            if (programaNombre === 'KIDS') textoBuscar = `KB ${nivelActual}`;
+            else if (programaNombre === 'TEENS') textoBuscar = `TN ${nivelActual}`;
+            else if (programaNombre === 'PTEEN') textoBuscar = `PT ${nivelActual}`;
+
+            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase(); // Quitar todos los espacios para evitar fallos (ej. "KB8")
+
+            const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
+            
+            // Buscar la fila comparando estrictamente las horas
+            const fila = filasBuscar.find(f => {
+                let m = String(f.celdas[0] || '').match(/(\d+):(\d+)/);
+                if (!m) return false;
+                let filaHStr = parseInt(m[1], 10).toString().padStart(2, '0') + ':' + m[2].substring(0, 2);
+                return filaHStr === hStr;
+            });
+            
+            if (!fila) return null;
+
+            // Buscar en las celdas de la fila
+            for (let i = 1; i < fila.celdas.length; i++) {
+                const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
+                if (celda === textoLimpio) {
+                    return {
+                        salon: matrizSalones.salones[i] || 'No definido',
+                        teacher: matrizSalones.teachers[i] || 'No definido'
+                    };
+                }
+            }
+            return null;
+        }
+
+        // ==================== HORARIOS DE RECUPERACIÓN ====================
+        async function cargarHorariosRecuperacion() {
+            try {
+                const res = await fetch(HORARIOS_CSV_URL);
+                const txt = await res.text();
+                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                horariosRecuperacion = [];
+                const filas = parsed.data;
+                // Saltar la cabecera (fila 0)
+                for (let i = 1; i < filas.length; i++) {
+                    const f = filas[i];
+                    if (!f || f.length < 13) continue;
+                    const nivelIni = f[3] ? String(f[3]).trim() : '';
+                    const nivelFin = f[4] ? String(f[4]).trim() : '';
+                    const subjectCode = f[5] ? String(f[5]).trim().toUpperCase() : '';
+                    const frecuencia = f[6] ? String(f[6]).trim().toUpperCase() : '';
+                    const crn = f[9] ? String(f[9]).trim() : '';
+                    const horario = f[11] ? String(f[11]).trim() : '';
+                    const docente = f[14] ? String(f[14]).trim() : '';
+                    const link = f[15] ? String(f[15]).trim() : '';
+                    if (!crn || !horario) continue;
+
+                    // Convertir horario a formato HH:MM
+                    const h = horario.padStart(4, '0');
+                    const horaFmt = h.substring(0, h.length - 2) + ':' + h.substring(h.length - 2);
+
+                    // Determinar días
+                    let diasLabel = '';
+                    if (frecuencia === 'FF') diasLabel = 'Lunes - Jueves';
+                    else if (frecuencia === 'SA' || frecuencia === 'SM' || frecuencia === 'SV') diasLabel = 'Sábados';
+                    else if (frecuencia === 'DO' || frecuencia === 'DOM') diasLabel = 'Domingos';
+                    else diasLabel = frecuencia;
+
+                    // Guardar niveles como números
+                    const nivIni = nivelIni !== '' ? parseInt(nivelIni, 10) : null;
+                    const nivFin = nivelFin !== '' ? parseInt(nivelFin, 10) : null;
+
+                    horariosRecuperacion.push({
+                        nivelIni: nivIni,
+                        nivelFin: nivFin,
+                        subjectCode: subjectCode,
+                        frecuencia: frecuencia,
+                        crn: crn,
+                        horario: horario,
+                        horaFmt: horaFmt,
+                        diasLabel: diasLabel,
+                        docente: docente,
+                        link: link
+                    });
+                }
+                console.log('Horarios recuperación cargados:', horariosRecuperacion.length);
+            } catch (err) {
+                console.error('Error cargando horarios recuperación:', err);
+            }
+        }
+
+        // ========== VARIABLES DE RECUPERACIÓN ==========
+        let diasSeleccionadosRec = new Set(); // Set de strings 'YYYY-MM-DD'
+        let inicioRecuperacion = null;
+        let finRecuperacion = null;
+        let pasoActualRec = 1;
+
+        function mostrarFormRecuperacion() {
+            if (!alumnoActual) return;
+
+            // PASO 3: ocultar botones, mostrar ficha y formulario
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.remove('hidden');
+            document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.remove('hidden');
+
+            // Reset Wizard
+            diasSeleccionadosRec.clear();
+            document.getElementById('rec-exito').classList.add('hidden');
+            document.getElementById('rec-error').classList.add('hidden');
+            document.getElementById('rec-horario-container').style.display = 'none';
+            
+            const headerWizard = document.getElementById('rec-indicador-1');
+            if (headerWizard) headerWizard.parentElement.classList.remove('hidden');
+            
+            irAPasoRec(1);
+
+            // Pre-llenar correo
+            document.getElementById('rec-correo').value =
+                alumnoActual.correo !== 'No registrado' ? alumnoActual.correo : '';
+
+            // ===== Poblar tipos de clase según programa =====
+            const tipoSel = document.getElementById('rec-tipo');
+            tipoSel.innerHTML = '<option value="">-- Selecciona el tipo --</option>';
+            const prog = alumnoActual.programaNombre; // ADULTO, PTEEN, TEENS, KIDS
+            const esAdulto = (prog === 'ADULTO');
+            const opciones = esAdulto
+                ? [
+                    { val: 'FF', txt: 'Lunes a Jueves (L-J)' },
+                    { val: 'SA', txt: 'Sábados' },
+                    { val: 'DO', txt: 'Domingos' }
+                  ]
+                : [
+                    { val: 'S1', txt: 'S1 — Martes y Jueves' },
+                    { val: 'S2', txt: 'S2 — Lunes y Miércoles' }
+                  ];
+            opciones.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.val; opt.textContent = o.txt;
+                tipoSel.appendChild(opt);
+            });
+
+            // Calcular fechas del curso actual para el calendario
+            const periodoAnt = calcularPeriodoAnterior(alumnoActual.periodoSiguiente);
+            const datosAnt = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
+            if (datosAnt) {
+                inicioRecuperacion = new Date(datosAnt.inicio);
+                finRecuperacion   = new Date(datosAnt.fin);
+                const tc = alumnoActual.tipoClaseCal;
+                if (tc === 'sabado') inicioRecuperacion = calAjustarInicioSabado(inicioRecuperacion);
+                finRecuperacion = calAjustarFin(finRecuperacion, tc);
+            } else {
+                inicioRecuperacion = null;
+                finRecuperacion = null;
+            }
+        }
+
+        function filtrarHorariosPorTipo() {
+            const tipo = document.getElementById('rec-tipo').value;
+            const contenedorH = document.getElementById('rec-horario-container');
+            const contenedorC = document.getElementById('rec-cal-container');
+            diasSeleccionadosRec.clear();
+
+            if (!tipo) {
+                contenedorH.style.display = 'none';
+                contenedorC.style.display = 'none';
+                return;
+            }
+
+            // Determinar códigos de subject según programa
+            const prog = alumnoActual.programaNombre;
+            let subjectCodes = [];
+            if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
+            else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
+            else if (prog === 'TEENS') subjectCodes = ['TEEN'];
+            else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+
+            const nivel = alumnoActual.nivelActual;
+            // Filtrar horarios por subject + frequency + nivel
+            let filtrados = horariosRecuperacion.filter(h => {
+                const cumpleSubject  = subjectCodes.includes(h.subjectCode);
+                const cumpleFrecuencia = h.frecuencia === tipo;
+                const cumpleNivelIni = h.nivelIni === null || h.nivelIni <= nivel;
+                const cumpleNivelFin = h.nivelFin === null || h.nivelFin >= nivel;
+                return cumpleSubject && cumpleFrecuencia && cumpleNivelIni && cumpleNivelFin;
+            });
+
+            // Ordenar de más temprano a más tarde (usando h.horario que es un número como '0900', '1600')
+            filtrados.sort((a, b) => {
+                const hA = parseInt(a.horario.padStart(4, '0'), 10);
+                const hB = parseInt(b.horario.padStart(4, '0'), 10);
+                return hA - hB;
+            });
+
+            const sel = document.getElementById('rec-horario');
+            const aviso = document.getElementById('rec-horario-aviso');
+            sel.innerHTML = '<option value="">-- Selecciona un horario --</option>';
+            contenedorH.style.display = 'block';
+
+            if (filtrados.length === 0) {
+                aviso.classList.remove('hidden');
+                sel.disabled = true;
+            } else {
+                aviso.classList.add('hidden');
+                sel.disabled = false;
+                const vistos = new Set();
+                filtrados.forEach(h => {
+                    const txt = `${h.horaFmt} • ${h.diasLabel}`;
+                    if (!vistos.has(txt)) {
+                        vistos.add(txt);
+                        const opt = document.createElement('option');
+                        opt.value = h.crn;
+                        opt.textContent = txt;
+                        opt.dataset.frecuencia = h.frecuencia;
+                        opt.dataset.docente = h.docente;
+                        opt.dataset.horafmt = h.horaFmt;
+                        opt.dataset.link = h.link;
+                        sel.appendChild(opt);
+                    }
+                });
+            }
+
+        }
+
+        // ================= WIZARD LOGIC =================
+        function irAPasoRec(paso) {
+            pasoActualRec = paso;
+            // Actualizar UI de indicadores
+            for(let i=1; i<=3; i++) {
+                const ind = document.getElementById(`rec-indicador-${i}`);
+                if (!ind) continue;
+                if (i === paso) {
+                    ind.className = 'text-xs font-bold text-purple-600 bg-purple-100 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                } else if (i < paso) {
+                    ind.className = 'text-xs font-bold text-white bg-purple-500 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                } else {
+                    ind.className = 'text-xs font-bold text-gray-400 bg-gray-100 rounded-full h-6 w-6 flex items-center justify-center transition-all';
+                }
+                
+                if(i < 3) {
+                    const linea = document.getElementById(`rec-linea-${i}`);
+                    if(linea) linea.className = i < paso ? 'flex-1 border-t-2 border-purple-300 mx-2 transition-all' : 'flex-1 border-t-2 border-gray-200 mx-2 transition-all';
+                }
+            }
+
+            // Ocultar todos los pasos
+            document.getElementById('rec-paso-1').classList.add('hidden');
+            document.getElementById('rec-paso-2').classList.add('hidden');
+            document.getElementById('rec-paso-3').classList.add('hidden');
+
+            // Mostrar el paso actual
+            document.getElementById(`rec-paso-${paso}`).classList.remove('hidden');
+            document.getElementById('rec-error').classList.add('hidden');
+        }
+
+        function avanzarPasoRec(destino) {
+            const errorDiv = document.getElementById('rec-error');
+            errorDiv.classList.add('hidden');
+
+            if (destino === 2) {
+                // Validar Paso 1
+                const correo = document.getElementById('rec-correo').value.trim();
+                if (!correo || !correo.includes('@')) {
+                    errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                const horarioSel = document.getElementById('rec-horario').value;
+                if (!horarioSel) {
+                    errorDiv.innerText = 'Por favor selecciona un horario de recuperación.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                renderizarMiniCalendario();
+            } else if (destino === 3) {
+                // Validar Paso 2
+                if (diasSeleccionadosRec.size === 0) {
+                    errorDiv.innerText = 'Selecciona al menos un día presencial al que faltarás.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+                generarResumenRecuperacion();
+            }
+            irAPasoRec(destino);
+        }
+
+        function retrocederPasoRec(destino) {
+            irAPasoRec(destino);
+        }
+
+        function generarResumenRecuperacion() {
+            const correo = document.getElementById('rec-correo').value.trim();
+            const sel = document.getElementById('rec-horario');
+            const horarioTexto = sel.options[sel.selectedIndex].text;
+            
+            const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            const DIAS_N = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+            const diasLabels = [...diasSeleccionadosRec].sort().map(k => {
+                const [y,m,d] = k.split('-').map(Number);
+                const f = new Date(y, m-1, d);
+                return `${DIAS_N[f.getDay()]} ${d} ${MESES_C[m-1]}`;
+            }).join('<br> • ');
+
+            const html = `
+                <p><strong>📧 Correo:</strong> ${correo}</p>
+                <p><strong>💻 Clase en línea a tomar:</strong><br> ${horarioTexto}</p>
+                <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasLabels}</p>
+            `;
+            document.getElementById('rec-resumen-container').innerHTML = html;
+        }
+
+        function renderizarMiniCalendario() {
+            const calDiv = document.getElementById('rec-mini-cal');
+            calDiv.innerHTML = '';
+            if (!inicioRecuperacion || !finRecuperacion) {
+                calDiv.innerHTML = '<p class="text-xs text-red-400 p-3">No se pudo cargar el periodo del curso.</p>';
+                return;
+            }
+
+            const HOY = new Date(); HOY.setHours(0,0,0,0);
+            const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            const DIAS_HDR = ['L','M','X','J','V','S','D'];
+
+            // Iterar mes por mes entre inicio y fin del curso
+            let curMes = new Date(inicioRecuperacion.getFullYear(), inicioRecuperacion.getMonth(), 1);
+            const mesFinLimit = new Date(finRecuperacion.getFullYear(), finRecuperacion.getMonth(), 1);
+
+            while (curMes <= mesFinLimit) {
+                const anio = curMes.getFullYear();
+                const mes  = curMes.getMonth();
+                const wrapper = document.createElement('div');
+                if (calDiv.children.length > 0) wrapper.style.borderTop = '1px solid #e9d5ff';
+
+                // Header del mes
+                const hdr = document.createElement('div');
+                hdr.className = 'mini-cal-header';
+                hdr.textContent = `${MESES_ES[mes]} ${anio}`;
+                wrapper.appendChild(hdr);
+
+                // Grid días
+                const grid = document.createElement('div');
+                grid.className = 'mini-cal-grid';
+
+                // Etiquetas días semana (L M X J V S D)
+                DIAS_HDR.forEach((d, i) => {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'mini-cal-day-label' + (i === 4 ? ' viernes' : '');
+                    lbl.textContent = d;
+                    grid.appendChild(lbl);
+                });
+
+                // Día 1 del mes → calcular offset (0=Lun,...,6=Dom)
+                const primerDia = new Date(anio, mes, 1);
+                let offset = primerDia.getDay() - 1; // JS: 0=Dom
+                if (offset < 0) offset = 6;
+                for (let i = 0; i < offset; i++) {
+                    const blank = document.createElement('div');
+                    blank.className = 'mini-cal-cell empty';
+                    grid.appendChild(blank);
+                }
+
+                const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+                for (let d = 1; d <= diasEnMes; d++) {
+                    const fecha = new Date(anio, mes, d);
+                    fecha.setHours(0,0,0,0);
+                    const cell = document.createElement('div');
+                    cell.textContent = d;
+                    const dow = fecha.getDay(); // 0=Dom, 1=Lun... 6=Sab
+
+                    const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
+                    const esPasado = fecha < HOY;
+                    
+                    // Restricción según programa original
+                    const modOriginal = alumnoActual.prefijoMod; // FFI, SA, DO
+                    let esValido = false;
+                    if (modOriginal === 'SA') {
+                        esValido = (dow === 6); // Solo sábados
+                    } else if (modOriginal === 'DO') {
+                        esValido = (dow === 0); // Solo domingos
+                    } else {
+                        // Entre semana (Lunes a Jueves)
+                        esValido = (dow >= 1 && dow <= 4);
+                    }
+
+                    const key = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+                    if (!dentroRango || !esValido || esPasado) {
+                        cell.className = 'mini-cal-cell ' + (!esValido ? 'fuera' : 'fuera');
+                    } else {
+                        cell.className = 'mini-cal-cell disponible';
+                        if (diasSeleccionadosRec.has(key)) cell.classList.replace('disponible','seleccionado');
+                        if (fecha.getTime() === HOY.getTime()) cell.classList.add('hoy-rec');
+                        cell.addEventListener('click', () => {
+                            if (diasSeleccionadosRec.has(key)) {
+                                diasSeleccionadosRec.delete(key);
+                                cell.classList.replace('seleccionado','disponible');
+                            } else {
+                                diasSeleccionadosRec.add(key);
+                                cell.classList.replace('disponible','seleccionado');
+                            }
+                        });
+                    }
+                    grid.appendChild(cell);
+                }
+                wrapper.appendChild(grid);
+                calDiv.appendChild(wrapper);
+                curMes.setMonth(curMes.getMonth() + 1);
+            }
+        }
+
+        function cerrarModalRecuperacion() {
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+        }
+
+        async function enviarFormRecuperacion() {
+            const errorDiv = document.getElementById('rec-error');
+            const btnEnviar = document.getElementById('rec-btn-enviar');
+            errorDiv.classList.add('hidden');
+
+            const correo = document.getElementById('rec-correo').value.trim();
+            if (!correo || !correo.includes('@')) {
+                errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            const tipo = document.getElementById('rec-tipo').value;
+            if (!tipo) {
+                errorDiv.innerText = 'Selecciona el tipo de clase.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            const horarioSel = document.getElementById('rec-horario').value;
+            if (!horarioSel) {
+                errorDiv.innerText = 'Por favor selecciona un horario.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+            if (diasSeleccionadosRec.size === 0) {
+                errorDiv.innerText = 'Selecciona al menos un día a recuperar.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+
+            // Formatear días seleccionados (sin día de semana ni año)
+            const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            const diasLabels = [...diasSeleccionadosRec].sort().map(k => {
+                const [y,m,d] = k.split('-').map(Number);
+                return `${d} de ${MESES_LARGOS[m-1]}`;
+            }).join(', ');
+
+            // Obtener variables de la clase elegida
+            const optSel = document.querySelector(`#rec-horario option[value="${horarioSel}"]`);
+            const frecuencia = optSel ? optSel.dataset.frecuencia : '';
+            const modalidadEnvio = alumnoActual.modalidad;
+            const docente = optSel ? optSel.dataset.docente : '';
+            const horafmt = optSel ? optSel.dataset.horafmt : '';
+            const horafmtLimpio = horafmt.replace(/^0/, ''); // e.g. "08:00" -> "8:00"
+
+            const hoy = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
+            const idSinCeros = String(alumnoActual.idOriginal).replace(/^0+/,'');
+
+            const payload = {
+                fechaSolicitud: fechaHoy,
+                idAlumno: idSinCeros,
+                nombre: alumnoActual.nombre,
+                correo: correo,
+                campus: 'PUEBLA ANZURES',
+                tipo: 'RI',
+                modalidad: modalidadEnvio,
+                codigoClase: alumnoActual.codigoClase || '',
+                nivel: String(alumnoActual.nivelActual),
+                frecuenciaReq: frecuencia,
+                horarioReq: horafmtLimpio,
+                crnReq: horarioSel, // El value del select es el crn
+                docenteReq: docente,
+                diasRecuperacion: diasLabels,
+                tipoOperacion: "RECUPERACION"
+            };
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Enviando...';
+            try {
+                if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') throw new Error('URL no configurada.');
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                document.getElementById('rec-paso-3').classList.add('hidden');
+                document.getElementById('rec-indicador-1').parentElement.classList.add('hidden');
+                document.getElementById('rec-exito').classList.remove('hidden');
+
+                const linkClase = optSel ? optSel.dataset.link : '';
+                const recLinkContainer = document.getElementById('rec-link-container');
+                const recLink = document.getElementById('rec-link');
+                if (linkClase) {
+                    recLink.href = linkClase;
+                    recLinkContainer.classList.remove('hidden');
+                } else {
+                    recLinkContainer.classList.add('hidden');
+                }
+
+                // Abrir WhatsApp automáticamente para notificar
+                const numeroWa = '522208731288';
+                const textoWa = encodeURIComponent('Ya solicite mi clase en linea');
+                window.open(`https://wa.me/${numeroWa}?text=${textoWa}`, '_blank');
+            } catch (err) {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar Solicitud';
+                errorDiv.innerText = 'Error al enviar: ' + err.message;
+                errorDiv.classList.remove('hidden');
+            }
+        }
         document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
 </body>
