@@ -1867,9 +1867,8 @@
             let filtrados = horariosRecuperacion.filter(h => {
                 const cumpleSubject  = subjectCodes.includes(h.subjectCode);
                 const cumpleFrecuencia = h.frecuencia === tipo;
-                const cumpleNivelIni = h.nivelIni === null || h.nivelIni <= nivel;
-                const cumpleNivelFin = h.nivelFin === null || h.nivelFin >= nivel;
-                return cumpleSubject && cumpleFrecuencia && cumpleNivelIni && cumpleNivelFin;
+                const cumpleNivel = h.nivelFin === nivel;
+                return cumpleSubject && cumpleFrecuencia && cumpleNivel;
             });
 
             // Ordenar de más temprano a más tarde (usando h.horario que es un número como '0900', '1600')
