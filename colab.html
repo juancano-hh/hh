@@ -1901,9 +1901,7 @@
                 sel.disabled = false;
                 const vistos = new Set();
                 filtrados.forEach(h => {
-                    const txt = (h.nivelIni !== null && h.nivelFin !== null)
-                                ? `${h.horaFmt} (Nivel ${h.nivelIni}-${h.nivelFin})`
-                                : h.horaFmt;
+                    const txt = h.horaFmt;
                     if (!vistos.has(txt)) {
                         vistos.add(txt);
                         const opt = document.createElement('option');
