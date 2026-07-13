@@ -401,6 +401,10 @@
                     <span id="desglose-tot-lib-sin" class="font-bold text-sm"></span>
                 </div>
                 <div class="flex justify-between items-center">
+                    <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
+                    <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
+                </div>
+                <div class="flex justify-between items-center">
                     <span>Total con libro <b class="text-purple-600">CON</b> servicio:</span>
                     <span id="desglose-tot-lib-con" class="font-bold text-sm"></span>
                 </div>
@@ -886,7 +890,7 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
-                    lblCursosPagados.innerText = `Cursos pagados: ${totalCourses}`;
+                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen}`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
                     secVolumen.classList.add('hidden');
@@ -1187,8 +1191,7 @@
                     }
                 }
 
-                // PASO 2: ocultar búsqueda, mostrar solo botones
-                document.getElementById('seccion-busqueda').classList.add('hidden');
+                // PASO 2: mostrar solo botones (dejamos visible el buscador arriba)
                 document.getElementById('menu-principal').classList.remove('hidden');
                 ficha.classList.add('hidden');
                 calculos.classList.add('hidden');
@@ -1373,6 +1376,12 @@
             document.getElementById('desglose-tot-cur-sin').innerText = fmt.format(totCurSin);
             document.getElementById('desglose-tot-cur-con').innerText = fmt.format(totCurCon);
             document.getElementById('desglose-tot-lib-sin').innerText = fmt.format(totLibSin);
+            
+            const cargoMultiText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
+            const cargoTotal = 90 * cantCursos;
+            document.getElementById('desglose-cargo-multi').innerText = cargoMultiText;
+            document.getElementById('desglose-cargo-tot').innerText = fmt.format(cargoTotal);
+
             document.getElementById('desglose-tot-lib-con').innerText = fmt.format(totLibCon);
         }
 
@@ -1651,10 +1660,22 @@
         function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado) {
             if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
             
-            // Extraer estrictamente los números de la hora (ej. "09:00 a. m." -> "09:00")
-            let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
-            if (!matchHorario) return null;
-            let hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+            let hStr;
+            let tempHorario = String(horarioOriginal).toUpperCase().replace(/[\.\s]/g, '');
+
+            if (esSabado && tempHorario === 'SM') {
+                if (programaNombre === 'KIDS' || programaNombre === 'TEENS' || programaNombre === 'PTEEN') {
+                    hStr = '10:00';
+                } else {
+                    hStr = '08:00';
+                }
+            } else if (esSabado && tempHorario === 'SV') {
+                hStr = '13:30';
+            } else {
+                let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
+                if (!matchHorario) return null;
+                hStr = parseInt(matchHorario[1], 10).toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+            }
 
             // Determinar texto a buscar (Solo nivel actual exacto)
             let textoBuscar = String(nivelActual);
