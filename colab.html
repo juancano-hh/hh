@@ -697,7 +697,7 @@
 
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
-                        modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre,
+                        modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
                         prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                         cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
                         cargoServicio: tieneServicio ? 90 : 0,
@@ -1854,13 +1854,23 @@
                 else nota.classList.add('hidden');
             }
 
-            // Determinar códigos de subject según programa
-            const prog = alumnoActual.programaNombre;
+            // Determinar códigos de subject según programaRaw (columna L de layout)
+            const raw = (alumnoActual.programaRaw || '').toUpperCase();
             let subjectCodes = [];
-            if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
-            else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
-            else if (prog === 'TEENS') subjectCodes = ['TEEN'];
-            else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+            if (raw.includes('ADULTOS')) subjectCodes = ['ADUL'];
+            else if (raw.includes('PTEEN')) subjectCodes = ['PTEE'];
+            else if (raw.includes('TEENS')) subjectCodes = ['TEEN'];
+            else if (raw.includes('TEACHERS')) subjectCodes = ['TEAC'];
+            else if (raw.includes('CONVERSATION')) subjectCodes = ['ICC'];
+            else if (raw.includes('TOEFL')) subjectCodes = ['TOEF'];
+            else {
+                // Fallback a lógica anterior si no coincide
+                const prog = alumnoActual.programaNombre;
+                if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
+                else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
+                else if (prog === 'TEENS') subjectCodes = ['TEEN'];
+                else if (prog === 'KIDS')  subjectCodes = ['KIDS', 'TEEN'];
+            }
 
             const nivel = alumnoActual.nivelActual;
             // Filtrar horarios por subject + frequency + nivel
