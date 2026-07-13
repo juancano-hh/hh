@@ -450,6 +450,7 @@
                         <select id="rec-tipo" class="rec-select" onchange="filtrarHorariosPorTipo()">
                             <option value="">-- Selecciona el tipo --</option>
                         </select>
+                        <p id="nota-entre-semana" class="hidden text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-2">Entre semana solo se puede recuperar el mismo día.</p>
                     </div>
 
                     <div class="mb-3" id="rec-horario-container" style="display:none">
@@ -1804,7 +1805,7 @@
             const esAdulto = (prog === 'ADULTO');
             const opciones = esAdulto
                 ? [
-                    { val: 'FF', txt: 'Lunes a Jueves (L-J)' },
+                    { val: 'FF', txt: 'Entre semana (lunes a jueves)' },
                     { val: 'SA', txt: 'Sábados' },
                     { val: 'DO', txt: 'Domingos' }
                   ]
@@ -1842,7 +1843,15 @@
             if (!tipo) {
                 contenedorH.style.display = 'none';
                 contenedorC.style.display = 'none';
+                const nota = document.getElementById('nota-entre-semana');
+                if (nota) nota.classList.add('hidden');
                 return;
+            }
+
+            const nota = document.getElementById('nota-entre-semana');
+            if (nota) {
+                if (tipo === 'FF') nota.classList.remove('hidden');
+                else nota.classList.add('hidden');
             }
 
             // Determinar códigos de subject según programa
@@ -1883,7 +1892,9 @@
                 sel.disabled = false;
                 const vistos = new Set();
                 filtrados.forEach(h => {
-                    const txt = `${h.horaFmt} • ${h.diasLabel}`;
+                    const txt = (h.nivelIni !== null && h.nivelFin !== null)
+                                ? `${h.horaFmt} (Nivel ${h.nivelIni}-${h.nivelFin})`
+                                : h.horaFmt;
                     if (!vistos.has(txt)) {
                         vistos.add(txt);
                         const opt = document.createElement('option');
