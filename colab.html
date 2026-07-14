@@ -882,7 +882,7 @@
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (modStr === '08' && !alumnoActual.tieneR && periodoAnt) {
+                if (!alumnoActual.tieneR && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
@@ -910,7 +910,7 @@
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (modStr === '08' && !alumnoActual.tieneR && periodoAnt) {
+                if (!alumnoActual.tieneR && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
