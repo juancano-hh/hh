@@ -2038,6 +2038,13 @@
             }
 
             const HOY = new Date(); HOY.setHours(0,0,0,0);
+            
+            // Determinar el lunes de la semana actual (0 = Domingo)
+            const diaSemanaHoy = HOY.getDay();
+            const diffLunes = (diaSemanaHoy === 0 ? -6 : 1 - diaSemanaHoy);
+            const lunesSemanaActual = new Date(HOY);
+            lunesSemanaActual.setDate(HOY.getDate() + diffLunes);
+
             const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
             const DIAS_HDR = ['L','M','X','J','V','S','D'];
 
@@ -2088,7 +2095,7 @@
                     const dow = fecha.getDay(); // 0=Dom, 1=Lun... 6=Sab
 
                     const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
-                    const esPasado = fecha < HOY;
+                    const esPasado = fecha < lunesSemanaActual;
                     
                     // Restricción según programa original
                     const modOriginal = alumnoActual.prefijoMod; // FFI, SA, DO
