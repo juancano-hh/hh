@@ -825,8 +825,14 @@
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.remove('hidden');
                 lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
-                const targetDatos = obtenerDatosPeriodo(periodoSig);
-                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+                
+                let targetPeriod = periodoSig;
+                let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
+                if (modStr === '08' && !alumnoActual.tieneR && periodoAnt) {
+                    targetPeriod = periodoAnt;
+                }
+                const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
             } else if (alumnoActual.volumen.includes(" DE ")) {
                 const partesVol = alumnoActual.volumen.split(" DE ");
                 const currentCourse = parseInt(partesVol[0].trim());
@@ -847,8 +853,14 @@
                 // Estudiante normal (vacío), mostrar la próxima fecha de pago
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
-                const targetDatos = obtenerDatosPeriodo(periodoSig);
-                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, periodoSig ? periodoSig.substring(2,4) : '04');
+                
+                let targetPeriod = periodoSig;
+                let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
+                if (modStr === '08' && !alumnoActual.tieneR && periodoAnt) {
+                    targetPeriod = periodoAnt;
+                }
+                const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
             }
 
             seccion.classList.remove('hidden');
@@ -1188,9 +1200,11 @@
                 document.getElementById('libro-toggle').checked = true;
             }
             let librosFinal = 0;
+            let librosOriginales = 0;
             if (infoLibros.cantidad > 0) {
                 const resultado = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
                 librosFinal = resultado.totalFinal;
+                librosOriginales = resultado.totalOriginal;
                 libroContainer.classList.remove('hidden');
                 const detalleDiv = document.getElementById('lista-libros-detalle');
                 detalleDiv.innerHTML = '';
@@ -1216,7 +1230,7 @@
             totalListaLibrosFinal = librosFinal;
             const totalCursosConServicio  = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
             const totalConDescuentoGeneral = totalCursosConServicio + librosFinal;
-            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + (infoLibros.cantidad ? infoLibros.libros.reduce((s,l)=>s+l.precio,0):0);
+            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + librosOriginales;
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const primerEsAlto = primerNivel >= 21;
             const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
