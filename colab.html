@@ -1408,6 +1408,33 @@
             document.getElementById('desglose-cargo-tot').innerText = fmt.format(cargoTotal);
 
             document.getElementById('desglose-tot-lib-con').innerText = fmt.format(totLibCon);
+
+            // ===== ACTUALIZAR PRÓXIMA FECHA DE PAGO =====
+            const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
+            if (lblProximaFecha && alumnoActual) {
+                let targetPeriod = alumnoActual.periodoSiguiente;
+                const periodoAnt = calcularPeriodoAnterior(targetPeriod);
+                if (!alumnoActual.tieneR && periodoAnt) {
+                    targetPeriod = periodoAnt;
+                }
+                
+                if (alumnoActual.volumen && alumnoActual.volumen.includes(" DE ")) {
+                    const partesVol = alumnoActual.volumen.split(" DE ");
+                    const currentCourse = parseInt(partesVol[0].trim());
+                    const totalCourses = parseInt(partesVol[1].trim());
+                    if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                        const cursosRestantes = totalCourses - currentCourse;
+                        const totalSumar = cursosRestantes + cantCursos;
+                        const nextPaymentPeriod = calSumarPeriodos(targetPeriod, totalSumar);
+                        const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                        lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
+                    }
+                } else {
+                    const nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos - 1);
+                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                    lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04');
+                }
+            }
         }
 
         document.addEventListener('change', function(e) {
