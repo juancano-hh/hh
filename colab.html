@@ -1716,23 +1716,25 @@
             const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
             
             // Buscar la fila comparando estrictamente las horas
-            const fila = filasBuscar.find(f => {
+            const filasCoincidentes = filasBuscar.filter(f => {
                 let m = String(f.celdas[0] || '').match(/(\d+):(\d+)/);
                 if (!m) return false;
                 let filaHStr = parseInt(m[1], 10).toString().padStart(2, '0') + ':' + m[2].substring(0, 2);
                 return filaHStr === hStr;
             });
             
-            if (!fila) return null;
+            if (filasCoincidentes.length === 0) return null;
 
-            // Buscar en las celdas de la fila
-            for (let i = 1; i < fila.celdas.length; i++) {
-                const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
-                if (celda === textoLimpio) {
-                    return {
-                        salon: matrizSalones.salones[i] || 'No definido',
-                        teacher: matrizSalones.teachers[i] || 'No definido'
-                    };
+            // Buscar en las celdas de TODAS las filas que coincidan en hora
+            for (let fila of filasCoincidentes) {
+                for (let i = 1; i < fila.celdas.length; i++) {
+                    const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
+                    if (celda === textoLimpio) {
+                        return {
+                            salon: matrizSalones.salones[i] || 'No definido',
+                            teacher: matrizSalones.teachers[i] || 'No definido'
+                        };
+                    }
                 }
             }
             return null;
