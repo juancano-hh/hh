@@ -90,6 +90,9 @@
                 print-color-adjust: exact !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                display: block !important;
+                min-height: 0 !important;
+                height: auto !important;
             }
             body > *:not(#print-factura) {
                 display: none !important;
@@ -2398,7 +2401,15 @@
             const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
             
-            let descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%)` : '';
+            let promoMotivo = '';
+            const promoInfo = obtenerMejorPromoVigente(cantCursos);
+            if (promoInfo && promoInfo.descuento > alumnoActual.beca) {
+                promoMotivo = ` - ${promoInfo.motivo}`;
+            } else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) {
+                promoMotivo = ' - Beca base';
+            }
+            
+            let descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%${promoMotivo})` : '';
             const montoBajos = (precioBaseBajo * (1 - porcentajeDescuentoActual/100)) + extraServicio;
             const montoAltos = (precioBaseAlto * (1 - porcentajeDescuentoActual/100)) + extraServicio;
             
@@ -2448,6 +2459,10 @@
             const hoy = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
             const vigencia = document.getElementById('fecha-vigencia-promo').innerText || hoy;
 
+            const inicioSiguiente = document.getElementById('lbl-inicio-siguiente').innerText || '';
+            const finSiguiente = document.getElementById('lbl-fin-siguiente').innerText || '';
+            const lblCotizacionFecha = document.getElementById('lbl-cotizacion-fecha').innerText || '';
+
             const facturaHtml = `
                 <div class="factura-header">
                     <div class="factura-info">
@@ -2455,10 +2470,19 @@
                         <p><strong>ID Alumno:</strong> ${alumnoActual.idOriginal}</p>
                         <p><strong>Nombre:</strong> ${alumnoActual.nombre}</p>
                         <p><strong>Programa:</strong> ${alumnoActual.programaTexto}</p>
+                        <p><strong>Modalidad:</strong> ${alumnoActual.modalidad}</p>
                         <p><strong>Horario:</strong> ${alumnoActual.horario}</p>
+                        <p><strong>Beca Base:</strong> ${Math.round(alumnoActual.beca * 100)}%</p>
+                        <p style="margin-top:8px;"><strong>Próximo curso:</strong></p>
+                        <p style="padding-left:15px;">Inicio: ${inicioSiguiente}</p>
+                        <p style="padding-left:15px;">Fin: ${finSiguiente}</p>
                     </div>
                     <div class="factura-fecha">
-                        Fecha: <br><span style="font-weight:normal;">${hoy}</span>
+                        <p style="margin-bottom:10px;">Fecha: <br><span style="font-weight:normal;">${hoy}</span></p>
+                        <p style="font-size:12px; font-weight:normal; color:#444; max-width: 160px; float: right; border: 1px solid #ccc; padding: 5px; border-radius: 4px; text-align: left;">
+                            Para dudas u otras cotizaciones contáctanos a este WhatsApp:<br>
+                            <strong>220 873 1288</strong>
+                        </p>
                     </div>
                 </div>
                 
@@ -2481,8 +2505,10 @@
                 </div>
                 
                 <div class="factura-footer">
-                    Válido hasta: <strong>${vigencia}</strong><br>
-                    * Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.
+                    ${lblCotizacionFecha ? `<p style="font-size:15px; font-weight:bold; margin-bottom:15px; color:#1e40af;">Si pagas esta cotización, tu próxima fecha de pago será:<br>${lblCotizacionFecha}</p>` : ''}
+                    <p style="font-size: 14px;">Válido hasta: <strong>${vigencia}</strong></p>
+                    <p style="margin-top: 5px;">* Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.</p>
+                    <p style="font-size: 9px; margin-top: 20px; color: #999;">Contamos con 3 y 6 MSI</p>
                 </div>
             `;
             
