@@ -69,10 +69,10 @@
             border-radius: 20px; margin-bottom: 10px;
             border: 1px solid rgba(200,210,230,0.25);
         }
-        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
         .cal-mes {
             background: rgba(255,255,255,0.22);
-            border-radius: 14px; padding: 8px 5px 10px;
+            border-radius: 14px; padding: 4px 5px 6px;
             border: 1px solid rgba(200,210,230,0.22);
         }
         .cal-mes-tit {
@@ -1533,7 +1533,7 @@
                         textoCotizacion = obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04');
                     }
                 } else {
-                    const nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos - 1);
+                    const nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos);
                     const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
                     textoCotizacion = obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04');
                 }
@@ -2422,7 +2422,7 @@
                 totalGeneral += subtotal;
                 tbodyHtml += `
                     <tr>
-                        <td>Pago por ${cursosBajos} cantidad de curso(s)${descStr}</td>
+                        <td>Pago por ${cursosBajos} curso(s)${descStr}</td>
                         <td class="monto">$${subtotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                     </tr>
                 `;
@@ -2433,7 +2433,7 @@
                 totalGeneral += subtotal;
                 tbodyHtml += `
                     <tr>
-                        <td>Pago por ${cursosAltos} cantidad de curso(s) avanzado(s)${descStr}</td>
+                        <td>Pago por ${cursosAltos} curso(s) avanzado(s)${descStr}</td>
                         <td class="monto">$${subtotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
                     </tr>
                 `;
