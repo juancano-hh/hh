@@ -81,7 +81,98 @@
         }
         .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; margin-bottom: 3px; text-align: center; }
         .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
-        .cal-wday.dom { color: #b0a8c0; }
+        .cal-wday.dom { color: #e11d48; }
+
+        @media print {
+            body {
+                background: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body.print-todo > *, body.print-calendario > * {
+                display: none !important;
+            }
+            
+            body.print-todo #main-container,
+            body.print-todo #modal-calendario {
+                display: block !important;
+            }
+            
+            body.print-calendario #modal-calendario {
+                display: block !important;
+            }
+            
+            /* Dentro de main-container, ocultar menú botones y buscar */
+            body.print-todo #main-container > div:not(#ficha-alumno):not(#seccion-calculos) {
+                display: none !important;
+            }
+            
+            body.print-todo #main-container > #ficha-alumno,
+            body.print-todo #main-container > #seccion-calculos {
+                display: block !important;
+            }
+            
+            /* Ajustar contenedores */
+            body.print-todo #main-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            body.print-todo #ficha-alumno {
+                margin-bottom: 20px !important;
+            }
+
+            body.print-todo #seccion-calculos {
+                border-top: 2px solid #ccc !important;
+                padding-top: 20px !important;
+            }
+            
+            /* Ajustar modal calendario */
+            body.print-todo #modal-calendario,
+            body.print-calendario #modal-calendario {
+                position: static !important;
+                background: transparent !important;
+                height: auto !important;
+                padding: 0 !important;
+                display: block !important;
+                margin-top: 30px !important;
+            }
+            
+            body.print-todo .modal-box,
+            body.print-calendario .modal-box {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: white !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            /* Ocultar botones e interacciones */
+            .cal-close-btn, button, .toggle-switch, input[type="range"], .no-print {
+                display: none !important;
+            }
+            
+            /* Mejorar visibilidad de textos e inputs en modo todo */
+            body.print-todo #seccion-calculos .bg-blue-50 {
+                background: #fff !important;
+                border: 1px solid #ccc !important;
+            }
+            body.print-todo #resumen-container {
+                background: #fff !important;
+                border: 1px solid #ccc !important;
+            }
+            
+            /* Evitar que se parta a la mitad la cotización */
+            #seccion-calculos {
+                page-break-inside: avoid;
+            }
+            
+            #modal-calendario {
+                page-break-before: always;
+            }
+        }
         .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
         .cal-d {
             aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center;
@@ -282,9 +373,14 @@
                         <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
                     </div>
                 </div>
-                <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                    📅 Ver Mi Calendario de Clases
-                </button>
+                <div class="flex gap-2">
+                    <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        📅 Calendario
+                    </button>
+                    <button onclick="mostrarOpcionesImpresion()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        🖨️ Imprimir
+                    </button>
+                </div>>
             </div>
         </div>
 
@@ -520,6 +616,23 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL OPCIONES IMPRESION ===== -->
+    <div id="modal-imprimir" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-imprimir').classList.add('hidden')">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm m-auto space-y-4 relative">
+            <button onclick="document.getElementById('modal-imprimir').classList.add('hidden')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="font-bold text-lg text-gray-800 text-center border-b pb-2">Opciones de Impresión</h3>
+            <p class="text-sm text-gray-600 text-center mb-4">¿Qué información deseas incluir en la impresión?</p>
+            <button onclick="ejecutarImpresion('todo')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 shadow hover:shadow-md transition">
+                🖨️ Imprimir Cotización y Calendario
+            </button>
+            <button onclick="ejecutarImpresion('calendario')" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 shadow hover:shadow-md transition">
+                📅 Solo Calendario
+            </button>
         </div>
     </div>
 
@@ -2279,6 +2392,52 @@
                 errorDiv.classList.remove('hidden');
             }
         }
+        // ==================== IMPRESION ====================
+        function mostrarOpcionesImpresion() {
+            document.getElementById('modal-imprimir').classList.remove('hidden');
+        }
+
+        function ejecutarImpresion(modo) {
+            document.getElementById('modal-imprimir').classList.add('hidden');
+            
+            if (!alumnoActual) {
+                alert("No hay alumno seleccionado.");
+                return;
+            }
+            
+            // Asegurarnos de que el calendario esté renderizado con los datos del alumno actual
+            document.getElementById('cal-modalidad').value = alumnoActual.prefijoMod;
+            document.getElementById('cal-tipoClase').value = alumnoActual.tipoClaseCal;
+            
+            if (alumnoActual.prefijoMod === '08') {
+                const mesNum = parseInt(alumnoActual.periodoSiguiente.substring(4, 6), 10);
+                const esPar = mesNum % 2 === 0;
+                document.getElementById('cal-filtroMes').value = esPar ? 'par' : 'non';
+            } else {
+                document.getElementById('cal-filtroMes').value = 'ambos';
+            }
+            
+            renderizarCalendarioModal();
+
+            // Pequeño timeout para permitir que React/DOM actualice el grid del calendario
+            setTimeout(() => {
+                document.body.className = '';
+                if (modo === 'todo') {
+                    document.body.classList.add('print-todo');
+                } else if (modo === 'calendario') {
+                    document.body.classList.add('print-calendario');
+                }
+                
+                setTimeout(() => {
+                    window.print();
+                    // Limpiar clases tras imprimir
+                    setTimeout(() => {
+                        document.body.className = 'bg-gray-100 text-gray-900 font-sans p-4';
+                    }, 1000);
+                }, 500);
+            }, 100);
+        }
+
         document.addEventListener("DOMContentLoaded", inicializarTodo);
     </script>
 </body>
