@@ -88,89 +88,83 @@
                 background: white !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-            }
-            body.print-todo > *, body.print-calendario > * {
-                display: none !important;
-            }
-            
-            body.print-todo #main-container,
-            body.print-todo #modal-calendario {
-                display: block !important;
-            }
-            
-            body.print-calendario #modal-calendario {
-                display: block !important;
-            }
-            
-            /* Dentro de main-container, ocultar menú botones y buscar */
-            body.print-todo #main-container > div:not(#ficha-alumno):not(#seccion-calculos) {
-                display: none !important;
-            }
-            
-            body.print-todo #main-container > #ficha-alumno,
-            body.print-todo #main-container > #seccion-calculos {
-                display: block !important;
-            }
-            
-            /* Ajustar contenedores */
-            body.print-todo #main-container {
-                box-shadow: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                max-width: 100% !important;
+            }
+            body > *:not(#print-factura) {
+                display: none !important;
             }
             
-            body.print-todo #ficha-alumno {
-                margin-bottom: 20px !important;
+            #print-factura {
+                display: block !important;
+                width: 100%;
+                font-family: sans-serif;
+                color: #000;
             }
 
-            body.print-todo #seccion-calculos {
-                border-top: 2px solid #ccc !important;
-                padding-top: 20px !important;
+            .factura-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #333;
+                padding-bottom: 15px;
+            }
+            .factura-title {
+                font-size: 22px;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-bottom: 5px;
+            }
+            .factura-info p {
+                margin: 3px 0;
+                font-size: 14px;
+            }
+            .factura-fecha {
+                text-align: right;
+                font-size: 14px;
+                font-weight: bold;
             }
             
-            /* Ajustar modal calendario */
-            body.print-todo #modal-calendario,
-            body.print-calendario #modal-calendario {
-                position: static !important;
-                background: transparent !important;
-                height: auto !important;
-                padding: 0 !important;
-                display: block !important;
-                margin-top: 30px !important;
+            .factura-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            .factura-table th, .factura-table td {
+                border: 1px solid #000;
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+            }
+            .factura-table th {
+                background-color: #f3f4f6 !important;
+                font-weight: bold;
+            }
+            .factura-table td.monto {
+                text-align: right;
             }
             
-            body.print-todo .modal-box,
-            body.print-calendario .modal-box {
-                box-shadow: none !important;
-                border-radius: 0 !important;
-                background: white !important;
-                margin: 0 !important;
-                max-width: 100% !important;
+            .factura-total-container {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 15px;
+            }
+            .factura-total {
+                font-size: 18px;
+                font-weight: bold;
+                border: 2px solid #000;
+                padding: 10px 20px;
+                border-radius: 5px;
             }
             
-            /* Ocultar botones e interacciones */
-            .cal-close-btn, button, .toggle-switch, input[type="range"], .no-print {
-                display: none !important;
-            }
-            
-            /* Mejorar visibilidad de textos e inputs en modo todo */
-            body.print-todo #seccion-calculos .bg-blue-50 {
-                background: #fff !important;
-                border: 1px solid #ccc !important;
-            }
-            body.print-todo #resumen-container {
-                background: #fff !important;
-                border: 1px solid #ccc !important;
-            }
-            
-            /* Evitar que se parta a la mitad la cotización */
-            #seccion-calculos {
-                page-break-inside: avoid;
-            }
-            
-            #modal-calendario {
-                page-break-before: always;
+            .factura-footer {
+                margin-top: 40px;
+                font-size: 13px;
+                color: #444;
+                text-align: center;
+                border-top: 1px dashed #999;
+                padding-top: 15px;
             }
         }
         .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
@@ -288,7 +282,8 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
+    <div id="print-factura" class="hidden"></div>
+    <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
 
         <!-- PASO 1: BÚSQUEDA -->
         <div id="seccion-busqueda">
@@ -377,7 +372,7 @@
                     <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         📅 Calendario
                     </button>
-                    <button onclick="mostrarOpcionesImpresion()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🖨️ Imprimir
                     </button>
                 </div>>
@@ -619,22 +614,7 @@
         </div>
     </div>
 
-    <!-- ===== MODAL OPCIONES IMPRESION ===== -->
-    <div id="modal-imprimir" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-imprimir').classList.add('hidden')">
-        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm m-auto space-y-4 relative">
-            <button onclick="document.getElementById('modal-imprimir').classList.add('hidden')" class="absolute top-3 right-3 text-gray-400 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <h3 class="font-bold text-lg text-gray-800 text-center border-b pb-2">Opciones de Impresión</h3>
-            <p class="text-sm text-gray-600 text-center mb-4">¿Qué información deseas incluir en la impresión?</p>
-            <button onclick="ejecutarImpresion('todo')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 shadow hover:shadow-md transition">
-                🖨️ Imprimir Cotización y Calendario
-            </button>
-            <button onclick="ejecutarImpresion('calendario')" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 shadow hover:shadow-md transition">
-                📅 Solo Calendario
-            </button>
-        </div>
-    </div>
+
 
     <!-- ===== MODAL CALENDARIO ===== -->
     <div id="modal-calendario" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalCalendario()">
@@ -2393,49 +2373,124 @@
             }
         }
         // ==================== IMPRESION ====================
-        function mostrarOpcionesImpresion() {
-            document.getElementById('modal-imprimir').classList.remove('hidden');
-        }
-
-        function ejecutarImpresion(modo) {
-            document.getElementById('modal-imprimir').classList.add('hidden');
-            
+        function ejecutarImpresionFactura() {
             if (!alumnoActual) {
                 alert("No hay alumno seleccionado.");
                 return;
             }
             
-            // Asegurarnos de que el calendario esté renderizado con los datos del alumno actual
-            document.getElementById('cal-modalidad').value = alumnoActual.prefijoMod;
-            document.getElementById('cal-tipoClase').value = alumnoActual.tipoClaseCal;
+            // Recopilar datos
+            const cantCursos = parseInt(document.getElementById('cursos-slider').value) || 1;
+            const toggleServicio = document.getElementById('servicio-toggle');
+            const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             
-            if (alumnoActual.prefijoMod === '08') {
-                const mesNum = parseInt(alumnoActual.periodoSiguiente.substring(4, 6), 10);
-                const esPar = mesNum % 2 === 0;
-                document.getElementById('cal-filtroMes').value = esPar ? 'par' : 'non';
-            } else {
-                document.getElementById('cal-filtroMes').value = 'ambos';
+            const nivelActual = alumnoActual.nivelActual;
+            const primerNivel = nivelActual + 1;
+            const ultimoNivel = primerNivel + cantCursos - 1;
+            let cursosBajos = 0, cursosAltos = 0;
+            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
+                if (nivel >= 21) cursosAltos++;
+                else cursosBajos++;
             }
             
-            renderizarCalendarioModal();
+            const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
+            const llaveAlta = `${alumnoActual.prefijoMod}${alumnoActual.programa}21`;
+            const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
+            const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
+            
+            let descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%)` : '';
+            const montoBajos = (precioBaseBajo * (1 - porcentajeDescuentoActual/100)) + extraServicio;
+            const montoAltos = (precioBaseAlto * (1 - porcentajeDescuentoActual/100)) + extraServicio;
+            
+            let totalGeneral = 0;
+            
+            let tbodyHtml = '';
+            
+            if (cursosBajos > 0) {
+                const subtotal = montoBajos * cursosBajos;
+                totalGeneral += subtotal;
+                tbodyHtml += `
+                    <tr>
+                        <td>Pago por ${cursosBajos} cantidad de curso(s)${descStr}</td>
+                        <td class="monto">$${subtotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                    </tr>
+                `;
+            }
+            
+            if (cursosAltos > 0) {
+                const subtotal = montoAltos * cursosAltos;
+                totalGeneral += subtotal;
+                tbodyHtml += `
+                    <tr>
+                        <td>Pago por ${cursosAltos} cantidad de curso(s) avanzado(s)${descStr}</td>
+                        <td class="monto">$${subtotal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                    </tr>
+                `;
+            }
+            
+            // Libros
+            if (librosSeleccionadosIndices.length > 0 && infoLibros.libros) {
+                infoLibros.libros.forEach((l, idx) => {
+                    if (librosSeleccionadosIndices.includes(idx)) {
+                        let promoText = (l.esGratis) ? ` (Promo: ${l.motivoPromo})` : '';
+                        let precioLibro = l.esGratis ? 0 : l.precio;
+                        totalGeneral += precioLibro;
+                        tbodyHtml += `
+                            <tr>
+                                <td>Libro: ${l.nombre}${promoText}</td>
+                                <td class="monto">$${precioLibro.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
+            
+            const hoy = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+            const vigencia = document.getElementById('fecha-vigencia-promo').innerText || hoy;
 
-            // Pequeño timeout para permitir que React/DOM actualice el grid del calendario
-            setTimeout(() => {
-                document.body.className = '';
-                if (modo === 'todo') {
-                    document.body.classList.add('print-todo');
-                } else if (modo === 'calendario') {
-                    document.body.classList.add('print-calendario');
-                }
+            const facturaHtml = `
+                <div class="factura-header">
+                    <div class="factura-info">
+                        <div class="factura-title">Cotización de Cursos</div>
+                        <p><strong>ID Alumno:</strong> ${alumnoActual.idOriginal}</p>
+                        <p><strong>Nombre:</strong> ${alumnoActual.nombre}</p>
+                        <p><strong>Programa:</strong> ${alumnoActual.programaTexto}</p>
+                        <p><strong>Horario:</strong> ${alumnoActual.horario}</p>
+                    </div>
+                    <div class="factura-fecha">
+                        Fecha: <br><span style="font-weight:normal;">${hoy}</span>
+                    </div>
+                </div>
                 
-                setTimeout(() => {
-                    window.print();
-                    // Limpiar clases tras imprimir
-                    setTimeout(() => {
-                        document.body.className = 'bg-gray-100 text-gray-900 font-sans p-4';
-                    }, 1000);
-                }, 500);
-            }, 100);
+                <table class="factura-table">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th style="width: 120px; text-align: right;">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbodyHtml}
+                    </tbody>
+                </table>
+                
+                <div class="factura-total-container">
+                    <div class="factura-total">
+                        Total: $${totalGeneral.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}
+                    </div>
+                </div>
+                
+                <div class="factura-footer">
+                    Válido hasta: <strong>${vigencia}</strong><br>
+                    * Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.
+                </div>
+            `;
+            
+            document.getElementById('print-factura').innerHTML = facturaHtml;
+            
+            setTimeout(() => {
+                window.print();
+            }, 300);
         }
 
         document.addEventListener("DOMContentLoaded", inicializarTodo);
