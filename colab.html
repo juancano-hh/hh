@@ -636,7 +636,7 @@
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">✕</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl">
-                <div class="space-y-4">
+                <div id="bg-selectores-container" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Programa</label>
                         <select id="bg-programa" onchange="bgActualizarHorarios()" class="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 text-sm">
@@ -691,9 +691,14 @@
                         </div>
                     </div>
 
-                    <button onclick="bgAbrirCalendario()" class="mt-4 w-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-3 px-4 rounded-xl hover:bg-indigo-100 transition duration-200 flex justify-center items-center gap-2 shadow-sm">
-                        📅 Ver Calendario
-                    </button>
+                    <div class="mt-4 flex gap-3">
+                        <button onclick="bgResetearBusqueda()" class="w-1/3 bg-gray-100 text-gray-700 border border-gray-200 font-bold py-3 px-2 rounded-xl hover:bg-gray-200 transition duration-200 flex justify-center items-center gap-1 shadow-sm text-sm">
+                            🔄 Buscar Otro
+                        </button>
+                        <button onclick="bgAbrirCalendario()" class="w-2/3 bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-3 px-4 rounded-xl hover:bg-indigo-100 transition duration-200 flex justify-center items-center gap-2 shadow-sm text-sm">
+                            📅 Ver Calendario
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2727,14 +2732,19 @@
         // ==================== BUSCAR GRUPOS ====================
         let bgClaseActual = null;
 
-        function abrirModalGrupos() {
-            document.getElementById('modal-grupos').classList.remove('hidden');
+        function bgResetearBusqueda() {
+            document.getElementById('bg-info').classList.add('hidden');
+            document.getElementById('bg-selectores-container').classList.remove('hidden');
             document.getElementById('bg-programa').value = '';
             document.getElementById('bg-horario').innerHTML = '<option value="">Selecciona Horario</option>';
             document.getElementById('bg-horario').disabled = true;
             document.getElementById('bg-nivel').innerHTML = '<option value="">Selecciona Nivel</option>';
             document.getElementById('bg-nivel').disabled = true;
-            document.getElementById('bg-info').classList.add('hidden');
+        }
+
+        function abrirModalGrupos() {
+            document.getElementById('modal-grupos').classList.remove('hidden');
+            bgResetearBusqueda();
         }
 
         function bgActualizarHorarios() {
@@ -2817,6 +2827,18 @@
             selNivel.disabled = false;
         }
 
+        function horCoincide(hAlumno, hTarget) {
+            if (!hAlumno || !hTarget) return false;
+            let matchA = String(hAlumno).match(/(\d+):(\d+)/);
+            if (!matchA) return false;
+            let hA = parseInt(matchA[1], 10);
+            let tempA = String(hAlumno).toUpperCase();
+            if (tempA.includes('PM') && hA < 12) hA += 12;
+            if (tempA.includes('AM') && hA === 12) hA = 0;
+            let hStrA = hA.toString().padStart(2, '0') + ':' + matchA[2].substring(0, 2);
+            return hStrA === hTarget;
+        }
+
         function bgMostrarInfo() {
             const progVal = document.getElementById('bg-programa').value;
             const horarioVal = document.getElementById('bg-horario').value;
@@ -2835,10 +2857,13 @@
             if (progVal === 'PTEE') progReal = 'PTEEN';
             if (progVal === 'ADUL') progReal = 'ADULTOS';
 
+            let progAlumnos = progVal;
+            if (progVal === 'PTEE') progAlumnos = 'PTEEN';
+            if (progVal === 'ADUL') progAlumnos = 'ADULTO';
+
             const esSabado = diasTarget === 'Sábados';
-            let horarioBuscador = clase && clase.horario ? clase.horario : horaTarget.replace(':', '');
             
-            const salonInfo = buscarSalonYTeacher(horarioBuscador, progReal, parseInt(nivelVal), esSabado);
+            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, parseInt(nivelVal), esSabado);
 
             const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
             const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
@@ -2866,11 +2891,11 @@
             // CARGAR ALUMNOS
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
-                return a.programaNombre === progReal &&
+                return a.programaNombre === progAlumnos &&
                        a.nivelActual === parseInt(nivelVal) &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
                        a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
-                       String(a.horario).replace(/\s/g,'').toUpperCase() === String(horarioBuscador).replace(/\s/g,'').toUpperCase();
+                       horCoincide(a.horario, horaTarget);
             });
 
             estudiantesList.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -2894,7 +2919,8 @@
                 });
             }
             document.getElementById('bg-estudiantes-container').classList.remove('hidden');
-
+            
+            document.getElementById('bg-selectores-container').classList.add('hidden');
             infoBox.classList.remove('hidden');
         }
 
