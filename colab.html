@@ -306,7 +306,7 @@
                     <ul id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 max-h-64 overflow-y-auto hidden shadow-xl divide-y divide-gray-100"></ul>
                 </div>
                 <!-- BOTONES EXTRAS -->
-                <div class="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4">
+                <div id="botones-extras" class="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4">
                     <button onclick="abrirModalMateriales()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         📚 Consultar Materiales
                     </button>
@@ -1448,6 +1448,7 @@
 
                 // PASO 2: mostrar solo botones (dejamos visible el buscador arriba)
                 document.getElementById('menu-principal').classList.remove('hidden');
+                document.getElementById('botones-extras').classList.add('hidden');
                 ficha.classList.add('hidden');
                 calculos.classList.add('hidden');
             } else {
@@ -1469,6 +1470,7 @@
             document.getElementById('seccion-recuperacion').classList.add('hidden');
             document.getElementById('seccion-periodos').classList.add('hidden');
             document.getElementById('seccion-busqueda').classList.remove('hidden');
+            document.getElementById('botones-extras').classList.remove('hidden');
             document.getElementById('error-box').classList.add('hidden');
             document.getElementById('alumno-id').value = '';
             alumnoActual = null;
@@ -2757,7 +2759,7 @@
                     if (prog === 'PTEE') progReal = 'PTEEN';
                     if (prog === 'ADUL') progReal = 'ADULTOS';
                     const esSabado = h.diasLabel === 'Sábados';
-                    const salonInfo = buscarSalonYTeacher(h.horario, progReal, h.nivelFin, esSabado);
+                    const salonInfo = buscarSalonYTeacher(h.horaFmt, progReal, h.nivelFin, esSabado);
                     
                     if (salonInfo) {
                         horariosUnicos.add(h.diasLabel + '|' + h.horaFmt);
@@ -2797,7 +2799,7 @@
                         if (prog === 'PTEE') progReal = 'PTEEN';
                         if (prog === 'ADUL') progReal = 'ADULTOS';
                         const esSabado = h.diasLabel === 'Sábados';
-                        const salonInfo = buscarSalonYTeacher(h.horario, progReal, h.nivelFin, esSabado);
+                        const salonInfo = buscarSalonYTeacher(h.horaFmt, progReal, h.nivelFin, esSabado);
                         if (salonInfo) {
                             nivelesUnicos.set(h.nivelFin, salonInfo.teacher !== 'No definido' ? salonInfo.teacher : h.docente);
                         }
