@@ -2827,15 +2827,27 @@
             selNivel.disabled = false;
         }
 
-        function horCoincide(hAlumno, hTarget) {
+        function horCoincide(hAlumno, hTarget, progReal, esSabado) {
             if (!hAlumno || !hTarget) return false;
-            let matchA = String(hAlumno).match(/(\d+):(\d+)/);
-            if (!matchA) return false;
-            let hA = parseInt(matchA[1], 10);
-            let tempA = String(hAlumno).toUpperCase();
-            if (tempA.includes('PM') && hA < 12) hA += 12;
-            if (tempA.includes('AM') && hA === 12) hA = 0;
-            let hStrA = hA.toString().padStart(2, '0') + ':' + matchA[2].substring(0, 2);
+            let tempA = String(hAlumno).toUpperCase().replace(/[\.\s]/g, '');
+            let hStrA = "";
+
+            if (esSabado && tempA === 'SM') {
+                if (progReal === 'KIDS' || progReal === 'TEENS' || progReal === 'PTEEN') {
+                    hStrA = '10:00';
+                } else {
+                    hStrA = '08:00';
+                }
+            } else if (esSabado && tempA === 'SV') {
+                hStrA = '13:30';
+            } else {
+                let matchA = String(hAlumno).match(/(\d+):(\d+)/);
+                if (!matchA) return false;
+                let hA = parseInt(matchA[1], 10);
+                if (tempA.includes('PM') && hA < 12) hA += 12;
+                if (tempA.includes('AM') && hA === 12) hA = 0;
+                hStrA = hA.toString().padStart(2, '0') + ':' + matchA[2].substring(0, 2);
+            }
             return hStrA === hTarget;
         }
 
@@ -2892,10 +2904,10 @@
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
                 return a.programaNombre === progAlumnos &&
-                       a.nivelActual === parseInt(nivelVal) &&
+                       (a.nivelActual === parseInt(nivelVal) || (a.nivelActual + 1) === parseInt(nivelVal)) &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
                        a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
-                       horCoincide(a.horario, horaTarget);
+                       horCoincide(a.horario, horaTarget, progReal, esSabado);
             });
 
             estudiantesList.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -2928,7 +2940,7 @@
             if (!bgClaseActual) return;
             const oldAlumno = alumnoActual;
             alumnoActual = { 
-                modalidad: bgClaseActual.modalidad, 
+                programa: bgClaseActual.modalidad, 
                 tipoClaseCal: bgClaseActual.tipoClase,
                 nombre: 'Grupo'
             };
