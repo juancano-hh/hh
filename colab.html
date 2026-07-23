@@ -305,6 +305,15 @@
                     </div>
                     <ul id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 max-h-64 overflow-y-auto hidden shadow-xl divide-y divide-gray-100"></ul>
                 </div>
+                <!-- BOTONES EXTRAS -->
+                <div class="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4">
+                    <button onclick="abrirModalMateriales()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        📚 Consultar Materiales
+                    </button>
+                    <button onclick="abrirModalGrupos()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-3 px-4 rounded-xl border border-teal-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        🔍 Buscar Grupos
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -618,6 +627,128 @@
     </div>
 
 
+
+    <!-- ===== MODAL GRUPOS ===== -->
+    <div id="modal-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-grupos').classList.add('hidden')">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-header bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-lg">🔍 Buscar Grupos</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">✕</button>
+            </div>
+            <div class="p-5 bg-white rounded-b-2xl">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Programa</label>
+                        <select id="bg-programa" onchange="bgActualizarHorarios()" class="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 text-sm">
+                            <option value="">Selecciona Programa</option>
+                            <option value="KIDS">Kids</option>
+                            <option value="PTEE">Preteens</option>
+                            <option value="TEEN">Teens</option>
+                            <option value="ADUL">Adultos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Horario</label>
+                        <select id="bg-horario" onchange="bgActualizarNiveles()" class="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 text-sm" disabled>
+                            <option value="">Selecciona Horario</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nivel Curso</label>
+                        <select id="bg-nivel" onchange="bgMostrarInfo()" class="w-full p-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-teal-500 text-sm" disabled>
+                            <option value="">Selecciona Nivel</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="bg-info" class="mt-6 hidden">
+                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                        <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Salón</span><span id="bg-lbl-salon" class="font-bold text-gray-800 text-base"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Teacher</span><span id="bg-lbl-teacher" class="font-bold text-gray-800 text-base"></span></div>
+                            <div class="col-span-2"><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Horario</span><span id="bg-lbl-horario" class="font-bold text-gray-800"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Inicio</span><span id="bg-lbl-inicio" class="font-bold text-gray-800"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Fin</span><span id="bg-lbl-fin" class="font-bold text-gray-800"></span></div>
+                        </div>
+                    </div>
+                    
+                    <div id="bg-estudiantes-container" class="mt-4 hidden border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <div class="bg-gray-100 p-2 border-b border-gray-200">
+                            <span class="font-bold text-gray-700 text-sm pl-2">Alumnos (<span id="bg-estudiantes-count">0</span>)</span>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto">
+                            <table class="w-full text-sm text-left text-gray-600">
+                                <thead class="bg-gray-50 text-gray-700 uppercase text-[10px] border-b border-gray-200 sticky top-0">
+                                    <tr>
+                                        <th class="px-3 py-2">ID</th>
+                                        <th class="px-3 py-2">Nombre</th>
+                                        <th class="px-3 py-2 text-center">Pago</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bg-estudiantes-body" class="divide-y divide-gray-100">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <button onclick="bgAbrirCalendario()" class="mt-4 w-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-3 px-4 rounded-xl hover:bg-indigo-100 transition duration-200 flex justify-center items-center gap-2 shadow-sm">
+                        📅 Ver Calendario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL MATERIALES ===== -->
+    <div id="modal-materiales" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMateriales()">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header bg-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-lg">📚 Consulta de Materiales</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalMateriales()">✕</button>
+            </div>
+            <div class="p-4 bg-white rounded-b-2xl">
+                <p class="text-center text-sm text-gray-600 mb-4 font-semibold">Selecciona el programa para ver los materiales y precios</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    <button onclick="mostrarMaterial('kids')" class="py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors flex flex-col items-center">
+                        <span class="font-bold text-sm">KIDS</span>
+                        <span class="text-[10px] opacity-90 font-medium">7 a 9 años</span>
+                    </button>
+                    <button onclick="mostrarMaterial('preteens')" class="py-2 px-3 rounded-xl border border-green-200 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white transition-colors flex flex-col items-center">
+                        <span class="font-bold text-sm">PRETEENS</span>
+                        <span class="text-[10px] opacity-90 font-medium">10 a 12 años</span>
+                    </button>
+                    <button onclick="mostrarMaterial('teens')" class="py-2 px-3 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white transition-colors flex flex-col items-center">
+                        <span class="font-bold text-sm">TEENS</span>
+                        <span class="text-[10px] opacity-90 font-medium">13 a 16 años</span>
+                    </button>
+                    <button onclick="mostrarMaterial('adultos')" class="py-2 px-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white transition-colors flex flex-col items-center">
+                        <span class="font-bold text-sm">ADULTOS</span>
+                        <span class="text-[10px] opacity-90 font-medium">17 o m&aacute;s</span>
+                    </button>
+                </div>
+                <div id="material-contenido" class="hidden border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-gray-100 p-3 flex justify-between items-center border-b border-gray-200">
+                        <span class="font-bold text-gray-700 text-sm">Precio por libro: <span id="material-precio" class="text-indigo-600 text-base"></span></span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="bg-gray-50 text-gray-700 uppercase text-xs border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3">Nivel</th>
+                                    <th class="px-4 py-3">Programa</th>
+                                    <th class="px-4 py-3">Libro</th>
+                                    <th id="th-cefr" class="px-4 py-3 hidden">CEFR</th>
+                                </tr>
+                            </thead>
+                            <tbody id="material-tabla-body" class="divide-y divide-gray-100">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== MODAL CALENDARIO ===== -->
     <div id="modal-calendario" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalCalendario()">
@@ -2517,6 +2648,297 @@
             setTimeout(() => {
                 window.print();
             }, 300);
+        }
+
+        // ==================== MATERIALES ====================
+        const materialesInfo = {
+            kids: {
+                precio: "$994",
+                programa: "KIDS",
+                mostrarCefr: false,
+                filas: [
+                    { nivel: "1 al 3", libro: "KID BOX 1", bg: "#ff0000", text: "white" },
+                    { nivel: "4 al 6", libro: "KID BOX 2", bg: "#0070c0", text: "white" },
+                    { nivel: "7 al 9", libro: "KID BOX 3", bg: "#ffc000", text: "black" },
+                    { nivel: "10 al 12", libro: "KID BOX 4", bg: "#d9d9d9", text: "black" },
+                    { nivel: "13 al 15", libro: "KID BOX 5", bg: "#92d050", text: "black" }
+                ]
+            },
+            preteens: {
+                precio: "$700",
+                programa: "PTEEN",
+                mostrarCefr: false,
+                filas: [
+                    { nivel: "1 al 3", libro: "GAME CHANGER STARTER", bg: "#ff0000", text: "white" },
+                    { nivel: "4 al 6", libro: "GAME CHANGER LEVEL 1", bg: "#5b9bd5", text: "black" },
+                    { nivel: "7 al 9", libro: "GAME CHANGER LEVEL 2", bg: "#00b050", text: "white" },
+                    { nivel: "10 al 12", libro: "GAME CHANGER LEVEL 3", bg: "#d272d6", text: "black" }
+                ]
+            },
+            teens: {
+                precio: "$777",
+                programa: "TEENS",
+                mostrarCefr: true,
+                filas: [
+                    { nivel: "1 al 4", libro: "EVOLVE 1", bg: "#a61c70", text: "white", cefr: "A1" },
+                    { nivel: "5 al 8", libro: "EVOLVE 2", bg: "#4cae4c", text: "white", cefr: "A2" },
+                    { nivel: "9 al 12", libro: "EVOLVE 3", bg: "#f04b4b", text: "white", cefr: "B1" },
+                    { nivel: "13 al 16", libro: "EVOLVE 4", bg: "#36abc8", text: "black", cefr: "B1+" },
+                    { nivel: "17 al 20", libro: "EVOLVE 5", bg: "#f78a22", text: "white", cefr: "B2" },
+                    { nivel: "21 al 24", libro: "EVOLVE 6", bg: "#7d5ba6", text: "white", cefr: "C1" }
+                ]
+            },
+            adultos: {
+                precio: "$777",
+                programa: "ADULTO",
+                mostrarCefr: true,
+                filas: [
+                    { nivel: "1 al 4", libro: "EVOLVE 1", bg: "#a61c70", text: "white", cefr: "A1" },
+                    { nivel: "5 al 8", libro: "EVOLVE 2", bg: "#4cae4c", text: "white", cefr: "A2" },
+                    { nivel: "9 al 12", libro: "EVOLVE 3", bg: "#f04b4b", text: "white", cefr: "B1" },
+                    { nivel: "13 al 16", libro: "EVOLVE 4", bg: "#36abc8", text: "black", cefr: "B1+" },
+                    { nivel: "17 al 20", libro: "EVOLVE 5", bg: "#f78a22", text: "white", cefr: "B2" },
+                    { nivel: "21 al 24", libro: "EVOLVE 6", bg: "#7d5ba6", text: "white", cefr: "C1" }
+                ]
+            }
+        };
+
+        function abrirModalMateriales() {
+            try {
+                const modal = document.getElementById('modal-materiales');
+                const contenido = document.getElementById('material-contenido');
+                if (!modal || !contenido) {
+                    alert("Error: No se encontró el modal en el código. modal:" + !!modal + " contenido:" + !!contenido);
+                    return;
+                }
+                modal.classList.remove('hidden');
+                contenido.classList.add('hidden');
+            } catch (err) {
+                alert("Error JS: " + err.message);
+            }
+        }
+
+        function cerrarModalMateriales() {
+            document.getElementById('modal-materiales').classList.add('hidden');
+        }
+
+        // ==================== BUSCAR GRUPOS ====================
+        let bgClaseActual = null;
+
+        function abrirModalGrupos() {
+            document.getElementById('modal-grupos').classList.remove('hidden');
+            document.getElementById('bg-programa').value = '';
+            document.getElementById('bg-horario').innerHTML = '<option value="">Selecciona Horario</option>';
+            document.getElementById('bg-horario').disabled = true;
+            document.getElementById('bg-nivel').innerHTML = '<option value="">Selecciona Nivel</option>';
+            document.getElementById('bg-nivel').disabled = true;
+            document.getElementById('bg-info').classList.add('hidden');
+        }
+
+        function bgActualizarHorarios() {
+            const prog = document.getElementById('bg-programa').value;
+            const selHorario = document.getElementById('bg-horario');
+            const selNivel = document.getElementById('bg-nivel');
+            document.getElementById('bg-info').classList.add('hidden');
+            
+            selHorario.innerHTML = '<option value="">Selecciona Horario</option>';
+            selNivel.innerHTML = '<option value="">Selecciona Nivel</option>';
+            selNivel.disabled = true;
+
+            if (!prog) {
+                selHorario.disabled = true;
+                return;
+            }
+
+            const horariosUnicos = new Set();
+            horariosRecuperacion.forEach(h => {
+                if (h.subjectCode === prog && h.diasLabel) {
+                    let progReal = prog;
+                    if (prog === 'PTEE') progReal = 'PTEEN';
+                    if (prog === 'ADUL') progReal = 'ADULTOS';
+                    const esSabado = h.diasLabel === 'Sábados';
+                    const salonInfo = buscarSalonYTeacher(h.horario, progReal, h.nivelFin, esSabado);
+                    
+                    if (salonInfo) {
+                        horariosUnicos.add(h.diasLabel + '|' + h.horaFmt);
+                    }
+                }
+            });
+
+            const lista = Array.from(horariosUnicos).sort();
+            lista.forEach(item => {
+                const [dias, hora] = item.split('|');
+                selHorario.innerHTML += `<option value="${item}">${dias} - ${hora}</option>`;
+            });
+
+            selHorario.disabled = false;
+        }
+
+        function bgActualizarNiveles() {
+            const prog = document.getElementById('bg-programa').value;
+            const horarioVal = document.getElementById('bg-horario').value;
+            const selNivel = document.getElementById('bg-nivel');
+            document.getElementById('bg-info').classList.add('hidden');
+            
+            selNivel.innerHTML = '<option value="">Selecciona Nivel</option>';
+
+            if (!horarioVal) {
+                selNivel.disabled = true;
+                return;
+            }
+
+            const [diasTarget, horaTarget] = horarioVal.split('|');
+
+            const nivelesUnicos = new Map();
+            horariosRecuperacion.forEach(h => {
+                if (h.subjectCode === prog && h.diasLabel === diasTarget && h.horaFmt === horaTarget) {
+                    if (h.nivelFin) {
+                        let progReal = prog;
+                        if (prog === 'PTEE') progReal = 'PTEEN';
+                        if (prog === 'ADUL') progReal = 'ADULTOS';
+                        const esSabado = h.diasLabel === 'Sábados';
+                        const salonInfo = buscarSalonYTeacher(h.horario, progReal, h.nivelFin, esSabado);
+                        if (salonInfo) {
+                            nivelesUnicos.set(h.nivelFin, salonInfo.teacher !== 'No definido' ? salonInfo.teacher : h.docente);
+                        }
+                    }
+                }
+            });
+
+            const listaNiveles = Array.from(nivelesUnicos.keys()).sort((a,b) => a - b);
+            listaNiveles.forEach(niv => {
+                const doc = nivelesUnicos.get(niv);
+                const profStr = doc ? ` (Teacher: ${doc})` : '';
+                selNivel.innerHTML += `<option value="${niv}">Nivel ${niv}${profStr}</option>`;
+            });
+
+            selNivel.disabled = false;
+        }
+
+        function bgMostrarInfo() {
+            const progVal = document.getElementById('bg-programa').value;
+            const horarioVal = document.getElementById('bg-horario').value;
+            const nivelVal = document.getElementById('bg-nivel').value;
+            const infoBox = document.getElementById('bg-info');
+
+            if (!nivelVal) {
+                infoBox.classList.add('hidden');
+                return;
+            }
+
+            const [diasTarget, horaTarget] = horarioVal.split('|');
+            const clase = horariosRecuperacion.find(h => h.subjectCode === progVal && h.diasLabel === diasTarget && h.horaFmt === horaTarget && String(h.nivelFin) === String(nivelVal));
+
+            let progReal = progVal;
+            if (progVal === 'PTEE') progReal = 'PTEEN';
+            if (progVal === 'ADUL') progReal = 'ADULTOS';
+
+            const esSabado = diasTarget === 'Sábados';
+            let horarioBuscador = clase && clase.horario ? clase.horario : horaTarget.replace(':', '');
+            
+            const salonInfo = buscarSalonYTeacher(horarioBuscador, progReal, parseInt(nivelVal), esSabado);
+
+            const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
+            const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
+
+            document.getElementById('bg-lbl-salon').innerText = finalSalon;
+            document.getElementById('bg-lbl-teacher').innerText = finalTeacher;
+            document.getElementById('bg-lbl-horario').innerText = diasTarget + " " + horaTarget;
+
+            const modStr = esSabado ? '08' : '04';
+            const fechaHoy = new Date();
+            const periodosFuturos = periodosCalendario.filter(p => p.fin >= fechaHoy && p.periodo.substring(2,4) === modStr);
+            periodosFuturos.sort((a,b) => a.inicio - b.inicio);
+            
+            if (periodosFuturos.length > 0) {
+                const actual = periodosFuturos[0];
+                document.getElementById('bg-lbl-inicio').innerText = formatearFechaLinda(actual.inicio);
+                document.getElementById('bg-lbl-fin').innerText = formatearFechaLinda(actual.fin);
+                bgClaseActual = { modalidad: modStr, tipoClase: esSabado ? 'sabado' : 'entre-semana' };
+            } else {
+                document.getElementById('bg-lbl-inicio').innerText = "N/A";
+                document.getElementById('bg-lbl-fin').innerText = "N/A";
+                bgClaseActual = null;
+            }
+
+            // CARGAR ALUMNOS
+            const estudiantesList = Object.values(baseAlumnos).filter(a => {
+                if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
+                return a.programaNombre === progReal &&
+                       a.nivelActual === parseInt(nivelVal) &&
+                       a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
+                       a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
+                       String(a.horario).replace(/\s/g,'').toUpperCase() === String(horarioBuscador).replace(/\s/g,'').toUpperCase();
+            });
+
+            estudiantesList.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            const tBody = document.getElementById('bg-estudiantes-body');
+            tBody.innerHTML = '';
+            document.getElementById('bg-estudiantes-count').innerText = estudiantesList.length;
+
+            if (estudiantesList.length === 0) {
+                tBody.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-gray-400 text-xs">No hay alumnos registrados en este grupo.</td></tr>';
+            } else {
+                estudiantesList.forEach(a => {
+                    const statusStr = a.tieneR 
+                        ? '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">✅ PAGADO</span>' 
+                        : '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">❌ PENDIENTE</span>';
+                    tBody.innerHTML += `<tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 font-mono text-xs">\${a.idOriginal}</td>
+                        <td class="px-3 py-2 font-medium truncate max-w-[150px] text-xs">\${a.nombre}</td>
+                        <td class="px-3 py-2 text-center">\${statusStr}</td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('bg-estudiantes-container').classList.remove('hidden');
+
+            infoBox.classList.remove('hidden');
+        }
+
+        function bgAbrirCalendario() {
+            if (!bgClaseActual) return;
+            const oldAlumno = alumnoActual;
+            alumnoActual = { 
+                modalidad: bgClaseActual.modalidad, 
+                tipoClaseCal: bgClaseActual.tipoClase,
+                nombre: 'Grupo'
+            };
+            abrirModalCalendario();
+            alumnoActual = oldAlumno;
+        }
+
+        function mostrarMaterial(tipo) {
+            const data = materialesInfo[tipo];
+            document.getElementById('material-precio').textContent = data.precio;
+            
+            const thCefr = document.getElementById('th-cefr');
+            if (data.mostrarCefr) {
+                thCefr.classList.remove('hidden');
+            } else {
+                thCefr.classList.add('hidden');
+            }
+
+            const tbody = document.getElementById('material-tabla-body');
+            tbody.innerHTML = '';
+            
+            data.filas.forEach(f => {
+                let html = `<tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 font-semibold">` + f.nivel + `</td>
+                        <td class="px-4 py-2">` + data.programa + `</td>
+                        <td class="px-4 py-2">
+                            <span style="background-color: ` + f.bg + `; color: ` + f.text + `;" class="px-2 py-1 rounded text-xs font-bold whitespace-nowrap">` + f.libro + `</span>
+                        </td>`;
+                if (data.mostrarCefr) {
+                    html += `<td class="px-4 py-2 font-bold">` + f.cefr + `</td>`;
+                } else if (!document.getElementById('th-cefr').classList.contains('hidden')) {
+                    html += `<td class="px-4 py-2"></td>`;
+                }
+                html += `</tr>`;
+                tbody.insertAdjacentHTML('beforeend', html);
+            });
+            
+            document.getElementById('material-contenido').classList.remove('hidden');
         }
 
         document.addEventListener("DOMContentLoaded", inicializarTodo);
