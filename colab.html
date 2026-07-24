@@ -666,6 +666,8 @@
                         <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Salón</span><span id="bg-lbl-salon" class="font-bold text-gray-800 text-base"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Teacher</span><span id="bg-lbl-teacher" class="font-bold text-gray-800 text-base"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Programa</span><span id="bg-lbl-programa" class="font-bold text-gray-800"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Nivel</span><span id="bg-lbl-nivel" class="font-bold text-gray-800"></span></div>
                             <div class="col-span-2"><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Horario</span><span id="bg-lbl-horario" class="font-bold text-gray-800"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Inicio</span><span id="bg-lbl-inicio" class="font-bold text-gray-800"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Fin</span><span id="bg-lbl-fin" class="font-bold text-gray-800"></span></div>
@@ -2882,6 +2884,8 @@
 
             document.getElementById('bg-lbl-salon').innerText = finalSalon;
             document.getElementById('bg-lbl-teacher').innerText = finalTeacher;
+            document.getElementById('bg-lbl-programa').innerText = progReal;
+            document.getElementById('bg-lbl-nivel').innerText = "Nivel " + nivelVal;
             document.getElementById('bg-lbl-horario').innerText = diasTarget + " " + horaTarget;
 
             const modStr = esSabado ? '08' : '04';
