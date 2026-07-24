@@ -2785,6 +2785,16 @@
             bgResetearBusqueda();
         }
 
+        function esGrupoPresencialValido(progAlumnos, codigoClase) {
+            if (!codigoClase) return false;
+            const cod = codigoClase.toUpperCase();
+            if (progAlumnos === 'ADULTO' && cod.includes('ADUP')) return true;
+            if (progAlumnos === 'PTEEN' && cod.includes('PTEP')) return true;
+            if (progAlumnos === 'KIDS' && cod.includes('KIDP')) return true;
+            if (progAlumnos === 'TEENS' && cod.includes('TEEP')) return true;
+            return false;
+        }
+
         function bgActualizarHorarios() {
             const progVal = document.getElementById('bg-programa').value;
             const selHorario = document.getElementById('bg-horario');
@@ -2808,7 +2818,8 @@
             const horariosUnicos = new Set();
             
             Object.values(baseAlumnos).forEach(a => {
-                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') {
+                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' && esPresencialValido) {
                     const esSabado = a.tipoClaseCal === 'sabado';
                     const diasLabel = esSabado ? 'Sábados' : 'Lunes - Jueves';
                     
@@ -2867,12 +2878,14 @@
             
             let progReal = progVal;
             if (progVal === 'PTEE') progReal = 'PTEEN';
-            if (progVal === 'ADUL') progReal = 'ADULTOS';
+            if (progVal === 'ADUL') progReal = 'ADULTO';
+            if (progVal === 'TEEN') progReal = 'TEENS';
 
             const nivelesUnicos = new Map();
 
             Object.values(baseAlumnos).forEach(a => {
-                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') {
+                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' && esPresencialValido) {
                     const aEsSabado = a.tipoClaseCal === 'sabado';
                     if (aEsSabado === esSabado && horCoincide(a.horario, horaTarget, progReal, esSabado)) {
                         if (a.nivelActual > 0 && !nivelesUnicos.has(a.nivelActual)) {
@@ -2933,7 +2946,8 @@
 
             let progReal = progVal;
             if (progVal === 'PTEE') progReal = 'PTEEN';
-            if (progVal === 'ADUL') progReal = 'ADULTOS';
+            if (progVal === 'ADUL') progReal = 'ADULTO';
+            if (progVal === 'TEEN') progReal = 'TEENS';
 
             let progAlumnos = progVal;
             if (progVal === 'PTEE') progAlumnos = 'PTEEN';
@@ -2972,9 +2986,11 @@
             // CARGAR ALUMNOS
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
+                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === parseInt(nivelVal) &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
+                       esPresencialValido &&
                        a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
                        horCoincide(a.horario, horaTarget, progReal, esSabado);
             });
