@@ -2839,11 +2839,6 @@
                 if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') {
                     const aEsSabado = a.tipoClaseCal === 'sabado';
                     if (aEsSabado === esSabado && horCoincide(a.horario, horaTarget, progReal, esSabado)) {
-                        let groupLevel = a.nivelActual + 1;
-                        if (!nivelesUnicos.has(groupLevel)) {
-                            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, groupLevel, esSabado);
-                            nivelesUnicos.set(groupLevel, salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : 'N/A');
-                        }
                         if (a.nivelActual > 0 && !nivelesUnicos.has(a.nivelActual)) {
                             const salonInfo = buscarSalonYTeacher(horaTarget, progReal, a.nivelActual, esSabado);
                             nivelesUnicos.set(a.nivelActual, salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : 'N/A');
@@ -2942,7 +2937,7 @@
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
                 return a.programaNombre === progAlumnos &&
-                       (a.nivelActual === parseInt(nivelVal) || (a.nivelActual + 1) === parseInt(nivelVal)) &&
+                       a.nivelActual === parseInt(nivelVal) &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
                        a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
                        horCoincide(a.horario, horaTarget, progReal, esSabado);
