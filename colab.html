@@ -914,7 +914,12 @@
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
                     let modalidadCalculada = "FFI";
                     const horarioUpper = horarioTexto.toUpperCase();
-                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) modalidadCalculada = "SA";
+                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV") ||
+                        horarioUpper.includes("08:00") || horarioUpper.includes("8:00") ||
+                        horarioUpper.includes("10:00") || 
+                        horarioUpper.includes("13:30") || horarioUpper.includes("1:30")) {
+                        modalidadCalculada = "SA";
+                    }
                     else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM")) modalidadCalculada = "DO";
                     let becaVal = 0;
                     if (fila[40]) {
