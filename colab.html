@@ -307,6 +307,9 @@
                 </div>
                 <!-- BOTONES EXTRAS -->
                 <div id="botones-extras" class="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4">
+                    <button onclick="abrirModalCalendarioIndependiente()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-3 px-4 rounded-xl border border-blue-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        📅 Consultar Calendario
+                    </button>
                     <button onclick="abrirModalMateriales()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         📚 Consultar Materiales
                     </button>
@@ -1743,8 +1746,31 @@
 
         // ==================== MODAL CALENDARIO ====================
 
+        let esCalendarioIndependiente = false;
+
+        function abrirModalCalendarioIndependiente() {
+            esCalendarioIndependiente = true;
+            document.getElementById('cal-modalidad').disabled = false;
+            document.getElementById('cal-tipoClase').disabled = false;
+            
+            if (!document.getElementById('cal-modalidad').value) {
+                document.getElementById('cal-modalidad').value = '08';
+            }
+            if (!document.getElementById('cal-tipoClase').value) {
+                document.getElementById('cal-tipoClase').value = 'entre-semana';
+            }
+            
+            document.getElementById('modal-calendario').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            renderizarCalendarioModal();
+        }
+
         function abrirModalCalendario() {
             if (!alumnoActual) return;
+            esCalendarioIndependiente = false;
+            document.getElementById('cal-modalidad').disabled = true;
+            document.getElementById('cal-tipoClase').disabled = true;
+
             const modalidad = alumnoActual.programa;        // '04' o '08'
             const tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
             // Filtro NON/PAR deducido del código de periodo
@@ -1757,7 +1783,7 @@
             document.getElementById('cal-modalidad').value  = modalidad;
             document.getElementById('cal-tipoClase').value  = tipoClase;
             document.getElementById('cal-filtroMes').value  = filtroMes;
-            document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
+            document.getElementById('cal-filtroMes').disabled = (modalidad === '04' || !esCalendarioIndependiente);
             // Mostrar modal
             document.getElementById('modal-calendario').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -1781,8 +1807,13 @@
             const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids / Teens';
             const nombreTipo  = tipoClase === 'entre-semana' ? 'Lunes a Jueves' : 'Sábados';
             const nombreFiltro = modalidad === '08' ? ` · Meses ${filtroMes.toUpperCase()}` : '';
-            const nombreAlumno = alumnoActual ? alumnoActual.nombre.split(' ').slice(0,2).join(' ') : '';
-            document.getElementById('cal-subtitulo').innerText = `${nombreAlumno} · ${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+            
+            let tituloFinal = `${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+            if (!esCalendarioIndependiente && alumnoActual) {
+                const nombreAlumno = alumnoActual.nombre.split(' ').slice(0,2).join(' ');
+                tituloFinal = `${nombreAlumno} · ${tituloFinal}`;
+            }
+            document.getElementById('cal-subtitulo').innerText = tituloFinal;
             const filtrados = filtrarPeriodosModal(modalidad, filtroMes);
             const hoyStr = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
             document.getElementById('cal-info-bar').innerHTML = `${filtrados.length} períodos · Hoy: ${hoyStr}`;
