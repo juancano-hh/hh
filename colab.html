@@ -2750,7 +2750,7 @@
         }
 
         function bgActualizarHorarios() {
-            const prog = document.getElementById('bg-programa').value;
+            const progVal = document.getElementById('bg-programa').value;
             const selHorario = document.getElementById('bg-horario');
             const selNivel = document.getElementById('bg-nivel');
             document.getElementById('bg-info').classList.add('hidden');
@@ -2759,22 +2759,42 @@
             selNivel.innerHTML = '<option value="">Selecciona Nivel</option>';
             selNivel.disabled = true;
 
-            if (!prog) {
+            if (!progVal) {
                 selHorario.disabled = true;
                 return;
             }
 
+            let progAlumnos = progVal;
+            if (progVal === 'PTEE') progAlumnos = 'PTEEN';
+            if (progVal === 'ADUL') progAlumnos = 'ADULTO';
+            if (progVal === 'TEEN') progAlumnos = 'TEENS';
+
             const horariosUnicos = new Set();
-            horariosRecuperacion.forEach(h => {
-                if (h.subjectCode === prog && h.diasLabel) {
-                    let progReal = prog;
-                    if (prog === 'PTEE') progReal = 'PTEEN';
-                    if (prog === 'ADUL') progReal = 'ADULTOS';
-                    const esSabado = h.diasLabel === 'Sábados';
-                    const salonInfo = buscarSalonYTeacher(h.horaFmt, progReal, h.nivelFin, esSabado);
+            
+            Object.values(baseAlumnos).forEach(a => {
+                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') {
+                    const esSabado = a.tipoClaseCal === 'sabado';
+                    const diasLabel = esSabado ? 'Sábados' : 'Lunes - Jueves';
                     
-                    if (salonInfo) {
-                        horariosUnicos.add(h.diasLabel + '|' + h.horaFmt);
+                    let hStrA = "";
+                    let tempA = String(a.horario).toUpperCase().replace(/[\.\s]/g, '');
+                    if (esSabado && tempA === 'SM') {
+                        if (progVal === 'KIDS' || progVal === 'TEEN' || progVal === 'PTEE') hStrA = '10:00';
+                        else hStrA = '08:00';
+                    } else if (esSabado && tempA === 'SV') {
+                        hStrA = '13:30';
+                    } else {
+                        let matchA = String(a.horario).match(/(\d+):(\d+)/);
+                        if (matchA) {
+                            let hA = parseInt(matchA[1], 10);
+                            if (tempA.includes('PM') && hA < 12) hA += 12;
+                            if (tempA.includes('AM') && hA === 12) hA = 0;
+                            hStrA = hA.toString().padStart(2, '0') + ':' + matchA[2].substring(0, 2);
+                        }
+                    }
+
+                    if (hStrA) {
+                        horariosUnicos.add(diasLabel + '|' + hStrA);
                     }
                 }
             });
@@ -2789,31 +2809,44 @@
         }
 
         function bgActualizarNiveles() {
-            const prog = document.getElementById('bg-programa').value;
+            const progVal = document.getElementById('bg-programa').value;
             const horarioVal = document.getElementById('bg-horario').value;
             const selNivel = document.getElementById('bg-nivel');
             document.getElementById('bg-info').classList.add('hidden');
             
             selNivel.innerHTML = '<option value="">Selecciona Nivel</option>';
 
-            if (!horarioVal) {
+            if (!horarioVal || !progVal) {
                 selNivel.disabled = true;
                 return;
             }
 
             const [diasTarget, horaTarget] = horarioVal.split('|');
+            const esSabado = diasTarget === 'Sábados';
+
+            let progAlumnos = progVal;
+            if (progVal === 'PTEE') progAlumnos = 'PTEEN';
+            if (progVal === 'ADUL') progAlumnos = 'ADULTO';
+            if (progVal === 'TEEN') progAlumnos = 'TEENS';
+            
+            let progReal = progVal;
+            if (progVal === 'PTEE') progReal = 'PTEEN';
+            if (progVal === 'ADUL') progReal = 'ADULTOS';
 
             const nivelesUnicos = new Map();
-            horariosRecuperacion.forEach(h => {
-                if (h.subjectCode === prog && h.diasLabel === diasTarget && h.horaFmt === horaTarget) {
-                    if (h.nivelFin) {
-                        let progReal = prog;
-                        if (prog === 'PTEE') progReal = 'PTEEN';
-                        if (prog === 'ADUL') progReal = 'ADULTOS';
-                        const esSabado = h.diasLabel === 'Sábados';
-                        const salonInfo = buscarSalonYTeacher(h.horaFmt, progReal, h.nivelFin, esSabado);
-                        if (salonInfo) {
-                            nivelesUnicos.set(h.nivelFin, salonInfo.teacher !== 'No definido' ? salonInfo.teacher : h.docente);
+
+            Object.values(baseAlumnos).forEach(a => {
+                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') {
+                    const aEsSabado = a.tipoClaseCal === 'sabado';
+                    if (aEsSabado === esSabado && horCoincide(a.horario, horaTarget, progReal, esSabado)) {
+                        let groupLevel = a.nivelActual + 1;
+                        if (!nivelesUnicos.has(groupLevel)) {
+                            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, groupLevel, esSabado);
+                            nivelesUnicos.set(groupLevel, salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : 'N/A');
+                        }
+                        if (a.nivelActual > 0 && !nivelesUnicos.has(a.nivelActual)) {
+                            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, a.nivelActual, esSabado);
+                            nivelesUnicos.set(a.nivelActual, salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : 'N/A');
                         }
                     }
                 }
@@ -2822,7 +2855,7 @@
             const listaNiveles = Array.from(nivelesUnicos.keys()).sort((a,b) => a - b);
             listaNiveles.forEach(niv => {
                 const doc = nivelesUnicos.get(niv);
-                const profStr = doc ? ` (Teacher: ${doc})` : '';
+                const profStr = doc !== 'N/A' ? ` (Teacher: ${doc})` : '';
                 selNivel.innerHTML += `<option value="${niv}">Nivel ${niv}${profStr}</option>`;
             });
 
@@ -2874,6 +2907,7 @@
             let progAlumnos = progVal;
             if (progVal === 'PTEE') progAlumnos = 'PTEEN';
             if (progVal === 'ADUL') progAlumnos = 'ADULTO';
+            if (progVal === 'TEEN') progAlumnos = 'TEENS';
 
             const esSabado = diasTarget === 'Sábados';
             
