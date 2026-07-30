@@ -770,7 +770,7 @@
                 finPago.setDate(finPago.getDate() + 12);
             } else {
                 inicioPago.setDate(inicioPago.getDate() + 28);
-                finPago.setDate(finPago.getDate() + 41);
+                finPago.setDate(finPago.getDate() + 40);
             }
             const ops = { day:'numeric', month:'short' };
             return `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
@@ -1440,7 +1440,7 @@
                         }
                         const diffDias=Math.floor((cur-iniOrig)/(1000*60*60*24));
                         if (modalidad==='04' && diffDias>=0 && diffDias<=12) esPago=true;
-                        else if (modalidad==='08' && diffDias>=28 && diffDias<=41) esPago=true;
+                        else if (modalidad==='08' && diffDias>=28 && diffDias<=40) esPago=true;
                     }
                     if (esInicio) cell.classList.add('cal-inicio');
                     if (esFin)    cell.classList.add('cal-fin');
