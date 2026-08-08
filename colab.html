@@ -876,13 +876,10 @@
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
                     let modalidadCalculada = "FFI";
                     const horarioUpper = horarioTexto.toUpperCase();
-                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV") ||
-                        horarioUpper.includes("08:00") || horarioUpper.includes("8:00") ||
-                        horarioUpper.includes("10:00") || 
-                        horarioUpper.includes("13:30") || horarioUpper.includes("1:30")) {
+                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
                         modalidadCalculada = "SA";
                     }
-                    else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM")) modalidadCalculada = "DO";
+                    else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) modalidadCalculada = "DO";
                     let becaVal = 0;
                     if (fila[40]) {
                         becaVal = parseFloat(fila[40]);
@@ -1104,7 +1101,8 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
-                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen}`;
+                    const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes;
+                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
                     secVolumen.classList.add('hidden');
