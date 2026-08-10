@@ -2782,41 +2782,34 @@
                 return;
             }
 
-            let progAlumnos = progVal;
-            if (progVal === 'PTEE') progAlumnos = 'PTEEN';
-            if (progVal === 'ADUL') progAlumnos = 'ADULTO';
-            if (progVal === 'TEEN') progAlumnos = 'TEENS';
-
             const horariosUnicos = new Set();
             
-            Object.values(baseAlumnos).forEach(a => {
-                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
-                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' && esPresencialValido) {
-                    const esSabado = a.tipoClaseCal === 'sabado';
-                    const diasLabel = esSabado ? 'Sábados' : 'Lunes - Jueves';
-                    
-                    let hStrA = "";
-                    let tempA = String(a.horario).toUpperCase().replace(/[\.\s]/g, '');
-                    if (esSabado && tempA === 'SM') {
-                        if (progVal === 'KIDS' || progVal === 'TEEN' || progVal === 'PTEE') hStrA = '10:00';
-                        else hStrA = '08:00';
-                    } else if (esSabado && tempA === 'SV') {
-                        hStrA = '13:30';
-                    } else {
-                        let matchA = String(a.horario).match(/(\d+):(\d+)/);
-                        if (matchA) {
-                            let hA = parseInt(matchA[1], 10);
-                            if (tempA.includes('PM') && hA < 12) hA += 12;
-                            if (tempA.includes('AM') && hA === 12) hA = 0;
-                            hStrA = hA.toString().padStart(2, '0') + ':' + matchA[2].substring(0, 2);
-                        }
-                    }
+            // Helper para identificar si la celda de la hoja SALON corresponde al programa
+            const verificarCelda = (celdaStr) => {
+                const c = String(celdaStr || '').replace(/\s+/g, '').toUpperCase();
+                if (!c) return false;
+                if (progVal === 'KIDS') return c.startsWith('KB');
+                if (progVal === 'TEEN' || progVal === 'TEENS') return c.startsWith('TN');
+                if (progVal === 'PTEE' || progVal === 'PTEEN') return c.startsWith('PT');
+                if (progVal === 'ADUL' || progVal === 'ADULTO') return !isNaN(c) && c !== '';
+                return false;
+            };
 
-                    if (hStrA) {
-                        horariosUnicos.add(diasLabel + '|' + hStrA);
-                    }
-                }
-            });
+            // Buscar en Lunes - Jueves
+            if (matrizSalones.filas) {
+                matrizSalones.filas.forEach(f => {
+                    const tienePrograma = f.celdas.some((c, i) => i > 0 && verificarCelda(c));
+                    if (tienePrograma) horariosUnicos.add('Lunes - Jueves|' + f.horaFmt);
+                });
+            }
+
+            // Buscar en Sábados
+            if (matrizSalones.filasSabado) {
+                matrizSalones.filasSabado.forEach(f => {
+                    const tienePrograma = f.celdas.some((c, i) => i > 0 && verificarCelda(c));
+                    if (tienePrograma) horariosUnicos.add('Sábados|' + f.horaFmt);
+                });
+            }
 
             const lista = Array.from(horariosUnicos).sort();
             lista.forEach(item => {
@@ -2843,35 +2836,36 @@
             const [diasTarget, horaTarget] = horarioVal.split('|');
             const esSabado = diasTarget === 'Sábados';
 
-            let progAlumnos = progVal;
-            if (progVal === 'PTEE') progAlumnos = 'PTEEN';
-            if (progVal === 'ADUL') progAlumnos = 'ADULTO';
-            if (progVal === 'TEEN') progAlumnos = 'TEENS';
-            
-            let progReal = progVal;
-            if (progVal === 'PTEE') progReal = 'PTEEN';
-            if (progVal === 'ADUL') progReal = 'ADULTO';
-            if (progVal === 'TEEN') progReal = 'TEENS';
-
             const nivelesUnicos = new Map();
+            const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
 
-            Object.values(baseAlumnos).forEach(a => {
-                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
-                if (a.programaNombre === progAlumnos && a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' && esPresencialValido) {
-                    const aEsSabado = a.tipoClaseCal === 'sabado';
-                    if (aEsSabado === esSabado && horCoincide(a.horario, horaTarget, progReal, esSabado)) {
-                        if (a.nivelActual > 0 && !nivelesUnicos.has(a.nivelActual)) {
-                            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, a.nivelActual, esSabado);
-                            nivelesUnicos.set(a.nivelActual, salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : 'N/A');
+            const verificarYExtraerNivel = (celdaStr) => {
+                const c = String(celdaStr || '').replace(/\s+/g, '').toUpperCase();
+                if (!c) return null;
+                if (progVal === 'KIDS' && c.startsWith('KB')) return parseInt(c.replace('KB', ''));
+                if ((progVal === 'TEEN' || progVal === 'TEENS') && c.startsWith('TN')) return parseInt(c.replace('TN', ''));
+                if ((progVal === 'PTEE' || progVal === 'PTEEN') && c.startsWith('PT')) return parseInt(c.replace('PT', ''));
+                if ((progVal === 'ADUL' || progVal === 'ADULTO') && !isNaN(c) && c !== '') return parseInt(c);
+                return null;
+            };
+
+            const filasCoincidentes = filasBuscar.filter(f => f.horaFmt === horaTarget);
+            for (let fila of filasCoincidentes) {
+                for (let i = 1; i < fila.celdas.length; i++) {
+                    const nivel = verificarYExtraerNivel(fila.celdas[i]);
+                    if (nivel !== null && !isNaN(nivel) && nivel > 0) {
+                        if (!nivelesUnicos.has(nivel)) {
+                            const teacher = matrizSalones.teachers[i] || 'No definido';
+                            nivelesUnicos.set(nivel, teacher);
                         }
                     }
                 }
-            });
+            }
 
             const listaNiveles = Array.from(nivelesUnicos.keys()).sort((a,b) => a - b);
             listaNiveles.forEach(niv => {
                 const doc = nivelesUnicos.get(niv);
-                const profStr = doc !== 'N/A' ? ` (Teacher: ${doc})` : '';
+                const profStr = (doc && doc !== 'No definido') ? ` (Teacher: ${doc})` : '';
                 selNivel.innerHTML += `<option value="${niv}">Nivel ${niv}${profStr}</option>`;
             });
 
