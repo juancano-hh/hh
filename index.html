@@ -747,7 +747,8 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
-                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen}`;
+                    const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
+                    lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
                     secVolumen.classList.add('hidden');
