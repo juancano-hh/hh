@@ -1970,7 +1970,7 @@
             }
         }
 
-        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado) {
+        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado, targetTeacher = null) {
             if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
             
             let hStr;
@@ -2018,10 +2018,20 @@
                 for (let i = 1; i < fila.celdas.length; i++) {
                     const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
                     if (celda === textoLimpio) {
-                        return {
-                            salon: matrizSalones.salones[i] || 'No definido',
-                            teacher: matrizSalones.teachers[i] || 'No definido'
-                        };
+                        const currentTeacher = matrizSalones.teachers[i] || 'No definido';
+                        if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
+                            if (currentTeacher === targetTeacher) {
+                                return {
+                                    salon: matrizSalones.salones[i] || 'No definido',
+                                    teacher: currentTeacher
+                                };
+                            }
+                        } else {
+                            return {
+                                salon: matrizSalones.salones[i] || 'No definido',
+                                teacher: currentTeacher
+                            };
+                        }
                     }
                 }
             }
@@ -2854,19 +2864,21 @@
                 for (let i = 1; i < fila.celdas.length; i++) {
                     const nivel = verificarYExtraerNivel(fila.celdas[i]);
                     if (nivel !== null && !isNaN(nivel) && nivel > 0) {
-                        if (!nivelesUnicos.has(nivel)) {
-                            const teacher = matrizSalones.teachers[i] || 'No definido';
-                            nivelesUnicos.set(nivel, teacher);
+                        const teacher = matrizSalones.teachers[i] || 'No definido';
+                        const key = `${nivel}|${teacher}`;
+                        if (!nivelesUnicos.has(key)) {
+                            nivelesUnicos.set(key, { nivel, teacher });
                         }
                     }
                 }
             }
 
-            const listaNiveles = Array.from(nivelesUnicos.keys()).sort((a,b) => a - b);
-            listaNiveles.forEach(niv => {
-                const doc = nivelesUnicos.get(niv);
+            const listaNiveles = Array.from(nivelesUnicos.values()).sort((a,b) => a.nivel - b.nivel);
+            listaNiveles.forEach(obj => {
+                const niv = obj.nivel;
+                const doc = obj.teacher;
                 const profStr = (doc && doc !== 'No definido') ? ` (Teacher: ${doc})` : '';
-                selNivel.innerHTML += `<option value="${niv}">Nivel ${niv}${profStr}</option>`;
+                selNivel.innerHTML += `<option value="${niv}|${doc}">Nivel ${niv}${profStr}</option>`;
             });
 
             selNivel.disabled = false;
@@ -2899,13 +2911,16 @@
         function bgMostrarInfo() {
             const progVal = document.getElementById('bg-programa').value;
             const horarioVal = document.getElementById('bg-horario').value;
-            const nivelVal = document.getElementById('bg-nivel').value;
+            const nivelValRaw = document.getElementById('bg-nivel').value;
             const infoBox = document.getElementById('bg-info');
 
-            if (!nivelVal) {
+            if (!nivelValRaw) {
                 infoBox.classList.add('hidden');
                 return;
             }
+
+            const [nivelStr, targetTeacher] = nivelValRaw.split('|');
+            const nivelVal = parseInt(nivelStr);
 
             const [diasTarget, horaTarget] = horarioVal.split('|');
             const clase = horariosRecuperacion.find(h => h.subjectCode === progVal && h.diasLabel === diasTarget && h.horaFmt === horaTarget && String(h.nivelFin) === String(nivelVal));
@@ -2922,7 +2937,7 @@
 
             const esSabado = diasTarget === 'Sábados';
             
-            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, parseInt(nivelVal), esSabado);
+            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher);
 
             const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
             const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
