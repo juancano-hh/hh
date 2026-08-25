@@ -286,7 +286,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="print-factura" class="hidden"></div>
-    <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
+    <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-xl w-full border border-gray-100">
 
         <!-- PASO 1: BÚSQUEDA -->
         <div id="seccion-busqueda">
@@ -404,7 +404,10 @@
                     <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🖨️ Imprimir
                     </button>
-                </div>>
+                    <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        🧾 Recibo
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -615,13 +618,23 @@
                 <table id="tabla-horarios-dinamica" class="w-full text-center text-xs border-collapse font-sans">
                     <!-- Se llena dinámicamente con JS -->
                 </table>
+                <div class="mt-5 flex flex-wrap gap-6 text-sm text-gray-700 justify-center items-center font-medium bg-gray-50 py-2 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-4 h-4 bg-green-200 border border-green-300 shadow-sm"></span>
+                        <span>≥ 10 alumnos inscritos</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block w-4 h-4 bg-red-200 border border-red-300 shadow-sm"></span>
+                        <span>< 5 alumnos inscritos</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ===== MODAL GRUPOS ===== -->
     <div id="modal-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-grupos').classList.add('hidden')">
-        <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-box" style="max-width: 700px;">
             <div class="modal-header bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
                 <p class="font-bold text-lg">🔍 Buscar Grupos</p>
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">✕</button>
@@ -1419,9 +1432,11 @@
                 if (estatus === 'R') {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
                 } else if (estatus === 'PROMESA') {
-                    statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PROMESA</span>';
+                    statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
+                } else if (estatus.includes('NO CONTINUA')) {
+                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
                 } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
-                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ PENDIENTE</span>';
+                    statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                 }
@@ -1444,7 +1459,8 @@
                 // Inicialmente mostramos el horario tal cual
                 let horarioAMostrar = alumnoActual.horario;
 
-                document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
+                const becaPorcentaje = Math.round(alumnoActual.beca * 100);
+                document.getElementById('lbl-beca').innerText = becaPorcentaje === 0 ? "Sin beca" : becaPorcentaje + "%";
                 
                 const libroObj = librosMap.get(`${alumnoActual.programaNombre}_${alumnoActual.nivelActual}`);
                 const contLibro = document.getElementById('contenedor-libro');
@@ -2784,6 +2800,200 @@
             }, 300);
         }
 
+        function ejecutarImpresionRecibo() {
+            if (!alumnoActual) {
+                alert("No hay alumno seleccionado.");
+                return;
+            }
+            
+            const cantCursos = parseInt(document.getElementById('cursos-slider').value) || 1;
+            const toggleServicio = document.getElementById('servicio-toggle');
+            const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
+            
+            const nivelActual = alumnoActual.nivelActual;
+            const primerNivel = nivelActual + 1;
+            const ultimoNivel = primerNivel + cantCursos - 1;
+            let cursosBajos = 0, cursosAltos = 0;
+            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
+                if (nivel >= 21) cursosAltos++;
+                else cursosBajos++;
+            }
+            
+            const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
+            const llaveAlta = `${alumnoActual.prefijoMod}${alumnoActual.programa}21`;
+            const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
+            const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
+            
+            const montoCursosOriginal = (precioBaseBajo * cursosBajos) + (precioBaseAlto * cursosAltos) + extraServicio;
+            const montoDescuento = montoCursosOriginal * (porcentajeDescuentoActual / 100);
+            const montoCursosFinal = montoCursosOriginal - montoDescuento;
+            
+            let montoMateriales = 0;
+            let conceptosHtml = '';
+            
+            if (cursosBajos > 0 || cursosAltos > 0) {
+                conceptosHtml += `
+                    <tr>
+                        <td style="border: 1px solid black; padding: 2px; text-align: right;">${cantCursos}.00</td>
+                        <td style="border: 1px solid black; padding: 2px; text-align: center;">${alumnoActual.programaTexto} ${alumnoActual.nivelActual}</td>
+                        <td style="border: 1px solid black; padding: 2px; text-align: center;">1</td>
+                        <td style="border: 1px solid black; padding: 2px; text-align: right;"></td>
+                    </tr>
+                `;
+            }
+
+            if (librosSeleccionadosIndices.length > 0 && infoLibros.libros) {
+                infoLibros.libros.forEach((l, idx) => {
+                    if (librosSeleccionadosIndices.includes(idx)) {
+                        let precioLibro = l.esGratis ? 0 : l.precio;
+                        montoMateriales += precioLibro;
+                        conceptosHtml += `
+                            <tr>
+                                <td style="border: 1px solid black; padding: 2px; text-align: right;">1.00</td>
+                                <td style="border: 1px solid black; padding: 2px; text-align: center;">LIBRO ${l.nombre}</td>
+                                <td style="border: 1px solid black; padding: 2px; text-align: center;">1</td>
+                                <td style="border: 1px solid black; padding: 2px; text-align: right;"></td>
+                            </tr>
+                        `;
+                    }
+                });
+            }
+            
+            const totalGeneral = montoCursosFinal + montoMateriales;
+            
+            const hoyFormat = new Date().toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const inicioSiguiente = document.getElementById('lbl-inicio-siguiente').innerText || '';
+            const reciboId = "H258-" + String(Math.floor(Math.random() * 90000000) + 10000000);
+            
+            const formatMoney = (val) => '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+            const reciboHtml = `
+                <div style="font-family: Arial, sans-serif; font-size: 11px; max-width: 800px; margin: 0 auto; color: black; padding-top: 20px;">
+                    <div style="text-align: right; margin-bottom: 20px;">
+                        Fecha de impresión: ${hoyFormat} Página 1 de 1
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid black; padding-bottom: 5px; margin-bottom: 5px;">
+                        <div style="font-size: 24px; font-weight: bold; line-height: 1.1;">
+                            <span style="font-weight: normal;">Un paso más</span><br>
+                            HACIA EL ÉXITO
+                        </div>
+                        <div style="background-color: #ffeb3b; padding: 5px 15px; border: 2px solid black; border-radius: 8px;">
+                            <div style="background-color: black; color: #ffeb3b; font-weight: bold; font-size: 20px; padding: 2px 10px; display: inline-block;">harmon hall®</div>
+                            <div style="text-align: right; font-weight: bold; font-size: 14px; margin-top: 2px;">Move on</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; margin-bottom: 15px;">
+                        <div>HARMON HALL OPERADORA, A.C. AEZ070823IW3</div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+                        <div>RECIBO DE COBRO</div>
+                        <div>${reciboId}</div>
+                    </div>
+                    
+                    <table style="width:100%; border-collapse: collapse; border: 2px solid black; font-size: 11px; margin-bottom: 15px;">
+                        <tr>
+                            <th colspan="2" style="border: 1px solid black; background: #d9d9d9; padding: 2px;">HARMON HALL OPERADORA AC</th>
+                            <th style="border: 1px solid black; background: #d9d9d9; padding: 2px;">DATOS SUCURSAL</th>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: 1px solid black; padding: 4px; vertical-align: top;">
+                                <strong>DOMICILIO FISCAL</strong><br>
+                                Avenida Ignacio López Rayón Sur 480 Piso 4<br>
+                                Colonia Monterrey Centro<br>
+                                Monterrey, Nuevo Leon, Mex.<br>
+                                C.P. 64000<br>
+                                Regimen fiscal:<br>
+                                REGIMEN GENERAL DE LEY PM
+                            </td>
+                            <td style="border: 1px solid black; padding: 4px; vertical-align: top;">
+                                <strong>Harmon Hall Puebla Anzures</strong><br>
+                                39 Oriente y 14 Sur pisos 2,3 y 4<br>
+                                Colonia Anzures<br>
+                                Puebla, Puebla.<br>
+                                C.P. 72540
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <table style="width:100%; border-collapse: collapse; border: 2px solid black; font-size: 11px; margin-bottom: 15px;">
+                        <tr>
+                            <th colspan="4" style="border: 1px solid black; background: #d9d9d9; padding: 2px;">DATOS DE CLIENTE</th>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold; width: 15%;">NOMBRE:</td>
+                            <td style="border: 1px solid black; padding: 4px; font-size: 14px;">${alumnoActual.nombre}</td>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold; width: 10%;">RFC:</td>
+                            <td style="border: 1px solid black; padding: 4px; text-align: center;">NA</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold;">GRUPO:</td>
+                            <td style="border: 1px solid black; padding: 4px; text-align: center;">${alumnoActual.programaTexto}</td>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold;">MATERIA:</td>
+                            <td style="border: 1px solid black; padding: 4px; text-align: center;">${alumnoActual.programaTexto} ${alumnoActual.nivelActual}</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold;">Forma de<br>pago:</td>
+                            <td style="border: 1px solid black; padding: 4px; text-align: center;">REF BANK</td>
+                            <td style="border: 1px solid black; padding: 4px; font-weight: bold;">Inicio de curso:</td>
+                            <td style="border: 1px solid black; padding: 4px; text-align: center;">${inicioSiguiente}</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="font-size: 11px; font-weight: bold;">Fecha de inicio:</div>
+                    <table style="width:100%; border-collapse: collapse; border: 2px solid black; font-size: 11px; margin-bottom: 15px;">
+                        <tr>
+                            <th style="border: 1px solid black; background: #d9d9d9; padding: 2px; width: 15%;">CANTIDAD</th>
+                            <th style="border: 1px solid black; background: #d9d9d9; padding: 2px; width: 45%;">CONCEPTO</th>
+                            <th style="border: 1px solid black; background: #d9d9d9; padding: 2px; width: 20%;">VALOR UNITARIO</th>
+                            <th style="border: 1px solid black; background: #d9d9d9; padding: 2px; width: 20%;">IMPORTE</th>
+                        </tr>
+                        ${conceptosHtml}
+                        <tr>
+                            <td colspan="2" style="border: none;"></td>
+                            <td style="border: 1px solid black; padding: 2px; font-weight: bold;">SUBTOTAL:</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">${formatMoney(montoCursosOriginal)}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"></td>
+                            <td style="border: 1px solid black; padding: 2px; font-weight: bold;">MATERIAL:</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">${montoMateriales > 0 ? formatMoney(montoMateriales) : ''}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"></td>
+                            <td style="border: 1px solid black; padding: 2px; font-weight: bold;">DESCUENTO:</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">${montoDescuento > 0 ? formatMoney(montoDescuento) : ''}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"></td>
+                            <td style="border: 1px solid black; padding: 2px; font-weight: bold;">TOTAL VENDIDO:</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">${formatMoney(totalGeneral)}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border: none;"></td>
+                            <td style="border: 1px solid black; padding: 2px; font-weight: bold;">TOTAL COBRADO:</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">${formatMoney(totalGeneral)}</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="font-size: 7px; text-align: center; color: #444; line-height: 1.2; margin-top: 40px;">
+                        **Este documento no tiene validez para efectos FISCALES** *EN PAGOS CON DESCUENTO NO HAY DEVOLUCIONES*<br>
+                        1. Los términos y condiciones para la prestación del servicio que ofrece Harmon Hall, así como las disposiciones legales aplicables a certificaciones SEP, pagos, devoluciones, horarios y normas internas, están contenidas en el reglamento interno de Harmon Hall, (en lo sucesivo el Reglamento) mismo que se encuentra visible e impreso en la recepción de los Institutos Harmon Hall del País y de forma electrónica y disponible en la página Web www.harmonhall.com.<br>
+                        2. Es obligación de todos los alumnos de Harmon Hall conocer y apegarse estrictamente a las normas y disposiciones del Reglamento, así como solicitar una copia del mismo en el Instituto Harmon Hall que le corresponda o bien leer su contenido. El desconocimiento del mismo no eximirá de su cumplimiento.<br>
+                        3. En cumplimiento a las disposiciones de la Ley de Protección de Datos Personales en posesión de los particulares (la "Ley"), la información personal de los alumnos que es obtenida para la prestación de los servicios que ofrece Harmon Hall es recopilada y almacenada por Harmon Hall Operadora, A.C. con domicilio en Avenida Ignacio López Rayon Sur 480 Piso 4, Col Monterrey Centro. Mty N.L., México y será utilizada para (i) la correcta prestación de los servicios de Harmon Hall, (ii) identificar e individualizar a cada alumno de Harmon Hall, (iii)informarles de desarrollos de nuevos productos y/o servicios, (iv) información estadística, (v) comunicación, (vi)mercadeo y recomendaciones de productos o servicios que ofrece Harmon Hall o cualesquiera otras empresas que pertenezcan al mismo grupo de inversión. Asimismo, le sugerimos consultar el Aviso de Privacidad completo que estará disponible en la recepción de cualesquiera Institutos Harmon Hall del país o bien podrá ser consultado en la página Web www.harmonhall.com.
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('print-factura').innerHTML = reciboHtml;
+            
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
         // ==================== MATERIALES ====================
         const materialesInfo = {
             kids: {
@@ -2917,13 +3127,19 @@
                 tbodyHtml += '<tr>';
                 f.celdas.forEach((c, idx) => {
                     if (idx === 0) {
-                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1">${c}</td>`;
+                        let cellContent = c;
+                        if (f.dias === 'Lunes y Miércoles') {
+                            cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Lun y Mie)</span>';
+                        } else if (f.dias === 'Martes y Jueves') {
+                            cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Ma y Ju)</span>';
+                        }
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 leading-tight">${cellContent}</td>`;
                     } else {
                         const count = obtenerCantidadAlumnos(c, f.horaFmt, false);
                         let colorClass = '';
                         if (count !== null && count > 0) {
                             if (count < 5) colorClass = 'bg-red-200 text-red-900 font-bold';
-                            else if (count > 10) colorClass = 'bg-green-200 text-green-900 font-bold';
+                            else if (count >= 10) colorClass = 'bg-green-200 text-green-900 font-bold';
                         }
                         tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${c}</td>`;
                     }
@@ -2950,7 +3166,7 @@
                         let colorClass = '';
                         if (count !== null && count > 0) {
                             if (count < 5) colorClass = 'bg-red-200 text-red-900 font-bold';
-                            else if (count > 10) colorClass = 'bg-green-200 text-green-900 font-bold';
+                            else if (count >= 10) colorClass = 'bg-green-200 text-green-900 font-bold';
                         }
                         tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${c}</td>`;
                     }
@@ -3204,9 +3420,11 @@
                     if (estatus === 'R') {
                         statusStr = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">✅ PAGADO</span>';
                     } else if (estatus === 'PROMESA') {
-                        statusStr = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">⚠️ PROMESA</span>';
+                        statusStr = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">🗓️ PROMESA</span>';
+                    } else if (estatus.includes('NO CONTINUA')) {
+                        statusStr = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">❌ NO CONTINUA</span>';
                     } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
-                        statusStr = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">❌ PENDIENTE</span>';
+                        statusStr = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">⚠️ PENDIENTE</span>';
                     } else {
                         statusStr = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block uppercase">${estatusOriginal}</span>`;
                     }
