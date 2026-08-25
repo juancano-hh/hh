@@ -373,7 +373,7 @@
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
                 <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
                 <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                    📚 Ver Materiales
+                    📚 Ver más
                 </button>
             </p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
@@ -634,7 +634,7 @@
 
     <!-- ===== MODAL GRUPOS ===== -->
     <div id="modal-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-grupos').classList.add('hidden')">
-        <div class="modal-box" style="max-width: 700px;">
+        <div class="modal-box" style="max-width: 600px;">
             <div class="modal-header bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
                 <p class="font-bold text-lg">🔍 Buscar Grupos</p>
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">✕</button>
@@ -3461,7 +3461,7 @@
                         <td class="px-3 py-2 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 ${statusStr}
-                                <button onclick="pagarDesdeGrupos('${a.idOriginal}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold py-1 px-3 rounded shadow-sm transition duration-200">PAGAR</button>
+                                <button onclick="pagarDesdeGrupos('${a.idOriginal}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold py-1 px-3 rounded shadow-sm transition duration-200">Ver Perfil</button>
                             </div>
                         </td>
                     </tr>`;
