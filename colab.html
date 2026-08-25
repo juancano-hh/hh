@@ -313,6 +313,9 @@
                     <button onclick="abrirModalMateriales()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         📚 Consultar Materiales
                     </button>
+                    <button onclick="abrirModalHorariosLayout()" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-3 px-4 rounded-xl border border-orange-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        🕒 Consultar Horarios
+                    </button>
                     <button onclick="abrirModalGrupos()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-3 px-4 rounded-xl border border-teal-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         🔍 Buscar Grupos
                     </button>
@@ -353,7 +356,13 @@
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
             <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
-            <p class="text-sm text-gray-700"><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all"></span></p>
+            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
+            <p class="text-sm text-gray-700">
+                <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2"></span>
+                <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
+                    💬 WhatsApp
+                </button>
+            </p>
             <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all"></span></p>
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
@@ -361,7 +370,12 @@
             <p id="contenedor-salon" class="hidden text-sm text-gray-700"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
-            <p id="contenedor-libro" class="hidden text-sm text-gray-700"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase"></span></p>
+            <p id="contenedor-libro" class="hidden text-sm text-gray-700">
+                <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
+                <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                    📚 Ver Materiales
+                </button>
+            </p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
 
             <!-- ===== FECHAS DE PERIODO (solo en vista pagos) ===== -->
@@ -589,6 +603,156 @@
     </div>
 
 
+
+    <!-- ===== MODAL HORARIOS LAYOUT ===== -->
+    <div id="modal-horarios-layout" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-horarios-layout').classList.add('hidden')">
+        <div class="modal-box" style="max-width: 900px; width: 95%;">
+            <div class="modal-header bg-orange-500 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-lg">🕒 Horarios (LAYOUT)</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-horarios-layout').classList.add('hidden')">×</button>
+            </div>
+            <div class="p-5 bg-white rounded-b-2xl overflow-x-auto">
+                <table class="w-full text-center text-xs border-collapse font-sans">
+                    <thead>
+                        <tr class="text-gray-800 font-bold bg-white">
+                            <th class="p-1 border border-gray-400">SALON</th>
+                            <th class="p-1 border border-gray-400">SYDNEY</th>
+                            <th class="p-1 border border-gray-400">NEW YORK</th>
+                            <th class="p-1 border border-gray-400">SN. FRANSISCO</th>
+                            <th class="p-1 border border-gray-400">LIVERPOOL</th>
+                            <th class="p-1 border border-gray-400">TORONTO</th>
+                            <th class="p-1 border border-gray-400">ORLANDO</th>
+                            <th class="p-1 border border-gray-400">LONDON</th>
+                            <th class="p-1 border border-gray-400">MELBOURNE</th>
+                        </tr>
+                        <tr class="text-gray-800 font-bold bg-white">
+                            <th class="p-1 border border-gray-400">TEACHER</th>
+                            <th class="p-1 border border-gray-400">YONA</th>
+                            <th class="p-1 border border-gray-400">MIKE</th>
+                            <th class="p-1 border border-gray-400">CRIS</th>
+                            <th class="p-1 border border-gray-400">ORLANDO</th>
+                            <th class="p-1 border border-gray-400">MAGGIE</th>
+                            <th class="p-1 border border-gray-400">LUZ</th>
+                            <th class="p-1 border border-gray-400">DIEGO</th>
+                            <th class="p-1 border border-gray-400">ERIKA</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">9:00</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">22</td>
+                            <td class="border border-gray-400">20</td>
+                            <td class="border border-gray-400">9</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">11:00</td>
+                            <td class="border border-gray-400">15</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">11</td>
+                            <td class="border border-gray-400">24</td>
+                            <td class="border border-gray-400">8</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">6</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">15:45</td>
+                            <td class="border border-gray-400">PT1</td>
+                            <td class="border border-gray-400">KB 9</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">KB 11</td>
+                            <td class="border border-gray-400">TN 13</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">PT 11</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">15:45</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">TN 8</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">TN 13</td>
+                            <td class="border border-gray-400">PT 2</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">PT 4</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">17:30</td>
+                            <td class="border border-gray-400">11</td>
+                            <td class="border border-gray-400">17</td>
+                            <td class="border border-gray-400">22</td>
+                            <td class="border border-gray-400">13</td>
+                            <td class="border border-gray-400">20</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">8</td>
+                            <td class="border border-gray-400">3</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">19:15</td>
+                            <td class="border border-gray-400">1</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">6</td>
+                            <td class="border border-gray-400">15</td>
+                            <td class="border border-gray-400">22</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">8</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">SABADO</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">8:00</td>
+                            <td class="border border-gray-400">24</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">20</td>
+                            <td class="border border-gray-400">13</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">6</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">10:00</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">TN 14</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">PT 10</td>
+                            <td class="border border-gray-400">TN 8</td>
+                            <td class="border border-gray-400">TN 14</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold border border-gray-400 py-1">13:30</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">TN 6</td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400"></td>
+                            <td class="border border-gray-400">KB 9</td>
+                            <td class="border border-gray-400">TN 18</td>
+                            <td class="border border-gray-400">TN 20</td>
+                            <td class="border border-gray-400"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== MODAL GRUPOS ===== -->
     <div id="modal-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-grupos').classList.add('hidden')">
@@ -893,8 +1057,8 @@
                     const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
                     // ===== NUEVO: Cursos por volumen (columna AD, índice 29) =====
                     const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
-                    // ===== NUEVO: Pago registrado (columna C, índice 2) =====
-                    const tieneR = fila[2] ? String(fila[2]).trim().toUpperCase() === 'R' : false;
+                    const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
+                    const tieneR = estatusPagoRaw.toUpperCase() === 'R';
 
                     // ===== NUEVO: Codigo de clase del alumno (columna M, índice 12) =====
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
@@ -909,6 +1073,7 @@
                         tipoClaseCal: tipoClaseCal,
                         volumen: volumenInfo,
                         tieneR: tieneR,
+                        estatusPago: estatusPagoRaw,
                         codigoClase: codigoClaseLayout  // NUEVO
                     };
                     baseAlumnos[id] = alumno;
@@ -1380,12 +1545,40 @@
                 errorBox.classList.add('hidden');
                 document.getElementById('lbl-id').innerText       = alumnoActual.idOriginal;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
+                
+                // Actualizar estatus
+                let statusBadge = '';
+                const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
+                const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
+                
+                if (estatus === 'R') {
+                    statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
+                } else if (estatus === 'PROMESA') {
+                    statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PROMESA</span>';
+                } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
+                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ PENDIENTE</span>';
+                } else {
+                    statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
+                }
+                document.getElementById('lbl-estatus-pago').innerHTML = statusBadge;
+                document.getElementById('contenedor-estatus-pago').classList.remove('hidden');
+                document.getElementById('contenedor-estatus-pago').classList.add('flex');
+
                 document.getElementById('lbl-celular').innerText  = alumnoActual.celular;
+                const btnWhatsApp = document.getElementById('btn-whatsapp-alumno');
+                if (alumnoActual.celular && alumnoActual.celular.trim() !== '') {
+                    btnWhatsApp.classList.remove('hidden');
+                } else {
+                    btnWhatsApp.classList.add('hidden');
+                }
                 document.getElementById('lbl-correo').innerText   = alumnoActual.correo;
                 document.getElementById('lbl-curso').innerText    = alumnoActual.cursoVisual;
                 document.getElementById('lbl-programa').innerText = alumnoActual.programaTexto;
                 document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
-                document.getElementById('lbl-horario').innerText  = alumnoActual.horario;
+                
+                // Inicialmente mostramos el horario tal cual
+                let horarioAMostrar = alumnoActual.horario;
+
                 document.getElementById('lbl-beca').innerText     = Math.round(alumnoActual.beca * 100) + "%";
                 
                 const libroObj = librosMap.get(`${alumnoActual.programaNombre}_${alumnoActual.nivelActual}`);
@@ -1415,8 +1608,15 @@
                         document.getElementById('lbl-teacher').innerText = salonObj.teacher;
                         contSalon.classList.remove('hidden');
                         contTeacher.classList.remove('hidden');
+
+                        if (salonObj.dias) {
+                            horarioAMostrar = `3:45 p. m. ${salonObj.dias}`;
+                        }
                     }
                 }
+                
+                // Actualizar label de horario al final para incluir los días si existen
+                document.getElementById('lbl-horario').innerText  = horarioAMostrar;
 
                 // PASO 2: mostrar solo botones (dejamos visible el buscador arriba)
                 document.getElementById('menu-principal').classList.remove('hidden');
@@ -1678,6 +1878,40 @@
                 actualizarCalculos();
             }
         });
+
+        function abrirWhatsAppAlumno() {
+            if (!alumnoActual || !alumnoActual.celular) return;
+            
+            const celularBruto = alumnoActual.celular;
+            // Separar por barras, comas, o palabras como "o", "y"
+            let partes = String(celularBruto).split(/[/,\|]| o | y | y\/o /i);
+            let numeroFinal = null;
+
+            for (let i = 0; i < partes.length; i++) {
+                let cel = partes[i].replace(/\D/g, '');
+                if (cel.length >= 10) {
+                    if (cel.startsWith('521') && cel.length === 13) {
+                        numeroFinal = '52' + cel.substring(3);
+                    } else if (cel.startsWith('521') && cel.length > 13) {
+                        numeroFinal = '52' + cel.substring(3, 13); // Tomar solo los 10 dígitos después del código
+                    } else if (cel.startsWith('52') && cel.length === 12) {
+                        numeroFinal = cel;
+                    } else if (cel.startsWith('52') && cel.length > 12) {
+                        numeroFinal = cel.substring(0, 12);
+                    } else {
+                        numeroFinal = '52' + cel.substring(0, 10);
+                    }
+                    break; // Usar el primer número válido encontrado
+                }
+            }
+
+            if (numeroFinal) {
+                const url = `https://wa.me/${numeroFinal}`;
+                window.open(url, '_blank');
+            } else {
+                alert("No se detectó un número válido de 10 dígitos para WhatsApp.");
+            }
+        }
 
         function enviarSolicitudWhatsApp() {
             if (!alumnoActual) return;
@@ -1946,6 +2180,7 @@
                 matrizSalones.filasSabado = [];
 
                 let esSabado = false;
+                let count1545 = 0;
                 for (let i = 2; i < filas.length; i++) {
                     const f = filas[i];
                     const hor = String(f[0] || '').trim().toUpperCase();
@@ -1961,6 +2196,11 @@
                     let hStr = h.padStart(2, '0') + ':' + m;
 
                     const obj = { horaFmt: hStr, celdas: f };
+                    if (!esSabado && hStr === '15:45') {
+                        if (count1545 === 0) obj.dias = 'Lunes y Miércoles';
+                        else obj.dias = 'Martes y Jueves';
+                        count1545++;
+                    }
                     if (esSabado) matrizSalones.filasSabado.push(obj);
                     else matrizSalones.filas.push(obj);
                 }
@@ -2023,13 +2263,15 @@
                             if (currentTeacher === targetTeacher) {
                                 return {
                                     salon: matrizSalones.salones[i] || 'No definido',
-                                    teacher: currentTeacher
+                                    teacher: currentTeacher,
+                                    dias: fila.dias
                                 };
                             }
                         } else {
                             return {
                                 salon: matrizSalones.salones[i] || 'No definido',
-                                teacher: currentTeacher
+                                teacher: currentTeacher,
+                                dias: fila.dias
                             };
                         }
                     }
@@ -2762,6 +3004,10 @@
             document.getElementById('bg-nivel').disabled = true;
         }
 
+        function abrirModalHorariosLayout() {
+            document.getElementById('modal-horarios-layout').classList.remove('hidden');
+        }
+
         function abrirModalGrupos() {
             document.getElementById('modal-grupos').classList.remove('hidden');
             bgResetearBusqueda();
@@ -2809,7 +3055,10 @@
             if (matrizSalones.filas) {
                 matrizSalones.filas.forEach(f => {
                     const tienePrograma = f.celdas.some((c, i) => i > 0 && verificarCelda(c));
-                    if (tienePrograma) horariosUnicos.add('Lunes - Jueves|' + f.horaFmt);
+                    if (tienePrograma) {
+                        const labelDias = f.dias ? f.dias : 'Lunes - Jueves';
+                        horariosUnicos.add(labelDias + '|' + f.horaFmt);
+                    }
                 });
             }
 
@@ -2859,7 +3108,11 @@
                 return null;
             };
 
-            const filasCoincidentes = filasBuscar.filter(f => f.horaFmt === horaTarget);
+            const filasCoincidentes = filasBuscar.filter(f => {
+                if (f.horaFmt !== horaTarget) return false;
+                if (f.dias && f.dias !== diasTarget) return false;
+                return true;
+            });
             for (let fila of filasCoincidentes) {
                 for (let i = 1; i < fila.celdas.length; i++) {
                     const nivel = verificarYExtraerNivel(fila.celdas[i]);
@@ -2946,7 +3199,11 @@
             document.getElementById('bg-lbl-teacher').innerText = finalTeacher;
             document.getElementById('bg-lbl-programa').innerText = progReal;
             document.getElementById('bg-lbl-nivel').innerText = "Nivel " + nivelVal;
-            document.getElementById('bg-lbl-horario').innerText = diasTarget + " " + horaTarget;
+            if (horaTarget === '15:45') {
+                document.getElementById('bg-lbl-horario').innerText = "3:45 p. m. " + diasTarget;
+            } else {
+                document.getElementById('bg-lbl-horario').innerText = diasTarget + " " + horaTarget;
+            }
 
             const modStr = esSabado ? '08' : '04';
             const fechaHoy = new Date();
@@ -2986,13 +3243,27 @@
                 tBody.innerHTML = '<tr><td colspan="3" class="px-3 py-4 text-center text-gray-400 text-xs">No hay alumnos registrados en este grupo.</td></tr>';
             } else {
                 estudiantesList.forEach(a => {
-                    const statusStr = a.tieneR 
-                        ? '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">✅ PAGADO</span>' 
-                        : '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">❌ PENDIENTE</span>';
+                    let statusStr = '';
+                    const estatus = a.estatusPago ? a.estatusPago.trim().toUpperCase() : '';
+                    const estatusOriginal = a.estatusPago ? a.estatusPago.trim() : '';
+
+                    if (estatus === 'R') {
+                        statusStr = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">✅ PAGADO</span>';
+                    } else if (estatus === 'PROMESA') {
+                        statusStr = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">⚠️ PROMESA</span>';
+                    } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
+                        statusStr = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block">❌ PENDIENTE</span>';
+                    } else {
+                        statusStr = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded w-full inline-block uppercase">${estatusOriginal}</span>`;
+                    }
+
                     tBody.innerHTML += `<tr class="hover:bg-gray-50">
                         <td class="px-3 py-2 font-mono text-xs">${a.idOriginal}</td>
                         <td class="px-3 py-2 font-medium truncate max-w-[150px] text-xs">${a.nombre}</td>
-                        <td class="px-3 py-2 text-center">${statusStr}</td>
+                        <td class="px-3 py-2 text-center">
+                            ${statusStr}
+                            <button onclick="pagarDesdeGrupos('${a.idOriginal}')" class="mt-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[10px] font-bold py-1 px-2 rounded w-full shadow-sm transition duration-200">PAGAR</button>
+                        </td>
                     </tr>`;
                 });
             }
@@ -3000,6 +3271,12 @@
             
             document.getElementById('bg-selectores-container').classList.add('hidden');
             infoBox.classList.remove('hidden');
+        }
+
+        function pagarDesdeGrupos(idOriginal) {
+            document.getElementById('modal-grupos').classList.add('hidden');
+            document.getElementById('alumno-id').value = idOriginal;
+            buscarAlumno();
         }
 
         function bgAbrirCalendario() {
