@@ -4065,20 +4065,11 @@
             tbodyT.innerHTML = '';
             teachersArr.forEach((t, i) => {
                 let place = i + 1;
-                if (place === 1) place = '🥇';
-                else if (place === 2) place = '🥈';
-                else if (place === 3) place = '🥉';
+                if (place === 1) place = '1';
+                else if (place === 2) place = '2';
+                else if (place === 3) place = '3';
                 
-                tbodyT.innerHTML += 
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-2 text-lg"> + place + </td>
-                        <td class="py-2 text-left pl-2 font-bold"> + t.name + </td>
-                        <td class="py-2 text-green-600 font-bold"> + t.r + </td>
-                        <td class="py-2 text-yellow-600 font-bold"> + t.seguimiento + </td>
-                        <td class="py-2 font-bold"> + t.total + </td>
-                        <td class="py-2 text-blue-600 font-bold"> + t.pct.toFixed(1) + %</td>
-                    </tr>
-                ;
+                tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-lg">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 text-yellow-600 font-bold">${t.seguimiento}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td></tr>`;
             });
 
             data.gruposArr.sort((a, b) => {
@@ -4092,20 +4083,7 @@
             tbodyG.innerHTML = '';
             data.gruposArr.forEach(g => {
                 let listEncoded = encodeURIComponent(JSON.stringify(g.pagadosList));
-                tbodyG.innerHTML += 
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-2 text-left pl-2 font-bold"> + g.teacherSalon + </td>
-                        <td class="py-2 font-bold"> + g.nivelCodigo + </td>
-                        <td class="py-2 text-gray-500"> + g.horario + </td>
-                        <td class="py-2 text-green-600 font-bold"> + g.r + </td>
-                        <td class="py-2 text-yellow-600 font-bold"> + g.seguimiento + </td>
-                        <td class="py-2 text-red-600 font-bold"> + g.bajas + </td>
-                        <td class="py-2 font-bold"> + g.total + </td>
-                        <td class="py-2">
-                            <button onclick="verAlumnosPagados(' + listEncoded + ')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-1 px-3 rounded shadow-sm transition duration-200">Ver grupo</button>
-                        </td>
-                    </tr>
-                ;
+                tbodyG.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-left pl-2 font-bold">${g.teacherSalon}</td><td class="py-2 font-bold">${g.nivelCodigo}</td><td class="py-2 text-gray-500">${g.horario}</td><td class="py-2 text-green-600 font-bold">${g.r}</td><td class="py-2 text-yellow-600 font-bold">${g.seguimiento}</td><td class="py-2 text-red-600 font-bold">${g.bajas}</td><td class="py-2 font-bold">${g.total}</td><td class="py-2"><button onclick="verAlumnosPagados('${listEncoded}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-1 px-3 rounded shadow-sm transition duration-200">Ver grupo</button></td></tr>`;
             });
         }
 
