@@ -750,33 +750,35 @@
                     </div>
                 </div>
 
-                <!-- Gráficas de Pastel -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-center">
-                        <p class="font-bold text-gray-700 mb-6">📊 Distribución de Alumnos por Estatus</p>
-                        <div id="estatus-stacked-bar" class="w-full h-12 flex rounded-md overflow-hidden shadow-inner border border-gray-200">
-                            <!-- JS will populate this -->
-                        </div>
-                        <div id="estatus-stacked-legend" class="flex flex-wrap justify-center gap-4 mt-6 text-sm text-gray-600 font-medium">
-                            <!-- JS will populate this -->
-                        </div>
+                <!-- Gráfica de Estatus (Ancho completo) -->
+                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-center mb-6">
+                    <p class="font-bold text-gray-700 mb-6">📊 Distribución de Alumnos por Estatus</p>
+                    <div id="estatus-stacked-bar" class="w-full h-14 flex rounded-md overflow-hidden shadow-inner border border-gray-200">
+                        <!-- JS will populate this -->
                     </div>
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4">💻 Pagos: Presencial vs En Línea (Solo R)</p>
+                    <div id="estatus-stacked-legend" class="flex flex-wrap justify-center gap-6 mt-6 text-sm text-gray-600 font-medium">
+                        <!-- JS will populate this -->
+                    </div>
+                </div>
+
+                <!-- Segunda fila de Gráficas -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col col-span-1 md:col-span-1">
+                        <p class="font-bold text-gray-700 mb-4 text-center">💻 Alumnos: Presencial vs En Línea</p>
                         <div class="relative h-64 w-full flex-grow flex justify-center items-center">
                             <canvas id="chart-modalidad"></canvas>
                         </div>
                     </div>
-                </div>
-
-                <!-- Ranking Profesores -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col col-span-1 md:col-span-2">
                         <p class="font-bold text-gray-700 mb-4">🏆 Carrera de Profesores (Meta 100% R)</p>
-                        <div class="relative h-80 w-full flex-grow">
+                        <div class="relative h-64 w-full flex-grow">
                             <canvas id="chart-teachers"></canvas>
                         </div>
                     </div>
+                </div>
+
+                <!-- Ranking Profesores Tabla -->
+                <div class="grid grid-cols-1 gap-6 mb-6">
                     <div class="bg-white p-5 rounded-lg shadow-sm overflow-x-auto">
                         <div class="flex justify-between items-center mb-4">
                             <p class="font-bold text-gray-700">🏆 Ranking de Profesores</p>
@@ -3906,14 +3908,15 @@
             Object.values(baseAlumnos).forEach(a => {
                 kpis.total++;
                 let estatus = (a.estatusPago || '').trim().toUpperCase();
-                if (estatus === 'R') {
-                    kpis.r++;
-                    if (a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') modalidad.presencialR++;
-                    else modalidad.lineaR++;
-                }
-                else if (estatus === 'SEGUIMIENTO') kpis.seguimiento++;
-                else if (estatus === 'PROMESA') kpis.promesas++;
-                else if (estatus === 'NO CONTINUA' || estatus === 'BAJA') kpis.bajas++;
+                
+                if (estatus === 'R') kpis.r++;
+                else if (estatus.includes('SEGUIMIENTO')) kpis.seguimiento++;
+                else if (estatus.includes('PROMESA')) kpis.promesas++;
+                else if (estatus.includes('NO CONTINUA') || estatus.includes('BAJA')) kpis.bajas++;
+
+                // Modality for ALL students
+                if (a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') modalidad.presencialR++;
+                else modalidad.lineaR++;
             });
 
             // 2. Teachers and Presencial Groups from matrizSalones
@@ -3950,9 +3953,9 @@
                     grupoAlumnos.forEach(a => {
                         let st = (a.estatusPago || '').trim().toUpperCase();
                         if (st === 'R') { r++; pagadosList.push(a.nombre); }
-                        else if (st === 'SEGUIMIENTO') seg++;
-                        else if (st === 'PROMESA') prom++;
-                        else if (st === 'NO CONTINUA' || st === 'BAJA') bajas++;
+                        else if (st.includes('SEGUIMIENTO')) seg++;
+                        else if (st.includes('PROMESA')) prom++;
+                        else if (st.includes('NO CONTINUA') || st.includes('BAJA')) bajas++;
                     });
 
                     gruposArr.push({
@@ -3982,8 +3985,8 @@
                 matrizSalones.filas.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx - 1] || 'Sin Salón';
-                            let teacher = matrizSalones.teachers[idx - 1] || 'Sin Profesor';
+                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, false);
                         }
                     });
@@ -3994,8 +3997,8 @@
                 matrizSalones.filasSabado.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx - 1] || 'Sin Salón';
-                            let teacher = matrizSalones.teachers[idx - 1] || 'Sin Profesor';
+                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, true);
                         }
                     });
@@ -4023,9 +4026,9 @@
                     if (st === 'R') {
                         onlineGroupsMap[key].r++;
                         onlineGroupsMap[key].pagadosList.push(a.nombre);
-                    } else if (st === 'SEGUIMIENTO') {
+                    } else if (st.includes('SEGUIMIENTO')) {
                         onlineGroupsMap[key].seguimiento++;
-                    } else if (st === 'NO CONTINUA' || st === 'BAJA') {
+                    } else if (st.includes('NO CONTINUA') || st.includes('BAJA')) {
                         onlineGroupsMap[key].bajas++;
                     }
                 }
