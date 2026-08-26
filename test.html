@@ -714,15 +714,14 @@
         </div>
     </div>
 
-    <!-- ===== MODAL DASHBOARD PRINCIPAL ===== -->
-    <div id="modal-dashboard-main" class="modal-overlay hidden" style="z-index: 50;" onclick="if(event.target===this) document.getElementById('modal-dashboard-main').classList.add('hidden')">
-        <div class="modal-box" style="max-width: 1200px; width: 95%; height: 95vh; display: flex; flex-direction: column; padding: 0;">
-            <div class="modal-header bg-indigo-800 text-white p-4 flex justify-between items-center rounded-t-2xl flex-shrink-0">
-                <p class="font-bold text-xl">📈 Dashboard Directivo</p>
-                <button class="text-white hover:text-gray-200 text-2xl font-bold" onclick="document.getElementById('modal-dashboard-main').classList.add('hidden')">✕</button>
-            </div>
-            
-            <div class="p-6 bg-gray-100 rounded-b-2xl overflow-y-auto flex-grow" style="background-color: #f3f4f6;">
+    <!-- ===== VISTA DASHBOARD PRINCIPAL (PÁGINA COMPLETA) ===== -->
+    <div id="dashboard-container" class="hidden bg-gray-100 w-full min-h-[90vh] rounded-2xl shadow-xl border border-gray-100 flex-col overflow-hidden" style="max-width: 1400px;">
+        <div class="bg-indigo-800 text-white p-5 flex justify-between items-center flex-shrink-0">
+            <p class="font-bold text-2xl">📈 Dashboard Directivo</p>
+            <button class="bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition" onclick="cerrarDashboard()">Volver al Inicio</button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-grow" style="background-color: #f3f4f6;">
                 
                 <!-- KPIs -->
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
@@ -818,7 +817,6 @@
                     </table>
                 </div>
 
-            </div>
         </div>
     </div>
 
@@ -3874,10 +3872,22 @@
             if (pwd === 'HH2026') {
                 document.getElementById('modal-pwd-dashboard').classList.add('hidden');
                 generarDatosDashboard();
-                document.getElementById('modal-dashboard-main').classList.remove('hidden');
+                document.getElementById('main-container').classList.add('hidden');
+                document.getElementById('dashboard-container').classList.remove('hidden');
+                document.getElementById('dashboard-container').classList.add('flex');
+                document.body.classList.remove('items-center'); // Para que use el espacio superior
+                document.body.classList.add('items-start');
             } else {
                 document.getElementById('error-pwd-dashboard').classList.remove('hidden');
             }
+        }
+
+        function cerrarDashboard() {
+            document.getElementById('dashboard-container').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('flex');
+            document.getElementById('main-container').classList.remove('hidden');
+            document.body.classList.add('items-center');
+            document.body.classList.remove('items-start');
         }
 
         function agruparAlumnosDashboard() {
@@ -4091,21 +4101,34 @@
             const ctx = document.getElementById('chart-estatus').getContext('2d');
             if (chartEstatus) chartEstatus.destroy();
             
+            let total = kpis.r + kpis.seguimiento + kpis.promesas + kpis.bajas;
+            let pR = total > 0 ? ((kpis.r / total) * 100).toFixed(1) : 0;
+            let pSeg = total > 0 ? ((kpis.seguimiento / total) * 100).toFixed(1) : 0;
+            let pProm = total > 0 ? ((kpis.promesas / total) * 100).toFixed(1) : 0;
+            let pBaj = total > 0 ? ((kpis.bajas / total) * 100).toFixed(1) : 0;
+
             chartEstatus = new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
                     labels: ['Reinscritos (R)', 'En Seguimiento', 'Promesas', 'Bajas'],
                     datasets: [{
-                        data: [kpis.r, kpis.seguimiento, kpis.promesas, kpis.bajas],
+                        label: '% de Alumnos',
+                        data: [pR, pSeg, pProm, pBaj],
                         backgroundColor: ['#22c55e', '#eab308', '#f97316', '#ef4444'],
-                        borderWidth: 2
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } },
-                    cutout: '50%'
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: function(value) { return value + "%" } }
+                        }
+                    }
                 }
             });
         }
