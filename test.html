@@ -649,23 +649,31 @@
                 <div class="mt-5 flex flex-wrap gap-4 text-sm text-gray-700 justify-center items-center font-medium bg-gray-50 py-3 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-green-600 shadow-sm rounded"></span>
-                        <span class="text-xs">Todos pagaron</span>
+                        <span class="text-xs">≥ 80%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-green-300 border border-green-400 shadow-sm rounded"></span>
-                        <span class="text-xs">Mayoría pagó</span>
+                        <span class="text-xs">≥ 60%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-yellow-300 border border-yellow-400 shadow-sm rounded"></span>
-                        <span class="text-xs">Pagos ≥ 5</span>
+                        <span class="text-xs">≥ 50%</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="inline-block w-4 h-4 bg-orange-300 border border-orange-400 shadow-sm rounded"></span>
+                        <span class="text-xs">≥ 40%</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="inline-block w-4 h-4 bg-red-400 border border-red-500 shadow-sm rounded"></span>
+                        <span class="text-xs">< 40%</span>
+                    </div>
+                    <div class="flex items-center gap-1 ml-4 border-l pl-4 border-gray-300">
+                        <span class="inline-block w-4 h-4 bg-orange-400 shadow-sm rounded"></span>
+                        <span class="text-xs font-bold text-orange-700">6 inscritos (Riesgo)</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-red-500 shadow-sm rounded"></span>
-                        <span class="text-xs">Pagos < 5 (Peligro)</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <span class="inline-block w-4 h-4 bg-white border border-gray-300 shadow-sm rounded"></span>
-                        <span class="text-xs">Sin alumnos</span>
+                        <span class="text-xs font-bold text-red-700">≤ 5 inscritos (Peligro)</span>
                     </div>
                 </div>
             </div>
@@ -3201,7 +3209,7 @@
             });
             const inscritos = grupo.length;
             const pagados = grupo.filter(a => a.estatusPago && a.estatusPago.trim().toUpperCase() === 'R').length;
-            return { inscritos, pagados };
+            return { inscritos, pagados, nivel: nivelVal };
         }
 
         function abrirModalRevisionGrupos() {
@@ -3234,16 +3242,28 @@
                         let content = c;
                         
                         if (datos !== null && datos.inscritos > 0) {
-                            if (datos.pagados < 5) {
+                            let isAdvanced = (datos.nivel > 20);
+                            let pct = Math.round((datos.pagados / datos.inscritos) * 100);
+                            
+                            if (!isAdvanced && datos.inscritos <= 5) {
                                 colorClass = 'bg-red-500 text-white font-bold';
-                            } else if (datos.pagados === datos.inscritos) {
-                                colorClass = 'bg-green-600 text-white font-bold';
-                            } else if (datos.pagados >= datos.inscritos / 2) {
-                                colorClass = 'bg-green-300 text-green-900 font-bold';
+                            } else if (!isAdvanced && datos.inscritos === 6) {
+                                if (pct >= 40) colorClass = 'bg-orange-400 text-white font-bold';
+                                else colorClass = 'bg-red-400 text-white font-bold';
                             } else {
-                                colorClass = 'bg-yellow-300 text-yellow-900 font-bold';
+                                if (pct >= 80) {
+                                    colorClass = 'bg-green-600 text-white font-bold';
+                                } else if (pct >= 60) {
+                                    colorClass = 'bg-green-300 text-green-900 font-bold';
+                                } else if (pct >= 50) {
+                                    colorClass = 'bg-yellow-300 text-yellow-900 font-bold';
+                                } else if (pct >= 40) {
+                                    colorClass = 'bg-orange-300 text-orange-900 font-bold';
+                                } else {
+                                    colorClass = 'bg-red-400 text-white font-bold';
+                                }
                             }
-                            content = `${c}<br><span class="text-[10px] font-normal opacity-90">${datos.pagados}/${datos.inscritos} pagos</span>`;
+                            content = `${c}<br><span class="text-[10px] font-normal opacity-90">${datos.pagados}/${datos.inscritos} (${pct}%)</span>`;
                         }
                         tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${content}</td>`;
                     }
@@ -3269,16 +3289,28 @@
                         let content = c;
                         
                         if (datos !== null && datos.inscritos > 0) {
-                            if (datos.pagados < 5) {
+                            let isAdvanced = (datos.nivel > 20);
+                            let pct = Math.round((datos.pagados / datos.inscritos) * 100);
+                            
+                            if (!isAdvanced && datos.inscritos <= 5) {
                                 colorClass = 'bg-red-500 text-white font-bold';
-                            } else if (datos.pagados === datos.inscritos) {
-                                colorClass = 'bg-green-600 text-white font-bold';
-                            } else if (datos.pagados >= datos.inscritos / 2) {
-                                colorClass = 'bg-green-300 text-green-900 font-bold';
+                            } else if (!isAdvanced && datos.inscritos === 6) {
+                                if (pct >= 40) colorClass = 'bg-orange-400 text-white font-bold';
+                                else colorClass = 'bg-red-400 text-white font-bold';
                             } else {
-                                colorClass = 'bg-yellow-300 text-yellow-900 font-bold';
+                                if (pct >= 80) {
+                                    colorClass = 'bg-green-600 text-white font-bold';
+                                } else if (pct >= 60) {
+                                    colorClass = 'bg-green-300 text-green-900 font-bold';
+                                } else if (pct >= 50) {
+                                    colorClass = 'bg-yellow-300 text-yellow-900 font-bold';
+                                } else if (pct >= 40) {
+                                    colorClass = 'bg-orange-300 text-orange-900 font-bold';
+                                } else {
+                                    colorClass = 'bg-red-400 text-white font-bold';
+                                }
                             }
-                            content = `${c}<br><span class="text-[10px] font-normal opacity-90">${datos.pagados}/${datos.inscritos} pagos</span>`;
+                            content = `${c}<br><span class="text-[10px] font-normal opacity-90">${datos.pagados}/${datos.inscritos} (${pct}%)</span>`;
                         }
                         tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${content}</td>`;
                     }
