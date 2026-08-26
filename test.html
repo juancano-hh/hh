@@ -324,6 +324,9 @@
                     <button onclick="abrirModalGrupos()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-3 px-4 rounded-xl border border-teal-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         🔍 Buscar Grupos
                     </button>
+                    <button onclick="imprimirSaloneo()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 px-4 rounded-xl border border-emerald-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        🖨️ Saloneo
+                    </button>
                     <button onclick="abrirModalPasswordDashboard()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         📈 Dashboard
                     </button>
@@ -773,25 +776,27 @@
                     </div>
                 </div>
 
-                <!-- Segunda fila de Gráficas -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col col-span-1 md:col-span-1">
-                        <p class="font-bold text-gray-700 mb-4 text-center">💻 Alumnos: Presencial vs En Línea</p>
+                <!-- Segunda fila de Gráficas: Modalidad (Opcionalmente centrada) -->
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col items-center">
+                        <p class="font-bold text-gray-700 mb-4">💻 Alumnos: Presencial vs En Línea</p>
                         <div class="relative h-64 w-full flex-grow flex justify-center items-center">
                             <canvas id="chart-modalidad"></canvas>
                         </div>
                     </div>
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col col-span-1 md:col-span-2">
-                        <p class="font-bold text-gray-700 mb-4">🏆 Carrera de Profesores (Meta 100% R)</p>
-                        <div class="relative h-64 w-full flex-grow">
+                </div>
+
+                <!-- Ranking Profesores Section (Chart + Table) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Chart -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
+                        <p class="font-bold text-gray-700 mb-4 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
+                        <div class="relative h-80 w-full flex-grow">
                             <canvas id="chart-teachers"></canvas>
                         </div>
                     </div>
-                </div>
-
-                <!-- Ranking Profesores Tabla -->
-                <div class="grid grid-cols-1 gap-6 mb-6">
-                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-x-auto">
+                    <!-- Table -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
                         <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                             <div>
                                 <p class="font-bold text-gray-700 text-lg">🏆 Ranking de Profesores</p>
@@ -806,21 +811,23 @@
                                 </select>
                             </div>
                         </div>
-                        <table class="w-full text-sm text-center">
-                            <thead class="bg-gray-50 border-b">
-                                <tr class="text-gray-500 uppercase text-xs">
-                                    <th class="py-3 font-semibold">Lugar</th>
-                                    <th class="py-3 font-semibold text-left pl-2">Teacher</th>
-                                    <th class="py-3 font-semibold text-green-600">Total R</th>
-                                    <th class="py-3 font-semibold text-yellow-600">Seguimiento</th>
-                                    <th class="py-3 font-semibold">Total Alumnos</th>
-                                    <th class="py-3 font-semibold text-blue-600">% R</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbody-ranking-profesores">
-                                <!-- JS -->
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
+                            <table class="w-full text-sm text-center">
+                                <thead class="bg-gray-50 border-b sticky top-0 shadow-sm z-10">
+                                    <tr class="text-gray-500 uppercase text-xs">
+                                        <th class="py-3 font-semibold">Lugar</th>
+                                        <th class="py-3 font-semibold text-left pl-2">Teacher</th>
+                                        <th class="py-3 font-semibold text-green-600">Total R</th>
+                                        <th class="py-3 font-semibold text-yellow-600">Seguimiento</th>
+                                        <th class="py-3 font-semibold">Total Alumnos</th>
+                                        <th class="py-3 font-semibold text-blue-600">% R</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-ranking-profesores">
+                                    <!-- JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -2039,37 +2046,118 @@
             }
         });
 
+        function imprimirSaloneo() {
+            if (!baseAlumnos || Object.keys(baseAlumnos).length === 0) {
+                alert("Primero carga los archivos Excel.");
+                return;
+            }
+            
+            let data = agruparAlumnosDashboard();
+            let grupos = data.gruposArr; // Ya solo incluye presenciales
+
+            grupos.sort((a,b) => {
+                if (a.teacherSalon < b.teacherSalon) return -1;
+                if (a.teacherSalon > b.teacherSalon) return 1;
+                return 0;
+            });
+
+            let html = `<html><head><title>Reporte de Saloneo</title>
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
+                .grupo-box { border: 1px solid #ddd; margin-bottom: 20px; padding: 0; page-break-inside: avoid; border-radius: 4px; overflow: hidden; }
+                .grupo-header { font-weight: bold; background: #f4f4f5; padding: 10px; border-bottom: 1px solid #ddd; font-size: 13px; display: flex; justify-content: space-between; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border-bottom: 1px solid #eee; padding: 6px 10px; text-align: left; }
+                th { background: #fafafa; font-size: 11px; text-transform: uppercase; color: #666; border-bottom: 2px solid #ddd; }
+                tr:last-child td { border-bottom: none; }
+                .status-r { color: #16a34a; font-weight: bold; }
+                .status-seg { color: #d97706; font-weight: bold; }
+                .status-baj { color: #dc2626; font-weight: bold; }
+                .status-none { color: #6b7280; font-style: italic; }
+            </style>
+            </head><body>
+            <h2 style="margin-bottom: 5px;">Reporte de Saloneo (Estatus de Pago)</h2>
+            <p style="color: #666; margin-top: 0; margin-bottom: 20px;">Generado el: ${new Date().toLocaleDateString()}</p>`;
+
+            grupos.forEach(g => {
+                html += `<div class="grupo-box">
+                    <div class="grupo-header">
+                        <span>TEACHER: ${g.teacherSalon.toUpperCase()} &nbsp;|&nbsp; PROGRAMA: ${g.nivelCodigo.toUpperCase()} &nbsp;|&nbsp; HORARIO: ${g.horario.toUpperCase()}</span>
+                        <span>PAGOS: ${g.r}/${g.total}</span>
+                    </div>
+                    <table>
+                        <thead><tr><th style="width:80px;">ID</th><th>ALUMNO</th><th style="width:150px;">ESTATUS</th></tr></thead>
+                        <tbody>`;
+                g.alumnosList.forEach(a => {
+                    let stClass = 'status-none';
+                    if (a.estatus === 'R') stClass = 'status-r';
+                    else if (a.estatus.includes('SEGUIMIENTO') || a.estatus.includes('PROMESA')) stClass = 'status-seg';
+                    else if (a.estatus.includes('BAJA') || a.estatus.includes('NO CONTINUA')) stClass = 'status-baj';
+
+                    html += `<tr>
+                        <td>${a.id}</td>
+                        <td style="font-weight: bold;">${a.nombre}</td>
+                        <td class="${stClass}">${a.estatus || 'SIN ESTATUS'}</td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            });
+
+            html += `</body></html>`;
+            
+            let win = window.open('', '_blank');
+            win.document.write(html);
+            win.document.close();
+            win.focus();
+            setTimeout(() => win.print(), 500);
+        }
+
         function abrirWhatsAppAlumno() {
             if (!alumnoActual || !alumnoActual.celular) return;
             
             const celularBruto = alumnoActual.celular;
-            // Separar por barras, comas, o palabras como "o", "y"
             let partes = String(celularBruto).split(/[/,\|]| o | y | y\/o /i);
-            let numeroFinal = null;
+            let numerosValidos = [];
 
             for (let i = 0; i < partes.length; i++) {
                 let cel = partes[i].replace(/\D/g, '');
                 if (cel.length >= 10) {
+                    let numFinal = '';
                     if (cel.startsWith('521') && cel.length === 13) {
-                        numeroFinal = '52' + cel.substring(3);
+                        numFinal = '52' + cel.substring(3);
                     } else if (cel.startsWith('521') && cel.length > 13) {
-                        numeroFinal = '52' + cel.substring(3, 13); // Tomar solo los 10 dígitos después del código
+                        numFinal = '52' + cel.substring(3, 13);
                     } else if (cel.startsWith('52') && cel.length === 12) {
-                        numeroFinal = cel;
+                        numFinal = cel;
                     } else if (cel.startsWith('52') && cel.length > 12) {
-                        numeroFinal = cel.substring(0, 12);
+                        numFinal = cel.substring(0, 12);
                     } else {
-                        numeroFinal = '52' + cel.substring(0, 10);
+                        numFinal = '52' + cel.substring(0, 10);
                     }
-                    break; // Usar el primer número válido encontrado
+                    if (numFinal && !numerosValidos.includes(numFinal)) {
+                        numerosValidos.push(numFinal);
+                    }
                 }
             }
 
-            if (numeroFinal) {
-                const url = `https://wa.me/${numeroFinal}`;
-                window.open(url, '_blank');
-            } else {
+            if (numerosValidos.length === 0) {
                 alert("No se detectó un número válido de 10 dígitos para WhatsApp.");
+            } else if (numerosValidos.length === 1) {
+                window.open(`https://wa.me/${numerosValidos[0]}`, '_blank');
+            } else {
+                let container = document.getElementById('whatsapp-options-container');
+                container.innerHTML = '';
+                numerosValidos.forEach(num => {
+                    let btn = document.createElement('button');
+                    btn.className = 'w-full bg-green-50 hover:bg-green-100 text-green-700 font-bold py-3 px-4 rounded-xl border border-green-200 transition flex items-center justify-center gap-2 shadow-sm';
+                    btn.innerHTML = `<i class="fab fa-whatsapp"></i> +${num}`;
+                    btn.onclick = () => {
+                        window.open(`https://wa.me/${num}`, '_blank');
+                        document.getElementById('modal-whatsapp-options').classList.add('hidden');
+                    };
+                    container.appendChild(btn);
+                });
+                document.getElementById('modal-whatsapp-options').classList.remove('hidden');
             }
         }
 
@@ -3929,6 +4017,7 @@
         let chartTeachers = null;
         let chartWeighted = null;
         let dashboardTeachersData = [];
+        let dashboardGruposData = [];
 
         function abrirModalPasswordDashboard() {
             document.getElementById('input-pwd-dashboard').value = '';
@@ -4012,11 +4101,13 @@
 
                 if (grupoAlumnos.length > 0) {
                     let r = 0, seg = 0, prom = 0, bajas = 0;
-                    let pagadosList = [];
+                    let alumnosList = [];
                     
                     grupoAlumnos.forEach(a => {
                         let st = (a.estatusPago || '').trim().toUpperCase();
-                        if (st === 'R') { r++; pagadosList.push(a.nombre); }
+                        alumnosList.push({ id: a.idOriginal, nombre: a.nombre, estatus: st });
+
+                        if (st === 'R') r++;
                         else if (st.includes('SEGUIMIENTO')) seg++;
                         else if (st.includes('PROMESA')) prom++;
                         else if (st.includes('NO CONTINUA') || st.includes('BAJA')) bajas++;
@@ -4030,7 +4121,7 @@
                         seguimiento: seg,
                         bajas: bajas,
                         total: grupoAlumnos.length,
-                        pagadosList: pagadosList,
+                        alumnosList: alumnosList,
                         isPresencial: true
                     });
 
@@ -4069,55 +4160,35 @@
                 });
             }
 
-            let onlineGroupsMap = {};
-            Object.values(baseAlumnos).forEach(a => {
-                if (!a._procesadoDashboard) {
-                    let isLinea = (!a.modalidad || a.modalidad.toUpperCase() !== 'PRESENCIAL');
-                    let key = a.programaNombre + '_' + a.nivelActual + '_' + a.horario + '_' + isLinea;
-                    
-                    if (!onlineGroupsMap[key]) {
-                        onlineGroupsMap[key] = {
-                            teacherSalon: isLinea ? 'Sin Profesor Asignado (En línea)' : 'Sin Asignar (Presencial no mapeado)',
-                            nivelCodigo: a.programaNombre + ' ' + a.nivelActual,
-                            horario: a.horario || 'Sin Horario',
-                            r: 0, seguimiento: 0, bajas: 0, total: 0,
-                            pagadosList: []
-                        };
-                    }
-                    
-                    onlineGroupsMap[key].total++;
-                    let st = (a.estatusPago || '').trim().toUpperCase();
-                    if (st === 'R') {
-                        onlineGroupsMap[key].r++;
-                        onlineGroupsMap[key].pagadosList.push(a.nombre);
-                    } else if (st.includes('SEGUIMIENTO')) {
-                        onlineGroupsMap[key].seguimiento++;
-                    } else if (st.includes('NO CONTINUA') || st.includes('BAJA')) {
-                        onlineGroupsMap[key].bajas++;
-                    }
-                }
-            });
+            // ONLY PRESENCIAL GROUPS - ONLINE MAP OMITTED
 
             Object.values(baseAlumnos).forEach(a => delete a._procesadoDashboard);
-            Object.values(onlineGroupsMap).forEach(g => gruposArr.push(g));
 
             return { kpis, modalidad, teachersMap, gruposArr };
         }
 
-        function verAlumnosPagados(indexText) {
-            let pagadosList = JSON.parse(decodeURIComponent(indexText));
-            let ul = document.getElementById('ul-lista-alumnos');
-            ul.innerHTML = '';
-            if (pagadosList.length === 0) {
-                ul.innerHTML = '<li class="text-gray-500 italic">No hay alumnos pagados en este grupo.</li>';
-            } else {
-                pagadosList.forEach(nombre => {
-                    let li = document.createElement('li');
-                    li.textContent = nombre;
-                    ul.appendChild(li);
-                });
+        function verAlumnosGrupo(encoded) {
+            try {
+                const list = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+                const tbody = document.getElementById('tbody-lista-alumnos-grupo');
+                tbody.innerHTML = '';
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-4 text-center text-gray-400 italic">No hay alumnos en este grupo.</td></tr>';
+                } else {
+                    list.forEach(a => {
+                        let colorClass = 'text-gray-700';
+                        if (a.estatus === 'R') colorClass = 'text-green-600 font-bold';
+                        else if (a.estatus.includes('SEGUIMIENTO')) colorClass = 'text-yellow-600 font-bold';
+                        else if (a.estatus.includes('PROMESA')) colorClass = 'text-orange-500 font-bold';
+                        else if (a.estatus.includes('NO CONTINUA') || a.estatus.includes('BAJA')) colorClass = 'text-red-600 font-bold';
+                        
+                        tbody.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="px-4 py-2">${a.id}</td><td class="px-4 py-2 font-medium">${a.nombre}</td><td class="px-4 py-2 text-center ${colorClass}">${a.estatus || 'SIN ESTATUS'}</td></tr>`;
+                    });
+                }
+                document.getElementById('modal-dashboard-lista').classList.remove('hidden');
+            } catch(e) {
+                console.error(e);
             }
-            document.getElementById('modal-dashboard-lista').classList.remove('hidden');
         }
 
         function generarDatosDashboard() {
@@ -4182,27 +4253,19 @@
 
             renderChartWeighted(wLabels, wScoreData);
 
-            data.gruposArr.sort((a, b) => {
-                let pctA = a.total > 0 ? a.r / a.total : 0;
-                let pctB = b.total > 0 ? b.r / b.total : 0;
-                if (pctB !== pctA) return pctB - pctA;
-                return b.r - a.r;
-            });
-
-            let tbodyG = document.getElementById('tbody-grupos-dashboard');
-            tbodyG.innerHTML = '';
-            data.gruposArr.forEach(g => {
-                let listEncoded = encodeURIComponent(JSON.stringify(g.pagadosList));
-                tbodyG.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-left pl-2 font-bold">${g.teacherSalon}</td><td class="py-2 font-bold">${g.nivelCodigo}</td><td class="py-2 text-gray-500">${g.horario}</td><td class="py-2 text-green-600 font-bold">${g.r}</td><td class="py-2 text-yellow-600 font-bold">${g.seguimiento}</td><td class="py-2 text-red-600 font-bold">${g.bajas}</td><td class="py-2 font-bold">${g.total}</td><td class="py-2"><button onclick="verAlumnosPagados('${listEncoded}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-1 px-3 rounded shadow-sm transition duration-200">Ver grupo</button></td></tr>`;
-            });
+            dashboardGruposData = data.gruposArr;
+            renderGruposTable();
         }
 
         function renderChartEstatus(kpis) {
-            let total = kpis.r + kpis.seguimiento + kpis.promesas + kpis.bajas;
+            let total = kpis.r + kpis.seguimiento + kpis.promesas + kpis.bajas + kpis.transLlega + kpis.transSale + kpis.rec;
             let pR = total > 0 ? ((kpis.r / total) * 100).toFixed(1) : 0;
             let pSeg = total > 0 ? ((kpis.seguimiento / total) * 100).toFixed(1) : 0;
             let pProm = total > 0 ? ((kpis.promesas / total) * 100).toFixed(1) : 0;
             let pBaj = total > 0 ? ((kpis.bajas / total) * 100).toFixed(1) : 0;
+            let pTransLlega = total > 0 ? ((kpis.transLlega / total) * 100).toFixed(1) : 0;
+            let pTransSale = total > 0 ? ((kpis.transSale / total) * 100).toFixed(1) : 0;
+            let pRec = total > 0 ? ((kpis.rec / total) * 100).toFixed(1) : 0;
 
             let barContainer = document.getElementById('estatus-stacked-bar');
             let legendContainer = document.getElementById('estatus-stacked-legend');
@@ -4214,7 +4277,10 @@
                 { label: 'Reinscritos', pct: pR, val: kpis.r, color: '#22c55e' },
                 { label: 'En Seguimiento', pct: pSeg, val: kpis.seguimiento, color: '#eab308' },
                 { label: 'Promesas', pct: pProm, val: kpis.promesas, color: '#f97316' },
-                { label: 'Bajas', pct: pBaj, val: kpis.bajas, color: '#ef4444' }
+                { label: 'Bajas', pct: pBaj, val: kpis.bajas, color: '#ef4444' },
+                { label: 'Transf. Llega', pct: pTransLlega, val: kpis.transLlega, color: '#a855f7' },
+                { label: 'Transf. Sale', pct: pTransSale, val: kpis.transSale, color: '#ec4899' },
+                { label: 'REC', pct: pRec, val: kpis.rec, color: '#14b8a6' }
             ];
 
             segments.forEach(seg => {
@@ -4312,6 +4378,41 @@
         }
 
 
+        function renderGruposTable() {
+            let sortBy = document.getElementById('select-orden-grupos').value;
+            let arr = [...dashboardGruposData];
+
+            if (sortBy === '100_percent') {
+                arr.sort((a, b) => {
+                    let pcta = a.total > 0 ? a.r / a.total : 0;
+                    let pctb = b.total > 0 ? b.r / b.total : 0;
+                    if (Math.abs(pctb - pcta) > 0.01) return pctb - pcta;
+                    return b.r - a.r;
+                });
+            } else if (sortBy === 'reinscritos_desc') {
+                arr.sort((a, b) => b.r - a.r);
+            } else if (sortBy === 'reinscritos_asc') {
+                arr.sort((a, b) => a.r - b.r);
+            }
+
+            let tbodyG = document.getElementById('tbody-grupos-dashboard');
+            tbodyG.innerHTML = '';
+
+            arr.forEach((g, idx) => {
+                let encodedData = btoa(unescape(encodeURIComponent(JSON.stringify(g.alumnosList || []))));
+                tbodyG.innerHTML += `<tr class="border-b hover:bg-gray-50 text-sm">
+                    <td class="py-2 text-left pl-2 font-medium">${g.teacherSalon}</td>
+                    <td class="py-2 font-bold">${g.nivelCodigo}</td>
+                    <td class="py-2 text-xs">${g.horario}</td>
+                    <td class="py-2 text-green-600 font-bold">${g.r}</td>
+                    <td class="py-2 text-yellow-600 font-bold">${g.seguimiento}</td>
+                    <td class="py-2 text-red-600 font-bold">${g.bajas}</td>
+                    <td class="py-2 font-bold">${g.total}</td>
+                    <td class="py-2"><button class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-1 px-3 rounded shadow-sm transition duration-200" onclick="verAlumnosGrupo('${encodedData}')">Ver grupo</button></td>
+                </tr>`;
+            });
+        }
+
         function renderRankingProfesores() {
             let sortBy = document.getElementById('select-orden-profesores').value;
             let arr = [...dashboardTeachersData];
@@ -4363,5 +4464,20 @@
             });
         }
 </script>
+    <!-- ===== MODAL WHATSAPP OPCIONES ===== -->
+    <div id="modal-whatsapp-options" class="modal-overlay hidden" style="z-index: 60;" onclick="if(event.target===this) document.getElementById('modal-whatsapp-options').classList.add('hidden')">
+        <div class="modal-box" style="max-width: 400px; width: 95%; display: flex; flex-direction: column; padding: 0;">
+            <div class="modal-header bg-green-500 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-lg">📱 Selecciona un número</p>
+                <button class="text-white hover:text-gray-200 text-2xl font-bold" onclick="document.getElementById('modal-whatsapp-options').classList.add('hidden')">✕</button>
+            </div>
+            <div class="p-6 bg-white rounded-b-2xl">
+                <p class="text-gray-600 mb-4 text-sm text-center font-medium">Este alumno tiene registrados varios números. Elige a cuál deseas contactar:</p>
+                <div id="whatsapp-options-container" class="flex flex-col gap-3">
+                    <!-- JS populate -->
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
