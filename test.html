@@ -720,7 +720,7 @@
     <!-- ===== VISTA DASHBOARD PRINCIPAL (PÁGINA COMPLETA) ===== -->
     <div id="dashboard-container" class="hidden bg-gray-100 w-full min-h-[90vh] rounded-2xl shadow-xl border border-gray-100 flex-col overflow-hidden" style="max-width: 1400px;">
         <div class="bg-transparent text-gray-800 p-6 pb-4 flex justify-between items-center flex-shrink-0 border-b border-gray-200">
-            <p class="font-black text-3xl">Dashboard Directivo</p>
+            <p class="font-black text-3xl">Dashboard</p>
             <button class="text-indigo-600 hover:text-indigo-800 font-bold py-2 px-4 transition flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg" onclick="cerrarDashboard()">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
                 Volver al Inicio
@@ -890,7 +890,6 @@
                                 <th class="py-2 text-yellow-600">EN SEGUIMIENTO</th>
                                 <th class="py-2 text-red-600">BAJAS</th>
                                 <th class="py-2">TOTAL ALUMNOS</th>
-                                <th class="py-2">ACCIÓN</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-grupos-dashboard" class="text-gray-700 font-medium">
@@ -2117,7 +2116,7 @@
             win.document.write(html);
             win.document.close();
             win.focus();
-            setTimeout(() => win.print(), 500);
+            // setTimeout(() => win.print(), 500); // <-- Auto-impresión desactivada
         }
 
         function abrirWhatsAppAlumno() {
@@ -4416,7 +4415,6 @@
                     <td class="py-2 text-yellow-600 font-bold">${g.seguimiento}</td>
                     <td class="py-2 text-red-600 font-bold">${g.bajas}</td>
                     <td class="py-2 font-bold">${g.total}</td>
-                    <td class="py-2"><button class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold py-1 px-3 rounded shadow-sm transition duration-200" onclick="verAlumnosGrupo('${encodedData}')">Ver grupo</button></td>
                 </tr>`;
             });
         }
