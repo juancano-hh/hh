@@ -2880,6 +2880,17 @@
                 }
             }
 
+            const tipoRec = document.getElementById('rec-tipo') ? document.getElementById('rec-tipo').value : '';
+            const inst = document.getElementById('rec-cal-instrucciones');
+            if (inst) {
+                if (tipoRec === 'SA') inst.textContent = 'Selecciona los sábados que vas a faltar.';
+                else if (tipoRec === 'DO') inst.textContent = 'Selecciona los domingos que vas a faltar.';
+                else if (tipoRec === 'FF') inst.textContent = 'Selecciona los días entre semana (lunes a jueves) que vas a faltar.';
+                else if (tipoRec === 'S1') inst.textContent = 'Selecciona los martes o jueves que vas a faltar.';
+                else if (tipoRec === 'S2') inst.textContent = 'Selecciona los lunes o miércoles que vas a faltar.';
+                else inst.textContent = 'Selecciona los días que vas a faltar.';
+            }
+
             const HOY = new Date(); HOY.setHours(0,0,0,0);
             
             // Determinar el lunes de la semana actual (0 = Domingo)
@@ -2940,8 +2951,21 @@
                     const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
                     const esPasado = fecha < lunesSemanaActual;
                     
-                    // Días disponibles para clase: Lunes a Jueves (1..4), Sábados (6) y Domingos (0)
-                    const esValido = (dow >= 1 && dow <= 4) || dow === 6 || dow === 0;
+                    // Restricción según el tipo de clase seleccionado en el Paso 1
+                    let esValido = false;
+                    if (tipoRec === 'SA') {
+                        esValido = (dow === 6); // Solo sábados
+                    } else if (tipoRec === 'DO') {
+                        esValido = (dow === 0); // Solo domingos
+                    } else if (tipoRec === 'FF') {
+                        esValido = (dow >= 1 && dow <= 4); // Lunes a Jueves
+                    } else if (tipoRec === 'S1') {
+                        esValido = (dow === 2 || dow === 4); // Martes y Jueves
+                    } else if (tipoRec === 'S2') {
+                        esValido = (dow === 1 || dow === 3); // Lunes y Miércoles
+                    } else {
+                        esValido = (dow >= 1 && dow <= 4) || dow === 6 || dow === 0;
+                    }
 
                     const key = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
