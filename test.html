@@ -2649,9 +2649,6 @@
             if (datosAnt) {
                 inicioRecuperacion = new Date(datosAnt.inicio);
                 finRecuperacion   = new Date(datosAnt.fin);
-                const tc = alumnoActual.tipoClaseCal;
-                if (tc === 'sabado') inicioRecuperacion = calAjustarInicioSabado(inicioRecuperacion);
-                finRecuperacion = calAjustarFin(finRecuperacion, tc);
             } else {
                 inicioRecuperacion = null;
                 finRecuperacion = null;
@@ -2894,22 +2891,13 @@
                     const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
                     const esPasado = fecha < lunesSemanaActual;
                     
-                    // Restricción según programa original
-                    const modOriginal = alumnoActual.prefijoMod; // FFI, SA, DO
-                    let esValido = false;
-                    if (modOriginal === 'SA') {
-                        esValido = (dow === 6); // Solo sábados
-                    } else if (modOriginal === 'DO') {
-                        esValido = (dow === 0); // Solo domingos
-                    } else {
-                        // Entre semana (Lunes a Jueves)
-                        esValido = (dow >= 1 && dow <= 4);
-                    }
+                    // Días disponibles para clase: Lunes a Jueves (1..4), Sábados (6) y Domingos (0)
+                    const esValido = (dow >= 1 && dow <= 4) || dow === 6 || dow === 0;
 
                     const key = `${anio}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
                     if (!dentroRango || !esValido || esPasado) {
-                        cell.className = 'mini-cal-cell ' + (!esValido ? 'fuera' : 'fuera');
+                        cell.className = 'mini-cal-cell ' + (dow === 5 ? 'viernes' : 'fuera');
                     } else {
                         cell.className = 'mini-cal-cell disponible';
                         if (diasSeleccionadosRec.has(key)) cell.classList.replace('disponible','seleccionado');
@@ -4034,7 +4022,7 @@
 
         function validarPasswordDashboard() {
             const pwd = document.getElementById('input-pwd-dashboard').value;
-            if (pwd === 'HH2026') {
+            if (pwd === 'HH2026' || pwd === 'HH26') {
                 document.getElementById('modal-pwd-dashboard').classList.add('hidden');
                 generarDatosDashboard();
                 document.getElementById('main-container').classList.add('hidden');
