@@ -2597,6 +2597,47 @@
         let finRecuperacion = null;
         let pasoActualRec = 1;
 
+        function obtenerPeriodoParaRecuperacion(alumno) {
+            if (!alumno) return null;
+            
+            // 1. Intentar periodo anterior del periodoSiguiente
+            if (alumno.periodoSiguiente) {
+                const periodoAnt = calcularPeriodoAnterior(alumno.periodoSiguiente);
+                if (periodoAnt) {
+                    const datosAnt = obtenerDatosPeriodo(periodoAnt);
+                    if (datosAnt) return datosAnt;
+                }
+                // 2. Intentar directamente periodoSiguiente
+                const datosSig = obtenerDatosPeriodo(alumno.periodoSiguiente);
+                if (datosSig) return datosSig;
+            }
+
+            // 3. Buscar en periodosCalendario según la modalidad del alumno y fecha actual
+            if (periodosCalendario && periodosCalendario.length > 0) {
+                const mod = alumno.programa || '04'; // '04' o '08'
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+
+                const periodosMod = periodosCalendario.filter(p => p.periodo && p.periodo.substring(2,4) === mod);
+                const lista = periodosMod.length > 0 ? periodosMod : periodosCalendario;
+
+                const actual = lista.find(p => hoy >= p.inicio && hoy <= p.fin);
+                if (actual) return actual;
+
+                const futuros = lista.filter(p => p.fin >= hoy).sort((a,b) => a.inicio - b.inicio);
+                if (futuros.length > 0) return futuros[0];
+
+                const pasados = [...lista].sort((a,b) => b.fin - a.fin);
+                if (pasados.length > 0) return pasados[0];
+            }
+
+            // 4. Fallback de emergencia
+            const hoy = new Date();
+            const inicioDef = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            const finDef = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+            return { periodo: 'DEFAULT', inicio: inicioDef, fin: finDef };
+        }
+
         function mostrarFormRecuperacion() {
             if (!alumnoActual) return;
 
@@ -2643,15 +2684,15 @@
                 tipoSel.appendChild(opt);
             });
 
-            // Calcular fechas del curso actual para el calendario
-            const periodoAnt = calcularPeriodoAnterior(alumnoActual.periodoSiguiente);
-            const datosAnt = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
-            if (datosAnt) {
-                inicioRecuperacion = new Date(datosAnt.inicio);
-                finRecuperacion   = new Date(datosAnt.fin);
+            // Calcular fechas del curso actual para el calendario con fallback
+            const datosPeriodo = obtenerPeriodoParaRecuperacion(alumnoActual);
+            if (datosPeriodo) {
+                inicioRecuperacion = new Date(datosPeriodo.inicio);
+                finRecuperacion   = new Date(datosPeriodo.fin);
             } else {
-                inicioRecuperacion = null;
-                finRecuperacion = null;
+                const hoy = new Date();
+                inicioRecuperacion = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                finRecuperacion   = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
             }
         }
 
@@ -2826,9 +2867,17 @@
         function renderizarMiniCalendario() {
             const calDiv = document.getElementById('rec-mini-cal');
             calDiv.innerHTML = '';
+            
             if (!inicioRecuperacion || !finRecuperacion) {
-                calDiv.innerHTML = '<p class="text-xs text-red-400 p-3">No se pudo cargar el periodo del curso.</p>';
-                return;
+                const datosPeriodo = obtenerPeriodoParaRecuperacion(alumnoActual);
+                if (datosPeriodo) {
+                    inicioRecuperacion = new Date(datosPeriodo.inicio);
+                    finRecuperacion   = new Date(datosPeriodo.fin);
+                } else {
+                    const hoy = new Date();
+                    inicioRecuperacion = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+                    finRecuperacion   = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+                }
             }
 
             const HOY = new Date(); HOY.setHours(0,0,0,0);
