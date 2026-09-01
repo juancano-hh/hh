@@ -324,6 +324,9 @@
                     <button onclick="abrirModalGrupos()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-3 px-4 rounded-xl border border-teal-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         🔍 Buscar Grupos
                     </button>
+                    <button onclick="abrirModalMapaSalones()" class="w-full bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-3 px-4 rounded-xl border border-violet-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                        🗺️ Salones
+                    </button>
                     <button onclick="imprimirSaloneo()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 px-4 rounded-xl border border-emerald-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                         🖨️ Saloneo
                     </button>
@@ -378,7 +381,12 @@
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
-            <p id="contenedor-salon" class="hidden text-sm text-gray-700"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
+            <p id="contenedor-salon" class="hidden text-sm text-gray-700">
+                <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
+                <button onclick="abrirModalMapaSalones()" class="ml-2 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-2 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
+                    🗺️ Ver mapa
+                </button>
+            </p>
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
@@ -632,6 +640,294 @@
     </div>
 
 
+
+    <!-- ===== MODAL MAPA DE SALONES ===== -->
+    <div id="modal-mapa-salones" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMapaSalones()">
+        <div class="modal-box" style="max-width: 720px; width: 95%; padding: 0; overflow: hidden; border-radius: 1.5rem;">
+            <!-- Header -->
+            <div class="modal-header bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🗺️</span>
+                    <div>
+                        <p class="font-bold text-lg leading-tight">Mapa de Salones</p>
+                        <p class="text-xs text-violet-100 font-normal">Ubicación y distribución de aulas por piso</p>
+                    </div>
+                </div>
+                <button class="text-white hover:text-gray-200 text-2xl font-bold px-2 py-0.5 rounded-lg transition" onclick="cerrarModalMapaSalones()">✕</button>
+            </div>
+
+            <div class="p-5 bg-gray-50">
+                <!-- Toolbar con los 4 botones circulares arriba a la izquierda -->
+                <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-gray-200">
+                    <div class="flex items-center gap-2.5">
+                        <button id="btn-piso-1" onclick="seleccionarPisoMapa(1)" title="Primer Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-sky-400 bg-sky-500 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md transition-all duration-200 hover:scale-105">
+                            <span class="text-xs font-black leading-none">1º</span>
+                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        </button>
+                        <button id="btn-piso-2" onclick="seleccionarPisoMapa(2)" title="Segundo Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-amber-300 bg-white text-amber-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-xs font-black leading-none">2º</span>
+                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        </button>
+                        <button id="btn-piso-3" onclick="seleccionarPisoMapa(3)" title="Tercer Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-emerald-400 bg-white text-emerald-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-xs font-black leading-none">3º</span>
+                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        </button>
+                        <button id="btn-piso-4" onclick="seleccionarPisoMapa(4)" title="Cuarto Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-orange-400 bg-white text-orange-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-xs font-black leading-none">4º</span>
+                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        </button>
+                    </div>
+
+                    <div id="badge-piso-actual" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 shadow-sm flex items-center gap-1.5">
+                        <span>📍</span> <span id="lbl-piso-titulo">Primer Piso (1st Floor)</span>
+                    </div>
+                </div>
+
+                <!-- Contenedores de cada Piso (Estilo Plano Arquitectónico) -->
+                <div id="contenedor-mapa-pisos" class="relative rounded-2xl p-2 sm:p-4 shadow-inner border-2 border-slate-300 min-h-[420px] flex flex-col justify-center transition-all duration-300 bg-slate-100 overflow-hidden">
+                    
+                    <!-- ===== MAPA PISO 1 (PLANO ARQUITECTÓNICO AZUL) ===== -->
+                    <div id="mapa-piso-1" class="mapa-piso-vista w-full max-w-2xl mx-auto">
+                        <div class="bg-sky-50 border-2 border-sky-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
+                            <div class="text-center font-bold text-sky-900 text-xs sm:text-sm font-mono border-b border-sky-200 pb-2 mb-3 select-none">
+                                (CLASSROOMS 1ST FLOOR / SALONES PRIMER PISO)
+                            </div>
+
+                            <!-- SVG Blueprint Piso 1 -->
+                            <svg viewBox="0 0 660 520" class="w-full h-auto drop-shadow select-none font-sans">
+                                <defs>
+                                    <pattern id="grid-piso-1" width="20" height="20" patternUnits="userSpaceOnUse">
+                                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#bae6fd" stroke-width="0.8" opacity="0.6"/>
+                                    </pattern>
+                                </defs>
+                                <rect x="5" y="5" width="650" height="510" rx="16" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
+                                <rect x="10" y="10" width="640" height="500" rx="12" fill="url(#grid-piso-1)"/>
+
+                                <!-- Líneas punteadas con forma escalonada del Pasillo Principal (según imagen) -->
+                                <line x1="215" y1="98" x2="445" y2="98" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="215" y1="98" x2="215" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="215" y1="435" x2="300" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="300" y1="300" x2="300" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="300" y1="300" x2="445" y2="300" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="445" y1="98" x2="445" y2="300" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+
+                                <!-- Texto Pasillo Principal -->
+                                <text x="330" y="245" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                                <!-- SALÓN: LONDON (Top Center) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="200" y="15" width="260" height="75" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="206" y="21" width="248" height="63" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">LONDON</text>
+                                </g>
+
+                                <!-- SALÓN: OTTAWA (Top Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="25" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="30" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="115" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">OTTAWA</text>
+                                </g>
+
+                                <!-- SALÓN: SYDNEY (Bottom Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="25" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="30" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="115" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">SYDNEY</text>
+                                </g>
+
+                                <!-- ÁREA: BAÑOS (Abajo de Sydney, alineado a la derecha) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="115" y="305" width="90" height="125" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="120" y="310" width="80" height="115" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                                </g>
+
+                                <!-- SALÓN: ATLANTA (Top Right) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="455" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="460" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="545" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">ATLANTA</text>
+                                </g>
+
+                                <!-- SALÓN: NEW YORK (Bottom Right) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="455" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <rect x="460" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                    <text x="545" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">NEW YORK</text>
+                                </g>
+
+                                <!-- ÁREA: RECEPTION (Bottom Right - Alineado a la derecha como en la imagen) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="340" y="450" width="230" height="52" rx="14" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                    <text x="455" y="482" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">RECEPTION</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- ===== MAPA PISO 2 (PLANO ARQUITECTÓNICO AMARILLO - SEGÚN BOCETO) ===== -->
+                    <div id="mapa-piso-2" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
+                        <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
+                            <div class="text-center font-bold text-amber-900 text-xs sm:text-sm font-mono border-b border-amber-200 pb-2 mb-3 select-none">
+                                (CLASSROOMS 2ND FLOOR / SALONES SEGUNDO PISO)
+                            </div>
+
+                            <!-- SVG Blueprint Piso 2 -->
+                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                                <defs>
+                                    <pattern id="grid-piso-2" width="20" height="20" patternUnits="userSpaceOnUse">
+                                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fde68a" stroke-width="0.8" opacity="0.6"/>
+                                    </pattern>
+                                </defs>
+                                <rect x="5" y="5" width="650" height="435" rx="16" fill="#fefce8" stroke="#d97706" stroke-width="3"/>
+                                <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-2)"/>
+
+                                <!-- Texto Pasillo Principal -->
+                                <text x="210" y="140" font-size="13" font-weight="900" fill="#b45309" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                                <!-- TEACHER'S ROOM (Bottom Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="25" y="240" width="340" height="155" rx="24" fill="#92400e" stroke="#1c1917" stroke-width="4.5"/>
+                                    <rect x="33" y="248" width="324" height="139" rx="18" fill="#b45309" opacity="0.4"/>
+                                    <text x="195" y="325" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">TEACHER'S ROOM</text>
+                                </g>
+
+                                <!-- LIVERPOOL (Right Side) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="410" y="60" width="225" height="335" rx="32" fill="#b45309" stroke="#1c1917" stroke-width="4.5"/>
+                                    <rect x="419" y="69" width="207" height="317" rx="24" fill="#78350f" opacity="0.4"/>
+                                    <text x="522" y="233" font-size="24" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2.5">LIVERPOOL</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- ===== MAPA PISO 3 (PLANO ARQUITECTÓNICO VERDE) ===== -->
+                    <div id="mapa-piso-3" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
+                        <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
+                            <div class="text-center font-bold text-emerald-900 text-xs sm:text-sm font-mono border-b border-emerald-200 pb-2 mb-3 select-none">
+                                (CLASSROOMS 3RD FLOOR / SALONES TERCER PISO)
+                            </div>
+
+                            <!-- SVG Blueprint Piso 3 -->
+                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                                <defs>
+                                    <pattern id="grid-piso-3" width="20" height="20" patternUnits="userSpaceOnUse">
+                                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#a7f3d0" stroke-width="0.8" opacity="0.6"/>
+                                    </pattern>
+                                </defs>
+                                <rect x="5" y="5" width="650" height="435" rx="16" fill="#f0fdf4" stroke="#059669" stroke-width="3"/>
+                                <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-3)"/>
+
+                                <!-- Líneas punteadas con forma escalonada del Pasillo Principal (igual a Piso 1) -->
+                                <line x1="215" y1="98" x2="445" y2="98" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="215" y1="98" x2="215" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="215" y1="435" x2="300" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="300" y1="300" x2="300" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="300" y1="300" x2="445" y2="300" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                                <line x1="445" y1="98" x2="445" y2="300" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+
+                                <!-- Texto Pasillo Principal -->
+                                <text x="330" y="245" font-size="13" font-weight="900" fill="#047857" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                                <!-- SALÓN: HOUSTON (Top Center) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="200" y="15" width="260" height="75" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="206" y="21" width="248" height="63" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">HOUSTON</text>
+                                </g>
+
+                                <!-- SALÓN: CAMBRIDGE (Top Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="25" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="30" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="115" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">CAMBRIDGE</text>
+                                </g>
+
+                                <!-- SALÓN: SAN FRANCISCO (Bottom Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="25" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="30" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="115" y="254" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">SAN FRANCISCO</text>
+                                </g>
+
+                                <!-- ÁREA: BAÑOS (Abajo de San Francisco, alineado a la derecha) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="115" y="305" width="90" height="125" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="120" y="310" width="80" height="115" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                                </g>
+
+                                <!-- SALÓN: MELBOURNE (Top Right) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="455" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="460" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="545" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">MELBOURNE</text>
+                                </g>
+
+                                <!-- SALÓN: TORONTO (Bottom Right) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="455" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                    <rect x="460" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                    <text x="545" y="254" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">TORONTO</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- ===== MAPA PISO 4 (PLANO ARQUITECTÓNICO NARANJA) ===== -->
+                    <div id="mapa-piso-4" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
+                        <div class="bg-orange-50 border-2 border-orange-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
+                            <div class="text-center font-bold text-orange-900 text-xs sm:text-sm font-mono border-b border-orange-200 pb-2 mb-3 select-none">
+                                (CLASSROOMS 4TH FLOOR / SALONES CUARTO PISO)
+                            </div>
+
+                            <!-- SVG Blueprint Piso 4 -->
+                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                                <defs>
+                                    <pattern id="grid-piso-4" width="20" height="20" patternUnits="userSpaceOnUse">
+                                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fed7aa" stroke-width="0.8" opacity="0.6"/>
+                                    </pattern>
+                                </defs>
+                                <rect x="5" y="5" width="650" height="435" rx="16" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+                                <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-4)"/>
+
+                                <!-- SALÓN: ORLANDO (Top Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="35" y="30" width="260" height="165" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
+                                    <rect x="43" y="38" width="244" height="149" rx="12" fill="#9a3412" opacity="0.4"/>
+                                    <text x="165" y="120" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">ORLANDO</text>
+                                </g>
+
+                                <!-- SALÓN: OXFORD (Bottom Left) -->
+                                <g class="cursor-pointer transition-transform hover:opacity-95">
+                                    <rect x="35" y="225" width="260" height="170" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
+                                    <rect x="43" y="233" width="244" height="154" rx="12" fill="#9a3412" opacity="0.4"/>
+                                    <text x="165" y="318" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">OXFORD</text>
+                                </g>
+
+                                <!-- ESPACIO DE USOS MÚLTIPLES (Right Side) -->
+                                <g class="select-none">
+                                    <rect x="345" y="30" width="280" height="365" rx="24" fill="#ffedd5" stroke="#f97316" stroke-width="3" stroke-dasharray="6 6"/>
+                                    <rect x="353" y="38" width="264" height="349" rx="18" fill="#fed7aa" opacity="0.25"/>
+                                    <circle cx="485" cy="180" r="32" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+                                    <text x="485" y="190" font-size="26" text-anchor="middle">✨</text>
+                                    <text x="485" y="240" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">ESPACIO DE</text>
+                                    <text x="485" y="263" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">USOS MÚLTIPLES</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer info -->
+                <div class="mt-4 text-center text-xs text-gray-500 font-medium flex items-center justify-center gap-2">
+                    <span>💡</span> Selecciona cualquiera de los 4 pisos arriba a la izquierda para visualizar su plano arquitectónico.
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== MODAL HORARIOS LAYOUT ===== -->
     <div id="modal-horarios-layout" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-horarios-layout').classList.add('hidden')">
@@ -1951,7 +2247,8 @@
                     const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
                     const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                     if (salonObj) {
-                        document.getElementById('lbl-salon').innerText = salonObj.salon;
+                        const pisoTexto = obtenerPisoDeSalon(salonObj.salon);
+                        document.getElementById('lbl-salon').innerText = salonObj.salon + (pisoTexto ? ` (${pisoTexto})` : '');
                         document.getElementById('lbl-teacher').innerText = salonObj.teacher;
                         contSalon.classList.remove('hidden');
                         contTeacher.classList.remove('hidden');
@@ -3944,6 +4241,94 @@
 
             document.getElementById('tabla-revision-dinamica').innerHTML = thead + '<tbody class="text-gray-800">' + tbodyHtml + '</tbody>';
             document.getElementById('modal-revision-grupos').classList.remove('hidden');
+        }
+
+        // ==================== MAPA DE SALONES ====================
+        function obtenerPisoDeSalon(salonNombre) {
+            if (!salonNombre) return "";
+            const s = String(salonNombre).toUpperCase().trim();
+            if (s.includes("LONDON") || s.includes("OTTAWA") || s.includes("SYDNEY") || s.includes("ATLANTA") || s.includes("NEW YORK") || s.includes("RECEPTION")) {
+                return "Primer piso";
+            }
+            if (s.includes("LIVERPOOL") || s.includes("VANCOUVER") || s.includes("TEACHER") || s.includes("STAFF")) {
+                return "Segundo piso";
+            }
+            if (s.includes("HOUSTON") || s.includes("CAMBRIDGE") || s.includes("FRANCISCO") || s.includes("FRANSISCO") || s.includes("MELBOURNE") || s.includes("TORONTO")) {
+                return "Tercer piso";
+            }
+            if (s.includes("ORLANDO") || s.includes("OXFORD")) {
+                return "Cuarto piso";
+            }
+            return "";
+        }
+
+        function abrirModalMapaSalones(pisoDeseado = null) {
+            let pisoInicial = 1;
+            if (pisoDeseado && pisoDeseado >= 1 && pisoDeseado <= 4) {
+                pisoInicial = pisoDeseado;
+            } else if (alumnoActual && alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
+                const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
+                const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
+                if (salonObj && salonObj.salon) {
+                    const pisoTxt = obtenerPisoDeSalon(salonObj.salon);
+                    if (pisoTxt === "Primer piso") pisoInicial = 1;
+                    else if (pisoTxt === "Segundo piso") pisoInicial = 2;
+                    else if (pisoTxt === "Tercer piso") pisoInicial = 3;
+                    else if (pisoTxt === "Cuarto piso") pisoInicial = 4;
+                }
+            }
+            seleccionarPisoMapa(pisoInicial);
+            document.getElementById('modal-mapa-salones').classList.remove('hidden');
+        }
+
+        function cerrarModalMapaSalones() {
+            document.getElementById('modal-mapa-salones').classList.add('hidden');
+        }
+
+        function seleccionarPisoMapa(pisoNum) {
+            for (let i = 1; i <= 4; i++) {
+                const mapa = document.getElementById(`mapa-piso-${i}`);
+                const btn = document.getElementById(`btn-piso-${i}`);
+                if (mapa) mapa.classList.add('hidden');
+                if (btn) {
+                    btn.classList.remove('bg-sky-500', 'bg-amber-400', 'bg-emerald-500', 'bg-orange-500', 'text-white', 'shadow-md', 'scale-105');
+                    btn.classList.add('bg-white', 'shadow-sm');
+                    if (i === 1) btn.classList.add('text-sky-700');
+                    else if (i === 2) btn.classList.add('text-amber-700');
+                    else if (i === 3) btn.classList.add('text-emerald-700');
+                    else if (i === 4) btn.classList.add('text-orange-700');
+                }
+            }
+
+            const mapaActivo = document.getElementById(`mapa-piso-${pisoNum}`);
+            const btnActivo = document.getElementById(`btn-piso-${pisoNum}`);
+            const lblTitulo = document.getElementById('lbl-piso-titulo');
+            const badge = document.getElementById('badge-piso-actual');
+
+            if (mapaActivo) mapaActivo.classList.remove('hidden');
+            if (btnActivo) {
+                btnActivo.classList.remove('bg-white', 'text-sky-700', 'text-amber-700', 'text-emerald-700', 'text-orange-700', 'shadow-sm');
+                btnActivo.classList.add('text-white', 'shadow-md', 'scale-105');
+                if (pisoNum === 1) btnActivo.classList.add('bg-sky-500');
+                else if (pisoNum === 2) btnActivo.classList.add('bg-amber-400');
+                else if (pisoNum === 3) btnActivo.classList.add('bg-emerald-500');
+                else if (pisoNum === 4) btnActivo.classList.add('bg-orange-500');
+            }
+
+            const titulos = {
+                1: { txt: "Primer Piso (1st Floor)", bg: "bg-sky-100 text-sky-800 border-sky-200" },
+                2: { txt: "Segundo Piso (2nd Floor)", bg: "bg-amber-100 text-amber-800 border-amber-200" },
+                3: { txt: "Tercer Piso (3rd Floor)", bg: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+                4: { txt: "Cuarto Piso (4th Floor)", bg: "bg-orange-100 text-orange-800 border-orange-200" }
+            };
+
+            if (lblTitulo && titulos[pisoNum]) {
+                lblTitulo.innerText = titulos[pisoNum].txt;
+            }
+            if (badge && titulos[pisoNum]) {
+                badge.className = `px-3 py-1.5 rounded-xl text-xs font-bold border shadow-sm flex items-center gap-1.5 ${titulos[pisoNum].bg}`;
+            }
         }
 
         function abrirModalHorariosLayout() {
