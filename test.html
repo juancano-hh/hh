@@ -307,32 +307,43 @@
                     </div>
                     <ul id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 max-h-64 overflow-y-auto hidden shadow-xl divide-y divide-gray-100"></ul>
                 </div>
-                <!-- BOTONES EXTRAS -->
-                <div id="botones-extras" class="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-4">
-                    <button onclick="abrirModalCalendarioIndependiente()" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold py-3 px-4 rounded-xl border border-blue-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        📅 Consultar Calendario
-                    </button>
-                    <button onclick="abrirModalMateriales()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        📚 Consultar Materiales
-                    </button>
-                    <button onclick="abrirModalHorariosLayout()" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-3 px-4 rounded-xl border border-orange-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        🕒 Consultar Horarios
-                    </button>
-                    <button onclick="abrirModalRevisionGrupos()" class="w-full bg-cyan-50 hover:bg-cyan-100 text-cyan-700 font-bold py-3 px-4 rounded-xl border border-cyan-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        📊 Revisión de grupos
-                    </button>
-                    <button onclick="abrirModalGrupos()" class="w-full bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold py-3 px-4 rounded-xl border border-teal-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        🔍 Buscar Grupos
-                    </button>
-                    <button onclick="abrirModalMapaSalones()" class="w-full bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-3 px-4 rounded-xl border border-violet-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        🗺️ Salones
-                    </button>
-                    <button onclick="imprimirSaloneo()" class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold py-3 px-4 rounded-xl border border-emerald-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        🖨️ Saloneo
-                    </button>
-                    <button onclick="abrirModalPasswordDashboard()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 px-4 rounded-xl border border-indigo-200 transition duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                        📈 Dashboard
-                    </button>
+                <!-- BOTONES EXTRAS EN GRID DE 2 COLUMNAS -->
+                <div id="botones-extras" class="mt-5 border-t border-gray-100 pt-4">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5 text-center">Herramientas y Consultas</p>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button onclick="abrirModalCalendarioIndependiente()" class="flex items-center gap-2.5 p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">📅</span>
+                            <span class="text-left leading-tight">Calendario</span>
+                        </button>
+                        <button onclick="abrirModalMateriales()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">📚</span>
+                            <span class="text-left leading-tight">Materiales</span>
+                        </button>
+                        <button onclick="abrirModalHorariosLayout()" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">🕒</span>
+                            <span class="text-left leading-tight">Horarios</span>
+                        </button>
+                        <button onclick="abrirModalRevisionGrupos()" class="flex items-center gap-2.5 p-3 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 font-bold text-xs rounded-xl border border-cyan-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">📊</span>
+                            <span class="text-left leading-tight">Revisión Grupos</span>
+                        </button>
+                        <button onclick="abrirModalGrupos()" class="flex items-center gap-2.5 p-3 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-xs rounded-xl border border-teal-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">🔍</span>
+                            <span class="text-left leading-tight">Buscar Grupos</span>
+                        </button>
+                        <button onclick="abrirModalMapaSalones()" class="flex items-center gap-2.5 p-3 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold text-xs rounded-xl border border-violet-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">🗺️</span>
+                            <span class="text-left leading-tight">Salones</span>
+                        </button>
+                        <button onclick="imprimirSaloneo()" class="flex items-center gap-2.5 p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl border border-emerald-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">🖨️</span>
+                            <span class="text-left leading-tight">Saloneo</span>
+                        </button>
+                        <button onclick="abrirModalPasswordDashboard()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">📈</span>
+                            <span class="text-left leading-tight">Dashboard</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -577,10 +588,20 @@
 
                     <div class="mb-3" id="rec-horario-container" style="display:none">
                         <label class="rec-label">Horario disponible para recuperar</label>
-                        <select id="rec-horario" class="rec-select">
+                        <select id="rec-horario" class="rec-select" onchange="manejarSeleccionHorarioRec(this)">
                             <option value="">-- Selecciona un horario --</option>
                         </select>
                         <p id="rec-horario-aviso" class="text-xs text-orange-500 mt-1 hidden">No hay horarios disponibles para este tipo de clase.</p>
+                        
+                        <!-- Caja de confirmación de grupo elegido si hay varios -->
+                        <div id="rec-grupo-elegido-info" class="hidden mt-2 p-2.5 bg-purple-50 border border-purple-200 rounded-xl text-xs flex items-center justify-between">
+                            <div class="text-purple-900 font-medium">
+                                <span id="lbl-rec-grupo-elegido-detalle"></span>
+                            </div>
+                            <button type="button" onclick="reabrirModalGruposRec()" class="text-purple-700 hover:text-purple-900 font-bold underline text-[11px] ml-2 shrink-0">
+                                Cambiar salón
+                            </button>
+                        </div>
                     </div>
 
                     <button onclick="avanzarPasoRec(2)" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200 mt-2">
@@ -643,58 +664,58 @@
 
     <!-- ===== MODAL MAPA DE SALONES ===== -->
     <div id="modal-mapa-salones" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMapaSalones()">
-        <div class="modal-box" style="max-width: 720px; width: 95%; padding: 0; overflow: hidden; border-radius: 1.5rem;">
-            <!-- Header -->
-            <div class="modal-header bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-4 flex justify-between items-center">
+        <div class="modal-box" style="max-width: 560px; width: 92%; max-height: 94vh; padding: 0; overflow-y: auto; border-radius: 1.25rem; display: flex; flex-direction: column;">
+            <!-- Header Compacto -->
+            <div class="modal-header bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3.5 py-2.5 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2">
-                    <span class="text-2xl">🗺️</span>
+                    <span class="text-xl">🗺️</span>
                     <div>
-                        <p class="font-bold text-lg leading-tight">Mapa de Salones</p>
-                        <p class="text-xs text-violet-100 font-normal">Ubicación y distribución de aulas por piso</p>
+                        <p class="font-bold text-sm sm:text-base leading-tight">Mapa de Salones</p>
+                        <p class="text-[10px] text-violet-100 font-normal">Ubicación y distribución de aulas por piso</p>
                     </div>
                 </div>
-                <button class="text-white hover:text-gray-200 text-2xl font-bold px-2 py-0.5 rounded-lg transition" onclick="cerrarModalMapaSalones()">✕</button>
+                <button class="text-white hover:text-gray-200 text-xl font-bold px-2 py-0.5 rounded-lg transition" onclick="cerrarModalMapaSalones()">✕</button>
             </div>
 
-            <div class="p-5 bg-gray-50">
-                <!-- Toolbar con los 4 botones circulares arriba a la izquierda -->
-                <div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-3 border-b border-gray-200">
-                    <div class="flex items-center gap-2.5">
-                        <button id="btn-piso-1" onclick="seleccionarPisoMapa(1)" title="Primer Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-sky-400 bg-sky-500 text-white font-bold text-xs flex flex-col items-center justify-center shadow-md transition-all duration-200 hover:scale-105">
-                            <span class="text-xs font-black leading-none">1º</span>
-                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+            <div class="p-2.5 sm:p-3.5 bg-gray-50 flex-1 flex flex-col justify-between">
+                <!-- Toolbar Compacto con los 4 botones circulares -->
+                <div class="flex items-center justify-between flex-wrap gap-2 mb-2 pb-2 border-b border-gray-200 shrink-0">
+                    <div class="flex items-center gap-2">
+                        <button id="btn-piso-1" onclick="seleccionarPisoMapa(1)" title="Primer Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-sky-400 bg-sky-500 text-white font-bold flex flex-col items-center justify-center shadow-md transition-all duration-200 hover:scale-105">
+                            <span class="text-[11px] font-black leading-none">1º</span>
+                            <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
-                        <button id="btn-piso-2" onclick="seleccionarPisoMapa(2)" title="Segundo Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-amber-300 bg-white text-amber-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-xs font-black leading-none">2º</span>
-                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        <button id="btn-piso-2" onclick="seleccionarPisoMapa(2)" title="Segundo Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-amber-300 bg-white text-amber-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-[11px] font-black leading-none">2º</span>
+                            <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
-                        <button id="btn-piso-3" onclick="seleccionarPisoMapa(3)" title="Tercer Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-emerald-400 bg-white text-emerald-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-xs font-black leading-none">3º</span>
-                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        <button id="btn-piso-3" onclick="seleccionarPisoMapa(3)" title="Tercer Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-emerald-400 bg-white text-emerald-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-[11px] font-black leading-none">3º</span>
+                            <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
-                        <button id="btn-piso-4" onclick="seleccionarPisoMapa(4)" title="Cuarto Piso" class="btn-piso-circle w-12 h-12 rounded-full border-2 border-orange-400 bg-white text-orange-700 font-bold text-xs flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-xs font-black leading-none">4º</span>
-                            <span class="text-[8px] uppercase tracking-tighter">Piso</span>
+                        <button id="btn-piso-4" onclick="seleccionarPisoMapa(4)" title="Cuarto Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-400 bg-white text-orange-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
+                            <span class="text-[11px] font-black leading-none">4º</span>
+                            <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
                     </div>
 
-                    <div id="badge-piso-actual" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-100 text-sky-800 border border-sky-200 shadow-sm flex items-center gap-1.5">
+                    <div id="badge-piso-actual" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200 shadow-sm flex items-center gap-1">
                         <span>📍</span> <span id="lbl-piso-titulo">Primer Piso (1st Floor)</span>
                     </div>
                 </div>
 
-                <!-- Contenedores de cada Piso (Estilo Plano Arquitectónico) -->
-                <div id="contenedor-mapa-pisos" class="relative rounded-2xl p-2 sm:p-4 shadow-inner border-2 border-slate-300 min-h-[420px] flex flex-col justify-center transition-all duration-300 bg-slate-100 overflow-hidden">
+                <!-- Contenedores de cada Piso (Estilo Plano Arquitectónico Compacto) -->
+                <div id="contenedor-mapa-pisos" class="relative rounded-xl p-1.5 sm:p-2 shadow-inner border border-slate-300 flex flex-col justify-center transition-all duration-300 bg-slate-100 overflow-hidden">
                     
                     <!-- ===== MAPA PISO 1 (PLANO ARQUITECTÓNICO AZUL) ===== -->
-                    <div id="mapa-piso-1" class="mapa-piso-vista w-full max-w-2xl mx-auto">
-                        <div class="bg-sky-50 border-2 border-sky-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
-                            <div class="text-center font-bold text-sky-900 text-xs sm:text-sm font-mono border-b border-sky-200 pb-2 mb-3 select-none">
+                    <div id="mapa-piso-1" class="mapa-piso-vista w-full max-w-lg mx-auto">
+                        <div class="bg-sky-50 border border-sky-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
+                            <div class="text-center font-bold text-sky-900 text-[11px] font-mono border-b border-sky-200 pb-1 mb-2 select-none">
                                 (CLASSROOMS 1ST FLOOR / SALONES PRIMER PISO)
                             </div>
 
                             <!-- SVG Blueprint Piso 1 -->
-                            <svg viewBox="0 0 660 520" class="w-full h-auto drop-shadow select-none font-sans">
+                            <svg viewBox="0 0 660 520" class="w-full max-h-[50vh] h-auto drop-shadow select-none font-sans mx-auto block">
                                 <defs>
                                     <pattern id="grid-piso-1" width="20" height="20" patternUnits="userSpaceOnUse">
                                         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#bae6fd" stroke-width="0.8" opacity="0.6"/>
@@ -766,14 +787,14 @@
                     </div>
 
                     <!-- ===== MAPA PISO 2 (PLANO ARQUITECTÓNICO AMARILLO - SEGÚN BOCETO) ===== -->
-                    <div id="mapa-piso-2" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
-                        <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
-                            <div class="text-center font-bold text-amber-900 text-xs sm:text-sm font-mono border-b border-amber-200 pb-2 mb-3 select-none">
+                    <div id="mapa-piso-2" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
+                        <div class="bg-amber-50 border border-amber-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
+                            <div class="text-center font-bold text-amber-900 text-[11px] font-mono border-b border-amber-200 pb-1 mb-2 select-none">
                                 (CLASSROOMS 2ND FLOOR / SALONES SEGUNDO PISO)
                             </div>
 
                             <!-- SVG Blueprint Piso 2 -->
-                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                            <svg viewBox="0 0 660 445" class="w-full max-h-[50vh] h-auto drop-shadow select-none font-sans mx-auto block">
                                 <defs>
                                     <pattern id="grid-piso-2" width="20" height="20" patternUnits="userSpaceOnUse">
                                         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fde68a" stroke-width="0.8" opacity="0.6"/>
@@ -803,14 +824,14 @@
                     </div>
 
                     <!-- ===== MAPA PISO 3 (PLANO ARQUITECTÓNICO VERDE) ===== -->
-                    <div id="mapa-piso-3" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
-                        <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
-                            <div class="text-center font-bold text-emerald-900 text-xs sm:text-sm font-mono border-b border-emerald-200 pb-2 mb-3 select-none">
+                    <div id="mapa-piso-3" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
+                        <div class="bg-emerald-50 border border-emerald-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
+                            <div class="text-center font-bold text-emerald-900 text-[11px] font-mono border-b border-emerald-200 pb-1 mb-2 select-none">
                                 (CLASSROOMS 3RD FLOOR / SALONES TERCER PISO)
                             </div>
 
                             <!-- SVG Blueprint Piso 3 -->
-                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                            <svg viewBox="0 0 660 445" class="w-full max-h-[50vh] h-auto drop-shadow select-none font-sans mx-auto block">
                                 <defs>
                                     <pattern id="grid-piso-3" width="20" height="20" patternUnits="userSpaceOnUse">
                                         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#a7f3d0" stroke-width="0.8" opacity="0.6"/>
@@ -876,14 +897,14 @@
                     </div>
 
                     <!-- ===== MAPA PISO 4 (PLANO ARQUITECTÓNICO NARANJA) ===== -->
-                    <div id="mapa-piso-4" class="mapa-piso-vista hidden w-full max-w-2xl mx-auto">
-                        <div class="bg-orange-50 border-2 border-orange-400 rounded-2xl p-3 sm:p-5 shadow-lg relative overflow-hidden">
-                            <div class="text-center font-bold text-orange-900 text-xs sm:text-sm font-mono border-b border-orange-200 pb-2 mb-3 select-none">
+                    <div id="mapa-piso-4" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
+                        <div class="bg-orange-50 border border-orange-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
+                            <div class="text-center font-bold text-orange-900 text-[11px] font-mono border-b border-orange-200 pb-1 mb-2 select-none">
                                 (CLASSROOMS 4TH FLOOR / SALONES CUARTO PISO)
                             </div>
 
                             <!-- SVG Blueprint Piso 4 -->
-                            <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans">
+                            <svg viewBox="0 0 660 445" class="w-full max-h-[50vh] h-auto drop-shadow select-none font-sans mx-auto block">
                                 <defs>
                                     <pattern id="grid-piso-4" width="20" height="20" patternUnits="userSpaceOnUse">
                                         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fed7aa" stroke-width="0.8" opacity="0.6"/>
@@ -922,8 +943,8 @@
                 </div>
 
                 <!-- Footer info -->
-                <div class="mt-4 text-center text-xs text-gray-500 font-medium flex items-center justify-center gap-2">
-                    <span>💡</span> Selecciona cualquiera de los 4 pisos arriba a la izquierda para visualizar su plano arquitectónico.
+                <div class="mt-2 text-center text-[11px] text-gray-500 font-medium flex items-center justify-center gap-1 shrink-0">
+                    <span>💡</span> Selecciona un piso arriba para ver su distribución.
                 </div>
             </div>
         </div>
@@ -1311,6 +1332,27 @@
                     <input type="text" id="recibo-rfc" placeholder="Opcional" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-green-500 outline-none uppercase">
                 </div>
                 <button onclick="generarReciboConOpciones()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200">Generar Recibo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL SELECCIONAR GRUPO / SALÓN (RECUPERACIÓN) ===== -->
+    <div id="modal-seleccion-grupo-rec" class="modal-overlay hidden" style="z-index: 2100;" onclick="if(event.target===this) cerrarModalSeleccionGrupoRec()">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="modal-header bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <div>
+                    <p class="font-bold text-base flex items-center gap-2">🏫 Seleccionar Salón / Grupo</p>
+                    <p id="lbl-modal-grupo-subtitulo" class="text-xs text-purple-100 mt-0.5 font-medium">Hay varios grupos en este mismo horario</p>
+                </div>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalSeleccionGrupoRec()">✕</button>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-b-2xl space-y-3">
+                <p class="text-xs text-gray-600 text-center font-medium">
+                    Compara la cantidad de alumnos y docente para elegir el salón ideal:
+                </p>
+                <div id="contenedor-tarjetas-grupos-rec" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
+                    <!-- Tarjetas generadas dinámicamente -->
+                </div>
             </div>
         </div>
     </div>
@@ -3093,7 +3135,8 @@
                     const frecuencia = f[6] ? String(f[6]).trim().toUpperCase() : '';
                     const crn = f[9] ? String(f[9]).trim() : '';
                     const horario = f[11] ? String(f[11]).trim() : '';
-                    const docente = f[14] ? String(f[14]).trim() : '';
+                    const alumnosInscritos = f[12] ? (parseInt(String(f[12]).trim(), 10) || 0) : 0;
+                    const docente = f[14] ? String(f[14]).trim() : 'Por Asignar';
                     const link = f[15] ? String(f[15]).trim() : '';
                     if (!crn || !horario) continue;
 
@@ -3122,7 +3165,8 @@
                         horaFmt: horaFmt,
                         diasLabel: diasLabel,
                         docente: docente,
-                        link: link
+                        link: link,
+                        alumnosInscritos: alumnosInscritos
                     });
                 }
                 console.log('Horarios recuperación cargados:', horariosRecuperacion.length);
@@ -3136,6 +3180,8 @@
         let inicioRecuperacion = null;
         let finRecuperacion = null;
         let pasoActualRec = 1;
+        let mapaGruposRecDisponibles = {}; // Key: horaFmt -> array of group objects
+        let horaMultipleActualRec = null;
 
         function obtenerPeriodoParaRecuperacion(alumno) {
             if (!alumno) return null;
@@ -3193,6 +3239,8 @@
             document.getElementById('rec-exito').classList.add('hidden');
             document.getElementById('rec-error').classList.add('hidden');
             document.getElementById('rec-horario-container').style.display = 'none';
+            const infoGrupoElegido = document.getElementById('rec-grupo-elegido-info');
+            if (infoGrupoElegido) infoGrupoElegido.classList.add('hidden');
             
             const headerWizard = document.getElementById('rec-indicador-1');
             if (headerWizard) headerWizard.parentElement.classList.remove('hidden');
@@ -3240,11 +3288,13 @@
             const tipo = document.getElementById('rec-tipo').value;
             const contenedorH = document.getElementById('rec-horario-container');
             const contenedorC = document.getElementById('rec-cal-container');
+            const infoGrupoElegido = document.getElementById('rec-grupo-elegido-info');
+            if (infoGrupoElegido) infoGrupoElegido.classList.add('hidden');
             diasSeleccionadosRec.clear();
 
             if (!tipo) {
                 contenedorH.style.display = 'none';
-                contenedorC.style.display = 'none';
+                if (contenedorC) contenedorC.style.display = 'none';
                 const nota = document.getElementById('nota-entre-semana');
                 if (nota) nota.classList.add('hidden');
                 return;
@@ -3283,10 +3333,19 @@
                 return cumpleSubject && cumpleFrecuencia && cumpleNivel;
             });
 
-            // Ordenar de más temprano a más tarde (usando h.horario que es un número como '0900', '1600')
-            filtrados.sort((a, b) => {
-                const hA = parseInt(a.horario.padStart(4, '0'), 10);
-                const hB = parseInt(b.horario.padStart(4, '0'), 10);
+            // Agrupar por horaFmt
+            mapaGruposRecDisponibles = {};
+            filtrados.forEach(h => {
+                if (!mapaGruposRecDisponibles[h.horaFmt]) {
+                    mapaGruposRecDisponibles[h.horaFmt] = [];
+                }
+                mapaGruposRecDisponibles[h.horaFmt].push(h);
+            });
+
+            // Obtener horas ordenadas
+            const horasOrdenadas = Object.keys(mapaGruposRecDisponibles).sort((a, b) => {
+                const hA = parseInt(a.replace(':', ''), 10);
+                const hB = parseInt(b.replace(':', ''), 10);
                 return hA - hB;
             });
 
@@ -3295,28 +3354,164 @@
             sel.innerHTML = '<option value="">-- Selecciona un horario --</option>';
             contenedorH.style.display = 'block';
 
-            if (filtrados.length === 0) {
+            if (horasOrdenadas.length === 0) {
                 aviso.classList.remove('hidden');
                 sel.disabled = true;
             } else {
                 aviso.classList.add('hidden');
                 sel.disabled = false;
-                const vistos = new Set();
-                filtrados.forEach(h => {
-                    const txt = h.horaFmt;
-                    if (!vistos.has(txt)) {
-                        vistos.add(txt);
-                        const opt = document.createElement('option');
-                        opt.value = h.crn;
-                        opt.textContent = txt;
-                        opt.dataset.frecuencia = h.frecuencia;
-                        opt.dataset.docente = h.docente;
-                        opt.dataset.horafmt = h.horaFmt;
-                        opt.dataset.link = h.link;
-                        sel.appendChild(opt);
+                horasOrdenadas.forEach(hora => {
+                    const grupos = mapaGruposRecDisponibles[hora];
+                    const opt = document.createElement('option');
+                    if (grupos.length === 1) {
+                        const g = grupos[0];
+                        opt.value = g.crn;
+                        opt.textContent = `${hora} — ${g.docente} (${g.alumnosInscritos} alumnos)`;
+                        opt.dataset.frecuencia = g.frecuencia;
+                        opt.dataset.docente = g.docente;
+                        opt.dataset.horafmt = g.horaFmt;
+                        opt.dataset.link = g.link;
+                        opt.dataset.alumnos = g.alumnosInscritos;
+                        opt.dataset.crn = g.crn;
+                    } else {
+                        // Múltiples salones/grupos en el mismo horario
+                        opt.value = `MULTIPLE_${hora}`;
+                        opt.textContent = `⚡ ${hora} — (${grupos.length} salones disponibles - Clic para elegir)`;
+                        opt.dataset.horafmt = hora;
                     }
+                    sel.appendChild(opt);
                 });
             }
+        }
+
+        function manejarSeleccionHorarioRec(selectEl) {
+            const val = selectEl.value;
+            const infoGrupoElegido = document.getElementById('rec-grupo-elegido-info');
+            const detalleTxt = document.getElementById('lbl-rec-grupo-elegido-detalle');
+            
+            if (!val) {
+                if (infoGrupoElegido) infoGrupoElegido.classList.add('hidden');
+                return;
+            }
+
+            if (val.startsWith('MULTIPLE_')) {
+                const hora = val.replace('MULTIPLE_', '');
+                horaMultipleActualRec = hora;
+                abrirModalSeleccionGrupoRec(hora);
+            } else {
+                const opt = selectEl.options[selectEl.selectedIndex];
+                const horaFmt = opt.dataset.horafmt || '';
+                const gruposDisponibles = mapaGruposRecDisponibles[horaFmt] || [];
+                
+                if (gruposDisponibles.length > 1) {
+                    horaMultipleActualRec = horaFmt;
+                    if (infoGrupoElegido && detalleTxt) {
+                        detalleTxt.innerHTML = `<strong>CRN:</strong> ${opt.dataset.crn || val} | <strong>Docente:</strong> ${opt.dataset.docente || ''} | <strong>Alumnos:</strong> ${opt.dataset.alumnos || 0}`;
+                        infoGrupoElegido.classList.remove('hidden');
+                    }
+                } else {
+                    if (infoGrupoElegido) infoGrupoElegido.classList.add('hidden');
+                }
+            }
+        }
+
+        function reabrirModalGruposRec() {
+            if (horaMultipleActualRec) {
+                abrirModalSeleccionGrupoRec(horaMultipleActualRec);
+            }
+        }
+
+        function abrirModalSeleccionGrupoRec(horaFmt) {
+            const grupos = mapaGruposRecDisponibles[horaFmt] || [];
+            if (grupos.length === 0) return;
+
+            const modal = document.getElementById('modal-seleccion-grupo-rec');
+            const contTarjetas = document.getElementById('contenedor-tarjetas-grupos-rec');
+            const subtitulo = document.getElementById('lbl-modal-grupo-subtitulo');
+
+            if (subtitulo) {
+                subtitulo.innerText = `Horario: ${horaFmt} (${grupos.length} salones encontrados para este nivel)`;
+            }
+
+            contTarjetas.innerHTML = '';
+
+            grupos.forEach((g, idx) => {
+                let badgeAlumnos = '';
+                const cant = g.alumnosInscritos;
+                if (cant <= 6) {
+                    badgeAlumnos = `<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-300">🟢 ${cant} alumnos (Pocos)</span>`;
+                } else if (cant <= 12) {
+                    badgeAlumnos = `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-300">🔵 ${cant} alumnos (Medio)</span>`;
+                } else {
+                    badgeAlumnos = `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">🟠 ${cant} alumnos (Lleno)</span>`;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-white border-2 border-purple-200 hover:border-purple-500 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col gap-2.5';
+                card.onclick = () => seleccionarGrupoRec(g);
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-purple-100 text-purple-800 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-purple-200">CRN: ${g.crn}</span>
+                            <span class="text-xs font-bold text-gray-700">Salón #${idx + 1}</span>
+                        </div>
+                        ${badgeAlumnos}
+                    </div>
+                    <div class="text-sm text-gray-800 space-y-0.5">
+                        <p><strong>👨‍🏫 Teacher / Docente:</strong> <span class="text-purple-700 font-bold">${g.docente}</span></p>
+                        <p class="text-xs text-gray-500">👥 Total inscritos en este salón: <strong class="text-gray-800">${g.alumnosInscritos}</strong></p>
+                    </div>
+                    <button type="button" class="w-full mt-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition duration-150 shadow-sm flex items-center justify-center gap-1.5">
+                        ✓ Seleccionar este Salón (${g.crn})
+                    </button>
+                `;
+                contTarjetas.appendChild(card);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function seleccionarGrupoRec(grupoObj) {
+            const sel = document.getElementById('rec-horario');
+            const hora = grupoObj.horaFmt;
+            
+            // Buscar si ya existe la opción o modificarla
+            let optExistente = Array.from(sel.options).find(o => o.value === `MULTIPLE_${hora}` || o.dataset.horafmt === hora);
+            
+            if (optExistente) {
+                optExistente.value = grupoObj.crn;
+                optExistente.textContent = `✓ ${hora} — CRN: ${grupoObj.crn} | ${grupoObj.docente} (${grupoObj.alumnosInscritos} alumnos)`;
+                optExistente.dataset.frecuencia = grupoObj.frecuencia;
+                optExistente.dataset.docente = grupoObj.docente;
+                optExistente.dataset.horafmt = grupoObj.horaFmt;
+                optExistente.dataset.link = grupoObj.link;
+                optExistente.dataset.alumnos = grupoObj.alumnosInscritos;
+                optExistente.dataset.crn = grupoObj.crn;
+                sel.value = grupoObj.crn;
+            }
+
+            const infoGrupoElegido = document.getElementById('rec-grupo-elegido-info');
+            const detalleTxt = document.getElementById('lbl-rec-grupo-elegido-detalle');
+            if (infoGrupoElegido && detalleTxt) {
+                detalleTxt.innerHTML = `<strong>CRN:</strong> ${grupoObj.crn} | <strong>Docente:</strong> ${grupoObj.docente} | <strong>Alumnos:</strong> ${grupoObj.alumnosInscritos}`;
+                infoGrupoElegido.classList.remove('hidden');
+            }
+
+            cerrarModalSeleccionGrupoRec();
+        }
+
+        function cerrarModalSeleccionGrupoRec() {
+            const modal = document.getElementById('modal-seleccion-grupo-rec');
+            if (modal) modal.classList.add('hidden');
+            
+            const sel = document.getElementById('rec-horario');
+            if (sel && sel.value.startsWith('MULTIPLE_')) {
+                sel.value = '';
+                const infoGrupoElegido = document.getElementById('rec-grupo-elegido-info');
+                if (infoGrupoElegido) infoGrupoElegido.classList.add('hidden');
+            }
+        }
 
         }
 
@@ -3367,6 +3562,12 @@
                     errorDiv.innerText = 'Por favor selecciona un horario de recuperación.';
                     errorDiv.classList.remove('hidden'); return;
                 }
+                if (horarioSel.startsWith('MULTIPLE_')) {
+                    errorDiv.innerText = 'Por favor selecciona uno de los salones disponibles en la ventana emergente.';
+                    errorDiv.classList.remove('hidden');
+                    abrirModalSeleccionGrupoRec(horarioSel.replace('MULTIPLE_', ''));
+                    return;
+                }
                 renderizarMiniCalendario();
             } else if (destino === 3) {
                 // Validar Paso 2
@@ -3386,7 +3587,10 @@
         function generarResumenRecuperacion() {
             const correo = document.getElementById('rec-correo').value.trim();
             const sel = document.getElementById('rec-horario');
-            const horarioTexto = sel.options[sel.selectedIndex].text;
+            const opt = sel.options[sel.selectedIndex];
+            const horarioTexto = opt.text;
+            const docente = opt && opt.dataset.docente ? `<br><strong>👨‍🏫 Teacher:</strong> ${opt.dataset.docente}` : '';
+            const crn = (opt && opt.dataset.crn) ? opt.dataset.crn : sel.value;
             
             const MESES_C = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             const DIAS_N = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
@@ -3399,6 +3603,7 @@
             const html = `
                 <p><strong>📧 Correo:</strong> ${correo}</p>
                 <p><strong>💻 Clase en línea a tomar:</strong><br> ${horarioTexto}</p>
+                <p><strong>🔖 CRN asignado:</strong> ${crn}${docente}</p>
                 <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasLabels}</p>
             `;
             document.getElementById('rec-resumen-container').innerHTML = html;
