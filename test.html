@@ -3204,6 +3204,14 @@
                 for (let i = 1; i < filas.length; i++) {
                     const f = filas[i];
                     if (!f || f.length < 13) continue;
+
+                    // Omitir si en la columna P (f[15]) o docente (f[14]) dice "GRUPO PRIVADO"
+                    const colP = f[15] ? String(f[15]).trim().toUpperCase() : '';
+                    const docenteRaw = f[14] ? String(f[14]).trim().toUpperCase() : '';
+                    if (colP.includes('GRUPO PRIVADO') || docenteRaw.includes('GRUPO PRIVADO')) {
+                        continue;
+                    }
+
                     const nivelIni = f[3] ? String(f[3]).trim() : '';
                     const nivelFin = f[4] ? String(f[4]).trim() : '';
                     const subjectCode = f[5] ? String(f[5]).trim().toUpperCase() : '';
