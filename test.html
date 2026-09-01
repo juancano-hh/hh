@@ -428,7 +428,7 @@
                     <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
                     <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
                 </div>
-                <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="actualizarCalculos()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                 <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
             </div>
 
@@ -478,12 +478,27 @@
                     <span id="uni-lista" class="font-semibold text-gray-800"></span>
                 </div>
                 <div class="flex justify-between items-center text-green-700">
-                    <span id="lbl-uni-desc">Precio por curso:</span>
+                    <span class="flex items-center gap-1 font-medium">
+                        Precio por curso:
+                        <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
+                            <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
+                                   oninput="cambiarDescuentoManual(this.value)" 
+                                   class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
+                                   title="Ingresa un porcentaje de descuento para simular la cotización">
+                            <span class="text-[11px] font-bold text-green-800 ml-0.5">%</span>
+                        </span>
+                    </span>
                     <span id="uni-desc" class="font-bold"></span>
                 </div>
-                <div class="flex justify-between items-center text-blue-700 hidden" id="fila-beca">
-                    <span>Precio de beca:</span>
-                    <span id="uni-beca" class="font-bold"></span>
+                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca">
+                    <div class="flex justify-between items-center">
+                        <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
+                        <span id="uni-beca-sin" class="font-bold"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span id="lbl-uni-beca-con">Precio de beca (con servicio):</span>
+                        <span id="uni-beca-con" class="font-bold"></span>
+                    </div>
                 </div>
                 <hr class="my-2 border-gray-100">
                 <div class="flex justify-between items-center">
@@ -1127,6 +1142,19 @@
         let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0 };
         let librosSeleccionadosIndices = [];
         let ultimosLibrosClave = "";
+        let descuentoManualPorcentaje = null;
+
+        function cambiarDescuentoManual(val) {
+            if (val === "" || val === null || isNaN(val)) {
+                descuentoManualPorcentaje = null;
+            } else {
+                let num = parseFloat(val);
+                if (num < 0) num = 0;
+                if (num > 100) num = 100;
+                descuentoManualPorcentaje = num;
+            }
+            actualizarCalculos();
+        }
 
         // ===== Periodos del calendario =====
         let periodosCalendario = [];
@@ -1511,6 +1539,13 @@
                 document.getElementById('lbl-inicio-siguiente').innerText  = inicioProxStr;
                 document.getElementById('lbl-fin-siguiente').innerText     = finProxStr;
                 seccion.classList.remove('hidden');
+
+                const secVolumen = document.getElementById('seccion-volumen');
+                const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
+                const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
+                secVolumen.classList.remove('hidden');
+                lblCursosPagados.classList.add('hidden');
+                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(datosAct, '08');
                 return;
             }
 
@@ -1973,6 +2008,7 @@
             document.getElementById('menu-principal').classList.add('hidden');
             document.getElementById('ficha-alumno').classList.remove('hidden');
             document.getElementById('seccion-calculos').classList.remove('hidden');
+            descuentoManualPorcentaje = null;
             // Cargar fechas de periodo
             mostrarFechasPeriodo();
             if (textoPromocionalF1 && textoPromocionalF1 !== "") {
@@ -2037,14 +2073,35 @@
                 if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
             }
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
-            if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
-                descuentoAplicar = promoVolumen.descuento; nombreDescuento = `Total con ${promoVolumen.motivo}`; etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) { const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
+            
+            if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
+                descuentoAplicar = descuentoManualPorcentaje / 100;
+                nombreDescuento = `Total con Descuento Personalizado (${Math.round(descuentoManualPorcentaje)}%)`;
+                etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
+            } else if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
+                descuentoAplicar = promoVolumen.descuento;
+                nombreDescuento = `Total con ${promoVolumen.motivo}`;
+                etiquetaPromo = promoVolumen.motivo;
+                if (promoVolumen.fechaFin) {
+                    const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                }
             } else if (becaBaseVigente > 0) {
-                descuentoAplicar = becaBaseVigente; nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`; etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaBecaBase) { const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',',''); if (fl) fechaTexto=`Beneficio vigente hasta: ${fl}`; }
+                descuentoAplicar = becaBaseVigente;
+                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`;
+                etiquetaPromo = "Beca asignada";
+                if (fechaVigenciaBecaBase) {
+                    const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                }
             }
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
+            
+            const inputDescCustom = document.getElementById('input-descuento-custom');
+            if (inputDescCustom && document.activeElement !== inputDescCustom) {
+                inputDescCustom.value = porcentajeDescuentoActual;
+            }
+
             if (fechaTexto) { fechaVigenciaSpan.innerText = fechaTexto; fechaVigenciaSpan.classList.remove('hidden'); }
             else { fechaVigenciaSpan.classList.add('hidden'); }
             const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
@@ -2095,17 +2152,24 @@
             const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
             const unitarioLista = precioBaseEjemplo + extraServicio;
             const unitarioDesc  = (primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ) + extraServicio;
-            document.getElementById('lbl-uni-desc').innerHTML         = `Precio por curso (${porcentajeDescuentoActual}%):`;
+            
             document.getElementById('uni-lista').innerHTML            = fmt.format(unitarioLista);
             document.getElementById('uni-desc').innerHTML             = fmt.format(unitarioDesc);
             
-            // Mostrar precio beca independientemente de fechas si existe beca
+            // Mostrar precio beca con y sin servicio si el alumno tiene beca
             const filaBeca = document.getElementById('fila-beca');
             if (alumnoActual && alumnoActual.beca > 0) {
                 filaBeca.classList.remove('hidden');
                 const pBecaSinServ = primerEsAlto ? (precioBaseAlto * (1 - alumnoActual.beca)) : (precioBaseBajo * (1 - alumnoActual.beca));
-                const unitarioBeca = Math.round(pBecaSinServ) + extraServicio;
-                document.getElementById('uni-beca').innerText = fmt.format(unitarioBeca) + ` (${Math.round(alumnoActual.beca*100)}%)`;
+                const unitarioBecaSin = Math.round(pBecaSinServ);
+                const unitarioBecaCon = unitarioBecaSin + 90;
+                const becaPct = Math.round(alumnoActual.beca * 100);
+                
+                document.getElementById('lbl-uni-beca-sin').innerText = `Precio de beca (${becaPct}%) sin servicio:`;
+                document.getElementById('uni-beca-sin').innerText     = fmt.format(unitarioBecaSin);
+                
+                document.getElementById('lbl-uni-beca-con').innerText = `Precio de beca (${becaPct}%) con servicio:`;
+                document.getElementById('uni-beca-con').innerText     = fmt.format(unitarioBecaCon);
             } else {
                 filaBeca.classList.add('hidden');
             }
@@ -2149,34 +2213,38 @@
             const contCotizacion = document.getElementById('cotizacion-fecha-container');
             if (lblCotizacionFecha && contCotizacion && alumnoActual) {
                 let targetPeriod = alumnoActual.periodoSiguiente;
-                if (alumnoActual.esPrimerMes) {
-                    targetPeriod = calSumarPeriodos(alumnoActual.periodoSiguiente, 1);
+                let modStr = alumnoActual.programa || '04';
+                if (targetPeriod && targetPeriod.length >= 4) {
+                    modStr = targetPeriod.substring(2, 4);
+                }
+
+                let nextPaymentPeriod = targetPeriod;
+                if (alumnoActual.esLayPasado || alumnoActual.esPrimerMes) {
+                    nextPaymentPeriod = (cantCursos > 1) ? calSumarPeriodos(targetPeriod, cantCursos - 1) : targetPeriod;
                 } else {
                     const periodoAnt = calcularPeriodoAnterior(targetPeriod);
                     if (!alumnoActual.tieneR && periodoAnt) {
                         targetPeriod = periodoAnt;
                     }
-                }
-                
-                let textoCotizacion = "";
-                if (alumnoActual.volumen && alumnoActual.volumen.includes(" DE ")) {
-                    const partesVol = alumnoActual.volumen.split(" DE ");
-                    const currentCourse = parseInt(partesVol[0].trim());
-                    const totalCourses = parseInt(partesVol[1].trim());
-                    if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
-                        const cursosRestantes = totalCourses - currentCourse;
-                        const totalSumar = cursosRestantes + cantCursos;
-                        const nextPaymentPeriod = calSumarPeriodos(targetPeriod, totalSumar);
-                        const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
-                        textoCotizacion = obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04');
+                    if (alumnoActual.volumen && alumnoActual.volumen.includes(" DE ")) {
+                        const partesVol = alumnoActual.volumen.split(" DE ");
+                        const currentCourse = parseInt(partesVol[0].trim());
+                        const totalCourses = parseInt(partesVol[1].trim());
+                        if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                            const cursosRestantes = totalCourses - currentCourse;
+                            const totalSumar = cursosRestantes + cantCursos;
+                            nextPaymentPeriod = calSumarPeriodos(targetPeriod, totalSumar);
+                        }
+                    } else {
+                        nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos);
                     }
-                } else {
-                    const nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos);
-                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
-                    textoCotizacion = obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04');
                 }
                 
-                if (textoCotizacion) {
+                let nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                if (!nextPaymentDatos) nextPaymentDatos = obtenerDatosPeriodo(targetPeriod);
+                let textoCotizacion = obtenerRangoPago(nextPaymentDatos, modStr);
+                
+                if (textoCotizacion && textoCotizacion !== 'No disponible') {
                     lblCotizacionFecha.innerText = textoCotizacion;
                     contCotizacion.classList.remove('hidden');
                 } else {
