@@ -1208,7 +1208,7 @@
                     const numeroMatch = cursoSiguienteText.match(/\d+/);
                     if (numeroMatch) nivelSiguiente = parseInt(numeroMatch[0]);
                     const nivelActual = Math.max(0, nivelSiguiente - 1);
-                    const textoCursoVisualizado = cursoSiguienteText.replace(/\d+/, nivelActual);
+                    const textoCursoVisualizado = String(nivelActual);
                     const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
                     let modalidadCalculada = "FFI";
                     const horarioUpper = horarioTexto.toUpperCase();
@@ -1242,6 +1242,7 @@
                         estatusPago: estatusPagoRaw,
                         codigoClase: codigoClaseLayout,
                         esPrimerMes: false,
+                        esLayPasado: false,
                         noLeTocaPago: false
                     };
                     baseAlumnos[id] = alumno;
@@ -1249,7 +1250,7 @@
                     if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                 }
 
-                // 2. Cargar alumnos de la Hoja de Primer Mes / Sin Pago (2608XX)
+                // 2. Cargar alumnos de la Hoja de Primer Mes / Sin Pago (2608XX - LAYPASADO)
                 try {
                     const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL);
                     const csvTxtNuevo = await resNuevo.text();
@@ -1306,10 +1307,7 @@
                         const numeroMatch = cursoSiguienteText.match(/\d+/);
                         if (numeroMatch) nivelActual = parseInt(numeroMatch[0]); // NO SE RESTA 1 para 2608XX
 
-                        let textoCursoVisualizado = cursoSiguienteText;
-                        if (!isNaN(cursoSiguienteText) || /^\d+$/.test(cursoSiguienteText)) {
-                            textoCursoVisualizado = programaTexto + " " + nivelActual;
-                        }
+                        const textoCursoVisualizado = String(nivelActual);
 
                         const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
                         let modalidadCalculada = "FFI";
@@ -1343,16 +1341,17 @@
                             estatusPago: estatusPagoRaw,
                             codigoClase: codigoClaseLayout,
                             esPrimerMes: true,
-                            noLeTocaPago: true
+                            esLayPasado: true,
+                            noLeTocaPago: false
                         };
 
                         baseAlumnos[id] = alumno;
                         const idNorm = String(id).replace(/^0+/, '');
                         if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                     }
-                    console.log("Alumnos de 1er mes (2608XX) incorporados.");
+                    console.log("Alumnos de LAYPASADO (2608XX) incorporados.");
                 } catch(errNuevo) {
-                    console.warn("No se pudo cargar la hoja de nuevo ingreso/1er mes:", errNuevo);
+                    console.warn("No se pudo cargar la hoja de LAYPASADO:", errNuevo);
                 }
 
                 console.log("Total Alumnos cargados:", Object.keys(baseAlumnos).length);
@@ -1480,6 +1479,7 @@
                 seccion.classList.add('hidden');
                 return;
             }
+            const tipoClase = alumnoActual.tipoClaseCal; // 'entre-semana' o 'sabado'
             if (alumnoActual.esPrimerMes) {
                 const periodoActual = alumnoActual.periodoSiguiente;
                 const periodoProx = calSumarPeriodos(periodoActual, 1);
@@ -1859,9 +1859,7 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                if (alumnoActual.noLeTocaPago) {
-                    statusBadge = '<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✨ 1ER MES (NO TOCA PAGO)</span>';
-                } else if (estatus === 'R') {
+                if (estatus === 'R') {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
                 } else if (estatus === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
@@ -1884,7 +1882,7 @@
                     btnWhatsApp.classList.add('hidden');
                 }
                 document.getElementById('lbl-correo').innerText   = alumnoActual.correo;
-                document.getElementById('lbl-curso').innerText    = alumnoActual.cursoVisual;
+                document.getElementById('lbl-curso').innerText    = alumnoActual.nivelActual;
                 document.getElementById('lbl-programa').innerText = alumnoActual.programaTexto;
                 document.getElementById('lbl-modalidad').innerText= alumnoActual.modalidad;
                 
@@ -4265,8 +4263,9 @@
             let teachersMap = {};
             let gruposArr = [];
 
-            // 1. KPIs and Estatus
+            // 1. KPIs and Estatus (Solo alumnos del Layout actual)
             Object.values(baseAlumnos).forEach(a => {
+                if (a.esLayPasado || a.esPrimerMes) return;
                 kpis.total++;
                 let estatus = (a.estatusPago || '').trim().toUpperCase();
                 
@@ -4278,12 +4277,12 @@
                 else if (estatus.includes('TRANSFERENCIA SALE')) kpis.transSale++;
                 else if (estatus === 'REC') kpis.rec++;
 
-                // Modality for ALL students
+                // Modality for ALL students del layout actual
                 if (a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') modalidad.presencialR++;
                 else modalidad.lineaR++;
             });
 
-            // 2. Teachers and Presencial Groups from matrizSalones
+            // 2. Teachers and Presencial Groups from matrizSalones (Solo alumnos del Layout actual)
             const procesarCelda = (c, f, teacher, salon, esSabado) => {
                 let texto = String(c || '').trim().toUpperCase();
                 if (!texto) return;
@@ -4301,6 +4300,7 @@
                 if (isNaN(nivelVal) || nivelVal <= 0) return;
 
                 const grupoAlumnos = Object.values(baseAlumnos).filter(a => {
+                    if (a.esLayPasado || a.esPrimerMes) return false;
                     const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
                     return a.programaNombre === progAlumnos &&
                            a.nivelActual === nivelVal &&
