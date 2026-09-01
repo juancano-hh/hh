@@ -1948,7 +1948,8 @@
 
                 if (alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
                     const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
-                    const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado);
+                    const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                    const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                     if (salonObj) {
                         document.getElementById('lbl-salon').innerText = salonObj.salon;
                         document.getElementById('lbl-teacher').innerText = salonObj.teacher;
@@ -1956,7 +1957,7 @@
                         contTeacher.classList.remove('hidden');
 
                         if (salonObj.dias) {
-                            horarioAMostrar = `3:45 p. m. ${salonObj.dias}`;
+                            horarioAMostrar = `${alumnoActual.horario} (${salonObj.dias})`;
                         }
                     }
                 }
@@ -2694,7 +2695,7 @@
             }
         }
 
-        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado, targetTeacher = null) {
+        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado, targetTeacher = null, esLayPasado = false) {
             if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
             
             let hStr;
@@ -2717,13 +2718,13 @@
                 hStr = hora.toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
             }
 
-            // Determinar texto a buscar (Solo nivel actual exacto)
+            // Determinar texto base a buscar (Solo nivel actual exacto)
             let textoBuscar = String(nivelActual);
             if (programaNombre === 'KIDS') textoBuscar = `KB ${nivelActual}`;
             else if (programaNombre === 'TEENS') textoBuscar = `TN ${nivelActual}`;
             else if (programaNombre === 'PTEEN') textoBuscar = `PT ${nivelActual}`;
 
-            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase(); // Quitar todos los espacios para evitar fallos (ej. "KB8")
+            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase(); // Quitar todos los espacios (ej. "TN13")
 
             const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
             
@@ -2737,31 +2738,44 @@
             
             if (filasCoincidentes.length === 0) return null;
 
+            let matchFallback = null;
+
             // Buscar en las celdas de TODAS las filas que coincidan en hora
             for (let fila of filasCoincidentes) {
                 for (let i = 1; i < fila.celdas.length; i++) {
-                    const celda = String(fila.celdas[i] || '').replace(/\s+/g, '').toUpperCase();
-                    if (celda === textoLimpio) {
+                    const celdaRaw = String(fila.celdas[i] || '').toUpperCase();
+                    const celdaBase = celdaRaw.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
+                    const tieneS = celdaRaw.includes('(S)');
+                    const tieneE = celdaRaw.includes('(E)');
+
+                    if (celdaBase === textoLimpio) {
                         const currentTeacher = matrizSalones.teachers[i] || 'No definido';
+                        const matchObj = {
+                            salon: matrizSalones.salones[i] || 'No definido',
+                            teacher: currentTeacher,
+                            dias: fila.dias
+                        };
+
                         if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
-                            if (currentTeacher === targetTeacher) {
-                                return {
-                                    salon: matrizSalones.salones[i] || 'No definido',
-                                    teacher: currentTeacher,
-                                    dias: fila.dias
-                                };
-                            }
-                        } else {
-                            return {
-                                salon: matrizSalones.salones[i] || 'No definido',
-                                teacher: currentTeacher,
-                                dias: fila.dias
-                            };
+                            if (currentTeacher !== targetTeacher) continue;
+                        }
+
+                        // Si el alumno es LAYPASADO y la celda tiene (S) -> Match exacto
+                        if (esLayPasado && tieneS) {
+                            return matchObj;
+                        }
+                        // Si el alumno es LAYOUT y la celda tiene (E) -> Match exacto
+                        if (!esLayPasado && tieneE) {
+                            return matchObj;
+                        }
+                        // Si no tiene sufijo específico, guardar como fallback
+                        if (!tieneS && !tieneE && !matchFallback) {
+                            matchFallback = matchObj;
                         }
                     }
                 }
             }
-            return null;
+            return matchFallback;
         }
 
         // ==================== HORARIOS DE RECUPERACIÓN ====================
@@ -3750,20 +3764,29 @@
             let texto = String(celdaTexto || '').trim().toUpperCase();
             if (!texto) return null;
             
+            const esSoloStarting = texto.includes('(S)');
+            const esSoloEnding = texto.includes('(E)');
+            const textoLimpio = texto.replace(/\([^)]*\)/g, '').trim();
+
             let progAlumnos = '';
             let progReal = '';
             let nivelVal = 0;
             
-            if (texto.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(texto.replace('KB', '').trim()); }
-            else if (texto.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(texto.replace('PT', '').trim()); }
-            else if (texto.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(texto.replace('TN', '').trim()); }
-            else if (!isNaN(texto)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(texto); }
+            if (textoLimpio.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(textoLimpio.replace('KB', '').trim()); }
+            else if (textoLimpio.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(textoLimpio.replace('PT', '').trim()); }
+            else if (textoLimpio.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(textoLimpio.replace('TN', '').trim()); }
+            else if (!isNaN(textoLimpio)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(textoLimpio); }
             else return null;
 
             if (isNaN(nivelVal) || nivelVal <= 0) return null;
 
             const cont = Object.values(baseAlumnos).filter(a => {
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+
+                if (esSoloStarting && !esAlumnoLayPasado) return false;
+                if (esSoloEnding && esAlumnoLayPasado) return false;
+
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
@@ -3778,20 +3801,29 @@
             let texto = String(celdaTexto || '').trim().toUpperCase();
             if (!texto) return null;
             
+            const esSoloStarting = texto.includes('(S)');
+            const esSoloEnding = texto.includes('(E)');
+            const textoLimpio = texto.replace(/\([^)]*\)/g, '').trim();
+
             let progAlumnos = '';
             let progReal = '';
             let nivelVal = 0;
             
-            if (texto.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(texto.replace('KB', '').trim()); }
-            else if (texto.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(texto.replace('PT', '').trim()); }
-            else if (texto.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(texto.replace('TN', '').trim()); }
-            else if (!isNaN(texto)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(texto); }
+            if (textoLimpio.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(textoLimpio.replace('KB', '').trim()); }
+            else if (textoLimpio.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(textoLimpio.replace('PT', '').trim()); }
+            else if (textoLimpio.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(textoLimpio.replace('TN', '').trim()); }
+            else if (!isNaN(textoLimpio)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(textoLimpio); }
             else return null;
 
             if (isNaN(nivelVal) || nivelVal <= 0) return null;
 
             const grupo = Object.values(baseAlumnos).filter(a => {
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+
+                if (esSoloStarting && !esAlumnoLayPasado) return false;
+                if (esSoloEnding && esAlumnoLayPasado) return false;
+
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
@@ -4066,10 +4098,11 @@
             const verificarYExtraerNivel = (celdaStr) => {
                 const c = String(celdaStr || '').replace(/\s+/g, '').toUpperCase();
                 if (!c) return null;
-                if (progVal === 'KIDS' && c.startsWith('KB')) return parseInt(c.replace('KB', ''));
-                if ((progVal === 'TEEN' || progVal === 'TEENS') && c.startsWith('TN')) return parseInt(c.replace('TN', ''));
-                if ((progVal === 'PTEE' || progVal === 'PTEEN') && c.startsWith('PT')) return parseInt(c.replace('PT', ''));
-                if ((progVal === 'ADUL' || progVal === 'ADULTO') && !isNaN(c) && c !== '') return parseInt(c);
+                const cLimpio = c.replace(/\([^)]*\)/g, '').trim();
+                if (progVal === 'KIDS' && cLimpio.startsWith('KB')) return parseInt(cLimpio.replace('KB', ''));
+                if ((progVal === 'TEEN' || progVal === 'TEENS') && cLimpio.startsWith('TN')) return parseInt(cLimpio.replace('TN', ''));
+                if ((progVal === 'PTEE' || progVal === 'PTEEN') && cLimpio.startsWith('PT')) return parseInt(cLimpio.replace('PT', ''));
+                if ((progVal === 'ADUL' || progVal === 'ADULTO') && !isNaN(cLimpio) && cLimpio !== '') return parseInt(cLimpio);
                 return null;
             };
 
@@ -4080,12 +4113,14 @@
             });
             for (let fila of filasCoincidentes) {
                 for (let i = 1; i < fila.celdas.length; i++) {
-                    const nivel = verificarYExtraerNivel(fila.celdas[i]);
+                    const celdaRaw = String(fila.celdas[i] || '').trim().toUpperCase();
+                    const nivel = verificarYExtraerNivel(celdaRaw);
                     if (nivel !== null && !isNaN(nivel) && nivel > 0) {
                         const teacher = matrizSalones.teachers[i] || 'No definido';
-                        const key = `${nivel}|${teacher}`;
+                        const suffix = celdaRaw.includes('(S)') ? ' (S)' : (celdaRaw.includes('(E)') ? ' (E)' : '');
+                        const key = `${nivel}${suffix}|${teacher}`;
                         if (!nivelesUnicos.has(key)) {
-                            nivelesUnicos.set(key, { nivel, teacher });
+                            nivelesUnicos.set(key, { nivel, teacher, suffix });
                         }
                     }
                 }
@@ -4095,8 +4130,9 @@
             listaNiveles.forEach(obj => {
                 const niv = obj.nivel;
                 const doc = obj.teacher;
+                const suf = obj.suffix || '';
                 const profStr = (doc && doc !== 'No definido') ? ` (Teacher: ${doc})` : '';
-                selNivel.innerHTML += `<option value="${niv}|${doc}">Nivel ${niv}${profStr}</option>`;
+                selNivel.innerHTML += `<option value="${niv}${suf}|${doc}">Nivel ${niv}${suf}${profStr}</option>`;
             });
 
             selNivel.disabled = false;
@@ -4137,8 +4173,10 @@
                 return;
             }
 
-            const [nivelStr, targetTeacher] = nivelValRaw.split('|');
-            const nivelVal = parseInt(nivelStr);
+            const [nivelStrRaw, targetTeacher] = nivelValRaw.split('|');
+            const esSoloS = nivelStrRaw.includes('(S)');
+            const esSoloE = nivelStrRaw.includes('(E)');
+            const nivelVal = parseInt(nivelStrRaw.replace(/\([^)]*\)/g, '').trim());
 
             const [diasTarget, horaTarget] = horarioVal.split('|');
             const clase = horariosRecuperacion.find(h => h.subjectCode === progVal && h.diasLabel === diasTarget && h.horaFmt === horaTarget && String(h.nivelFin) === String(nivelVal));
@@ -4154,8 +4192,9 @@
             if (progVal === 'TEEN') progAlumnos = 'TEENS';
 
             const esSabado = diasTarget === 'Sábados';
+            const esLayPasadoBuscado = esSoloS ? true : (esSoloE ? false : false);
             
-            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher);
+            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
 
             const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
             const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
@@ -4163,7 +4202,7 @@
             document.getElementById('bg-lbl-salon').innerText = finalSalon;
             document.getElementById('bg-lbl-teacher').innerText = finalTeacher;
             document.getElementById('bg-lbl-programa').innerText = progReal;
-            document.getElementById('bg-lbl-nivel').innerText = "Nivel " + nivelVal;
+            document.getElementById('bg-lbl-nivel').innerText = "Nivel " + nivelVal + (esSoloS ? " (S)" : (esSoloE ? " (E)" : ""));
             if (horaTarget === '15:45') {
                 document.getElementById('bg-lbl-horario').innerText = "3:45 p. m. " + diasTarget;
             } else {
@@ -4190,6 +4229,11 @@
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+
+                if (esSoloS && !esAlumnoLayPasado) return false;
+                if (esSoloE && esAlumnoLayPasado) return false;
+
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === parseInt(nivelVal) &&
                        a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
@@ -4363,14 +4407,18 @@
                 let texto = String(c || '').trim().toUpperCase();
                 if (!texto) return;
                 
+                // Si la celda es explícitamente de Starting (LAYPASADO), no contarla en Dashboard
+                if (texto.includes('(S)')) return;
+
+                const textoLimpio = texto.replace(/\([^)]*\)/g, '').trim();
                 let progAlumnos = '';
                 let progReal = '';
                 let nivelVal = 0;
                 
-                if (texto.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(texto.replace('KB', '').trim()); }
-                else if (texto.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(texto.replace('PT', '').trim()); }
-                else if (texto.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(texto.replace('TN', '').trim()); }
-                else if (!isNaN(texto)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(texto); }
+                if (textoLimpio.startsWith('KB')) { progAlumnos = 'KIDS'; progReal = 'KIDS'; nivelVal = parseInt(textoLimpio.replace('KB', '').trim()); }
+                else if (textoLimpio.startsWith('PT')) { progAlumnos = 'PTEEN'; progReal = 'PTEEN'; nivelVal = parseInt(textoLimpio.replace('PT', '').trim()); }
+                else if (textoLimpio.startsWith('TN')) { progAlumnos = 'TEENS'; progReal = 'TEENS'; nivelVal = parseInt(textoLimpio.replace('TN', '').trim()); }
+                else if (!isNaN(textoLimpio)) { progAlumnos = 'ADULTO'; progReal = 'ADULTO'; nivelVal = parseInt(textoLimpio); }
                 else return;
 
                 if (isNaN(nivelVal) || nivelVal <= 0) return;
