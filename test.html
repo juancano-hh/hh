@@ -1099,6 +1099,7 @@
     <script>
         // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
+        const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
         const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E';
         const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
@@ -1163,9 +1164,10 @@
             return null;
         }
 
-        // ==================== CARGA DE ALUMNOS (modificado: lee columna B) ====================
+        // ==================== CARGA DE ALUMNOS (Layout Principal + 1er Mes 2608XX) ====================
         async function cargarAlumnos() {
             try {
+                // 1. Cargar alumnos del Layout Principal
                 const response = await fetch(LAYOUT_CSV_URL);
                 const csvText = await response.text();
                 const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
@@ -1174,7 +1176,7 @@
                 alumnosPorIdNormalizado.clear();
                 for (let idx = 0; idx < filas.length; idx++) {
                     const fila = filas[idx];
-                    if (fila.length < 4) continue; // solo requiere al menos el ID (índice 3)
+                    if (fila.length < 4) continue;
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
                     if (!id) continue;
                     let tieneServicio = false;
@@ -1188,7 +1190,6 @@
                         let limpio = fila[9].toString().trim().replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
                         celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
                     }
-                    // ====== Mostrar EXACTAMENTE lo que está en la columna K (índice 10) ======
                     const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
                     const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                     let programaNombre = "ADULTO";
@@ -1221,17 +1222,11 @@
                         if (isNaN(becaVal)) becaVal = 0;
                         if (becaVal > 1) becaVal = becaVal / 100;
                     }
-                    // ===== NUEVO: Periodo siguiente (columna B, índice 1) =====
                     const periodoSiguiente = fila[1] ? String(fila[1]).trim() : '';
-                    // ===== NUEVO: Tipo de clase para el calendario =====
-                    // SA/SM/SV o DO/DOM → sábados; horas → entre semana
                     const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
-                    // ===== NUEVO: Cursos por volumen (columna AD, índice 29) =====
                     const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
                     const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                     const tieneR = estatusPagoRaw.toUpperCase() === 'R';
-
-                    // ===== NUEVO: Codigo de clase del alumno (columna M, índice 12) =====
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
 
                     const alumno = {
@@ -1245,13 +1240,122 @@
                         volumen: volumenInfo,
                         tieneR: tieneR,
                         estatusPago: estatusPagoRaw,
-                        codigoClase: codigoClaseLayout  // NUEVO
+                        codigoClase: codigoClaseLayout,
+                        esPrimerMes: false,
+                        noLeTocaPago: false
                     };
                     baseAlumnos[id] = alumno;
                     const idNorm = String(id).replace(/^0+/, '');
                     if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                 }
-                console.log("Alumnos cargados:", Object.keys(baseAlumnos).length);
+
+                // 2. Cargar alumnos de la Hoja de Primer Mes / Sin Pago (2608XX)
+                try {
+                    const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL);
+                    const csvTxtNuevo = await resNuevo.text();
+                    const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
+                    const filasNuevo = resParsedNuevo.data;
+
+                    for (let idx = 0; idx < filasNuevo.length; idx++) {
+                        const fila = filasNuevo[idx];
+                        if (fila.length < 4) continue;
+                        const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
+                        if (!id) continue;
+
+                        // Si ya está en baseAlumnos (cargado desde el layout principal), respetarlo
+                        if (baseAlumnos[id]) continue;
+
+                        // Filtrar estrictamente solo los que son del periodo 2608XX
+                        const periodo = fila[1] ? String(fila[1]).trim() : '';
+                        if (!periodo.includes('2608') && !periodo.startsWith('2608')) continue;
+
+                        // Filtrar estatus en Columna C (fila[2]): R, REC, Transferencia Llega o Transferencia Sale
+                        const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
+                        const stUpper = estatusPagoRaw.toUpperCase();
+                        const esValido = stUpper === 'R' || stUpper === 'REC' || stUpper.includes('TRANSFERENCIA LLEGA') || stUpper.includes('TRANSFERENCIA SALE') || stUpper.includes('TRANSF. LLEGA') || stUpper.includes('TRANSF. SALE') || stUpper.includes('TRANSFERENCIA');
+                        if (!esValido) continue;
+
+                        let tieneServicio = false;
+                        const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
+                        if (condicionTexto === "SERVICIO") tieneServicio = true;
+
+                        const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
+                        let correoAlumno = 'No registrado';
+                        if (fila[8]) correoAlumno = String(fila[8]).trim();
+                        let celularAlumno = 'No registrado';
+                        if (fila[9] && fila[9].toString().trim() !== "") {
+                            let limpio = fila[9].toString().trim().replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
+                            celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
+                        }
+
+                        const modalidadTexto = fila[10] ? fila[10].toString().trim() : 'No especificada';
+                        const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+                        let programaNombre = "ADULTO";
+                        if (programaRaw.includes("PTEEN")) programaNombre = "PTEEN";
+                        else if (programaRaw.includes("KIDS")) programaNombre = "KIDS";
+                        else if (programaRaw.includes("TEENS")) programaNombre = "TEENS";
+
+                        let programaTexto = "";
+                        if (programaNombre === "PTEEN") programaTexto = "PTEEN";
+                        else if (programaNombre === "KIDS") programaTexto = "Kids";
+                        else if (programaNombre === "TEENS") programaTexto = "Teens";
+                        else programaTexto = "Adulto";
+
+                        const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
+                        let nivelActual = 1;
+                        const numeroMatch = cursoSiguienteText.match(/\d+/);
+                        if (numeroMatch) nivelActual = parseInt(numeroMatch[0]); // NO SE RESTA 1 para 2608XX
+
+                        let textoCursoVisualizado = cursoSiguienteText;
+                        if (!isNaN(cursoSiguienteText) || /^\d+$/.test(cursoSiguienteText)) {
+                            textoCursoVisualizado = programaTexto + " " + nivelActual;
+                        }
+
+                        const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
+                        let modalidadCalculada = "FFI";
+                        const horarioUpper = horarioTexto.toUpperCase();
+                        if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
+                            modalidadCalculada = "SA";
+                        }
+                        else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) modalidadCalculada = "DO";
+
+                        let becaVal = 0;
+                        if (fila[40]) {
+                            becaVal = parseFloat(fila[40]);
+                            if (isNaN(becaVal)) becaVal = 0;
+                            if (becaVal > 1) becaVal = becaVal / 100;
+                        }
+
+                        const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+                        const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
+                        const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+
+                        const alumno = {
+                            idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
+                            modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
+                            prefijoMod: modalidadCalculada, programa: "08", nivelActual: nivelActual,
+                            cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
+                            cargoServicio: tieneServicio ? 90 : 0,
+                            periodoSiguiente: periodo,
+                            tipoClaseCal: tipoClaseCal,
+                            volumen: volumenInfo,
+                            tieneR: false,
+                            estatusPago: estatusPagoRaw,
+                            codigoClase: codigoClaseLayout,
+                            esPrimerMes: true,
+                            noLeTocaPago: true
+                        };
+
+                        baseAlumnos[id] = alumno;
+                        const idNorm = String(id).replace(/^0+/, '');
+                        if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
+                    }
+                    console.log("Alumnos de 1er mes (2608XX) incorporados.");
+                } catch(errNuevo) {
+                    console.warn("No se pudo cargar la hoja de nuevo ingreso/1er mes:", errNuevo);
+                }
+
+                console.log("Total Alumnos cargados:", Object.keys(baseAlumnos).length);
             } catch (error) {
                 console.error("Error cargando CSV:", error);
             }
@@ -1376,11 +1480,44 @@
                 seccion.classList.add('hidden');
                 return;
             }
+            if (alumnoActual.esPrimerMes) {
+                const periodoActual = alumnoActual.periodoSiguiente;
+                const periodoProx = calSumarPeriodos(periodoActual, 1);
+                const datosAct = obtenerDatosPeriodo(periodoActual);
+                const datosProx = obtenerDatosPeriodo(periodoProx);
+
+                let inicioActStr = 'No disponible', finActStr = 'No disponible';
+                let inicioProxStr = 'No disponible', finProxStr = 'No disponible';
+
+                if (datosAct) {
+                    let ini = new Date(datosAct.inicio), fin = new Date(datosAct.fin);
+                    if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                    fin = calAjustarFin(fin, tipoClase);
+                    inicioActStr = formatearFechaLinda(ini);
+                    finActStr = formatearFechaLinda(fin);
+                }
+                if (datosProx) {
+                    let ini = new Date(datosProx.inicio), fin = new Date(datosProx.fin);
+                    if (tipoClase === 'sabado') ini = calAjustarInicioSabado(ini);
+                    fin = calAjustarFin(fin, tipoClase);
+                    inicioProxStr = formatearFechaLinda(ini);
+                    finProxStr = formatearFechaLinda(fin);
+                }
+
+                document.getElementById('lbl-periodo-actual').innerText    = periodoActual || '—';
+                document.getElementById('lbl-inicio-actual').innerText     = inicioActStr;
+                document.getElementById('lbl-fin-actual').innerText        = finActStr;
+                document.getElementById('lbl-periodo-siguiente').innerText = periodoProx || '—';
+                document.getElementById('lbl-inicio-siguiente').innerText  = inicioProxStr;
+                document.getElementById('lbl-fin-siguiente').innerText     = finProxStr;
+                seccion.classList.remove('hidden');
+                return;
+            }
+
             const periodoSig = alumnoActual.periodoSiguiente;
             const periodoAnt = calcularPeriodoAnterior(periodoSig);
             const datosAnt   = periodoAnt ? obtenerDatosPeriodo(periodoAnt) : null;
             const datosSig   = obtenerDatosPeriodo(periodoSig);
-            const tipoClase  = alumnoActual.tipoClaseCal; // 'entre-semana' o 'sabado'
 
             let inicioAntStr = 'No disponible', finAntStr = 'No disponible';
             let inicioSigStr = 'No disponible', finSigStr = 'No disponible';
@@ -1722,7 +1859,9 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                if (estatus === 'R') {
+                if (alumnoActual.noLeTocaPago) {
+                    statusBadge = '<span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✨ 1ER MES (NO TOCA PAGO)</span>';
+                } else if (estatus === 'R') {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
                 } else if (estatus === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
@@ -2012,9 +2151,13 @@
             const contCotizacion = document.getElementById('cotizacion-fecha-container');
             if (lblCotizacionFecha && contCotizacion && alumnoActual) {
                 let targetPeriod = alumnoActual.periodoSiguiente;
-                const periodoAnt = calcularPeriodoAnterior(targetPeriod);
-                if (!alumnoActual.tieneR && periodoAnt) {
-                    targetPeriod = periodoAnt;
+                if (alumnoActual.esPrimerMes) {
+                    targetPeriod = calSumarPeriodos(alumnoActual.periodoSiguiente, 1);
+                } else {
+                    const periodoAnt = calcularPeriodoAnterior(targetPeriod);
+                    if (!alumnoActual.tieneR && periodoAnt) {
+                        targetPeriod = periodoAnt;
+                    }
                 }
                 
                 let textoCotizacion = "";
