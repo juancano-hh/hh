@@ -2220,7 +2220,8 @@
 
                 let nextPaymentPeriod = targetPeriod;
                 if (alumnoActual.esLayPasado || alumnoActual.esPrimerMes) {
-                    nextPaymentPeriod = (cantCursos > 1) ? calSumarPeriodos(targetPeriod, cantCursos - 1) : targetPeriod;
+                    // Para LAYPASADO, la cotización de pago se proyecta hacia el Próximo Curso (ej. 260810)
+                    nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos);
                 } else {
                     const periodoAnt = calcularPeriodoAnterior(targetPeriod);
                     if (!alumnoActual.tieneR && periodoAnt) {
@@ -2241,8 +2242,27 @@
                 }
                 
                 let nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
-                if (!nextPaymentDatos) nextPaymentDatos = obtenerDatosPeriodo(targetPeriod);
-                let textoCotizacion = obtenerRangoPago(nextPaymentDatos, modStr);
+                let textoCotizacion = "";
+                if (nextPaymentDatos) {
+                    textoCotizacion = obtenerRangoPago(nextPaymentDatos, modStr);
+                } else {
+                    const datosBase = obtenerDatosPeriodo(targetPeriod);
+                    if (datosBase && datosBase.inicio) {
+                        const ini = new Date(datosBase.inicio);
+                        const mesesTotal = cantCursos * (modStr === '04' ? 1 : 2);
+                        ini.setMonth(ini.getMonth() + mesesTotal);
+                        let inicioPago = new Date(ini);
+                        let finPago = new Date(ini);
+                        if (modStr === '04') {
+                            finPago.setDate(finPago.getDate() + 12);
+                        } else {
+                            inicioPago.setDate(inicioPago.getDate() + 28);
+                            finPago.setDate(finPago.getDate() + 40);
+                        }
+                        const ops = { day:'numeric', month:'short' };
+                        textoCotizacion = `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
+                    }
+                }
                 
                 if (textoCotizacion && textoCotizacion !== 'No disponible') {
                     lblCotizacionFecha.innerText = textoCotizacion;
@@ -3922,13 +3942,7 @@
                         }
                         tbodyHtml += `<td class="font-bold border border-gray-300 py-1 leading-tight">${cellContent}</td>`;
                     } else {
-                        const count = obtenerCantidadAlumnos(c, f.horaFmt, false);
-                        let colorClass = '';
-                        if (count !== null && count > 0) {
-                            if (count < 5) colorClass = 'bg-red-200 text-red-900 font-bold';
-                            else if (count >= 10) colorClass = 'bg-green-200 text-green-900 font-bold';
-                        }
-                        tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${c}</td>`;
+                        tbodyHtml += `<td class="border border-gray-300 p-1">${c}</td>`;
                     }
                 });
                 tbodyHtml += '</tr>';
@@ -3949,13 +3963,7 @@
                     if (idx === 0) {
                         tbodyHtml += `<td class="font-bold border border-gray-300 py-1">${c}</td>`;
                     } else {
-                        const count = obtenerCantidadAlumnos(c, f.horaFmt, true);
-                        let colorClass = '';
-                        if (count !== null && count > 0) {
-                            if (count < 5) colorClass = 'bg-red-200 text-red-900 font-bold';
-                            else if (count >= 10) colorClass = 'bg-green-200 text-green-900 font-bold';
-                        }
-                        tbodyHtml += `<td class="border border-gray-300 ${colorClass}">${c}</td>`;
+                        tbodyHtml += `<td class="border border-gray-300 p-1">${c}</td>`;
                     }
                 });
                 tbodyHtml += '</tr>';
