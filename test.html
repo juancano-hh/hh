@@ -1715,9 +1715,14 @@
                         // Si ya está en baseAlumnos (cargado desde el layout principal), respetarlo
                         if (baseAlumnos[id]) continue;
 
-                        // Filtrar estrictamente solo los que son del periodo 2608XX
+                        // Filtrar estrictamente solo los que son del periodo 2608XX, o Adultos de curso 24 (que suelen tener 2604XX)
                         const periodo = fila[1] ? String(fila[1]).trim() : '';
-                        if (!periodo.includes('2608') && !periodo.startsWith('2608')) continue;
+                        const programaRawTemp = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+                        const cursoSiguienteTextTemp = fila[14] ? String(fila[14]).trim() : '';
+                        const esAdulto = (!programaRawTemp.includes("PTEEN") && !programaRawTemp.includes("KIDS") && !programaRawTemp.includes("TEENS"));
+                        const esCurso24 = cursoSiguienteTextTemp.match(/\d+/) && parseInt(cursoSiguienteTextTemp.match(/\d+/)[0]) === 24;
+                        
+                        if (!periodo.includes('2608') && !periodo.startsWith('2608') && !(esAdulto && esCurso24)) continue;
 
                         // Filtrar estatus en Columna C (fila[2]): R, REC, Transferencia Llega o Transferencia Sale
                         const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
@@ -4916,6 +4921,7 @@
 
                 if (esSoloStarting && !esAlumnoLayPasado) return false;
                 if (esSoloEnding && esAlumnoLayPasado) return false;
+                if (esAlumnoLayPasado && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
@@ -4953,6 +4959,7 @@
 
                 if (esSoloStarting && !esAlumnoLayPasado) return false;
                 if (esSoloEnding && esAlumnoLayPasado) return false;
+                if (esAlumnoLayPasado && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
@@ -5451,6 +5458,7 @@
 
                 if (esSoloS && !esAlumnoLayPasado) return false;
                 if (esSoloE && esAlumnoLayPasado) return false;
+                if (esAlumnoLayPasado && !esSoloS && !esSoloE && !(progAlumnos === 'ADULTO' && parseInt(nivelVal) === 24)) return false;
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === parseInt(nivelVal) &&
