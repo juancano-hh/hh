@@ -965,16 +965,6 @@
                 <table id="tabla-horarios-dinamica" class="w-full text-center text-xs border-collapse font-sans">
                     <!-- Se llena dinámicamente con JS -->
                 </table>
-                <div class="mt-5 flex flex-wrap gap-6 text-sm text-gray-700 justify-center items-center font-medium bg-gray-50 py-2 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-4 h-4 bg-green-200 border border-green-300 shadow-sm"></span>
-                        <span>≥ 10 alumnos inscritos</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-block w-4 h-4 bg-red-200 border border-red-300 shadow-sm"></span>
-                        <span>< 5 alumnos inscritos</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -3216,6 +3206,7 @@
                     const nivelFin = f[4] ? String(f[4]).trim() : '';
                     const subjectCode = f[5] ? String(f[5]).trim().toUpperCase() : '';
                     const frecuencia = f[6] ? String(f[6]).trim().toUpperCase() : '';
+                    const colH = f[7] ? String(f[7]).trim().toUpperCase() : '';
                     const crn = f[9] ? String(f[9]).trim() : '';
                     const horario = f[11] ? String(f[11]).trim() : '';
                     const alumnosInscritos = f[12] ? (parseInt(String(f[12]).trim(), 10) || 0) : 0;
@@ -3239,10 +3230,15 @@
                     // Guardar niveles como números
                     const nivIni = nivelIni !== '' ? parseInt(nivelIni, 10) : null;
                     const nivFin = nivelFin !== '' ? parseInt(nivelFin, 10) : null;
+                    const esTeenPteen = (subjectCode === 'TEEN' || subjectCode === 'PTEE');
+                    const esNonOPar = (colH.includes('NON') || colH.includes('PAR'));
+                    const aplicaLaypasadoD = esTeenPteen && esNonOPar && (nivIni !== null);
 
                     horariosRecuperacion.push({
                         nivelIni: nivIni,
                         nivelFin: nivFin,
+                        colH: colH,
+                        aplicaLaypasadoD: aplicaLaypasadoD,
                         subjectCode: subjectCode,
                         frecuencia: frecuencia,
                         crn: crn,
@@ -3410,12 +3406,27 @@
             }
 
             const nivel = alumnoActual.nivelActual;
+            const esLayPasado = !!alumnoActual.esLayPasado;
+            const esTeenPteen = (alumnoActual.programaNombre === 'TEENS' || alumnoActual.programaNombre === 'PTEEN' || subjectCodes.includes('TEEN') || subjectCodes.includes('PTEE'));
+
             // Filtrar horarios por subject + frequency + nivel
             let filtrados = horariosRecuperacion.filter(h => {
                 const cumpleSubject  = subjectCodes.includes(h.subjectCode);
                 const cumpleFrecuencia = h.frecuencia === tipo;
-                const cumpleNivel = h.nivelFin === nivel;
-                return cumpleSubject && cumpleFrecuencia && cumpleNivel;
+                if (!cumpleSubject || !cumpleFrecuencia) return false;
+
+                if (esTeenPteen) {
+                    if (esLayPasado) {
+                        // Alumnos TEEN y PTEEN de LAYPASADO: usar el nivel de la Columna E
+                        return h.nivelFin === nivel;
+                    } else {
+                        // Alumnos TEEN y PTEEN de LAYOUT: usar el nivel de la Columna D
+                        return h.nivelIni === nivel;
+                    }
+                } else {
+                    // Para Adultos y otros programas: usar Columna E
+                    return h.nivelFin === nivel;
+                }
             });
 
             // Agrupar por horaFmt
@@ -4509,25 +4520,48 @@
                 return;
             }
 
+            const isTeenPteen = (prog === 'TEEN' || prog === 'PTEE');
             const subjectCodes = (prog === 'ADUL') ? ['ADUL', 'ADDU'] : [prog];
             const matching = horariosRecuperacion.filter(h => subjectCodes.includes(h.subjectCode) && h.frecuencia === frec);
 
-            const nivelesSet = new Set();
+            const nivelesMap = new Map();
             matching.forEach(h => {
-                if (h.nivelFin !== null && !isNaN(h.nivelFin)) nivelesSet.add(h.nivelFin);
-                else if (h.nivelIni !== null && !isNaN(h.nivelIni)) nivelesSet.add(h.nivelIni);
+                // Niveles de la columna E (Starting para TEEN/PTEE)
+                if (h.nivelFin !== null && !isNaN(h.nivelFin)) {
+                    const key = isTeenPteen ? `${h.nivelFin}_E` : `${h.nivelFin}`;
+                    if (!nivelesMap.has(key)) {
+                        nivelesMap.set(key, { nivel: h.nivelFin, tipo: isTeenPteen ? ' (Starting)' : '', origen: 'E' });
+                    }
+                }
+                // Niveles de la columna D (Ending para TEEN/PTEE)
+                if (h.nivelIni !== null && !isNaN(h.nivelIni)) {
+                    if (isTeenPteen) {
+                        const key = `${h.nivelIni}_D`;
+                        if (!nivelesMap.has(key)) {
+                            nivelesMap.set(key, { nivel: h.nivelIni, tipo: ' (Ending)', origen: 'D' });
+                        }
+                    } else if (h.nivelFin === null) {
+                        const key = `${h.nivelIni}`;
+                        if (!nivelesMap.has(key)) {
+                            nivelesMap.set(key, { nivel: h.nivelIni, tipo: '', origen: 'D' });
+                        }
+                    }
+                }
             });
 
-            const nivelesArr = Array.from(nivelesSet).sort((a, b) => a - b);
+            const nivelesArr = Array.from(nivelesMap.values()).sort((a, b) => {
+                if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+                return a.origen.localeCompare(b.origen);
+            });
 
             if (nivelesArr.length === 0) {
                 selNiv.innerHTML = '<option value="">No hay niveles disponibles</option>';
                 selNiv.disabled = true;
             } else {
-                nivelesArr.forEach(niv => {
+                nivelesArr.forEach(item => {
                     const opt = document.createElement('option');
-                    opt.value = niv;
-                    opt.textContent = `Nivel ${niv}`;
+                    opt.value = isTeenPteen ? `${item.nivel}_${item.origen}` : `${item.nivel}`;
+                    opt.textContent = `Nivel ${item.nivel}${item.tipo}`;
                     selNiv.appendChild(opt);
                 });
                 selNiv.disabled = false;
@@ -4549,12 +4583,19 @@
                 return;
             }
 
-            const nivNum = parseInt(nivVal, 10);
             const subjectCodes = (prog === 'ADUL') ? ['ADUL', 'ADDU'] : [prog];
             const matching = horariosRecuperacion.filter(h => {
                 const cumpleProg = subjectCodes.includes(h.subjectCode);
                 const cumpleFrec = h.frecuencia === frec;
-                const cumpleNiv = (h.nivelFin === nivNum || (h.nivelIni !== null && h.nivelFin !== null && nivNum >= h.nivelIni && nivNum <= h.nivelFin));
+                let cumpleNiv = false;
+                if (nivVal.includes('_')) {
+                    const [nStr, orig] = nivVal.split('_');
+                    const nivNum = parseInt(nStr, 10);
+                    cumpleNiv = (orig === 'E' && h.nivelFin === nivNum) || (orig === 'D' && h.nivelIni === nivNum);
+                } else {
+                    const nivNum = parseInt(nivVal, 10);
+                    cumpleNiv = (h.nivelFin === nivNum || h.nivelIni === nivNum);
+                }
                 return cumpleProg && cumpleFrec && cumpleNiv;
             });
 
@@ -4612,8 +4653,15 @@
                 if (!subjectCodes.includes(h.subjectCode)) return false;
                 if (frec && h.frecuencia !== frec) return false;
                 if (nivVal) {
-                    const nivNum = parseInt(nivVal, 10);
-                    const cumpleNiv = (h.nivelFin === nivNum || (h.nivelIni !== null && h.nivelFin !== null && nivNum >= h.nivelIni && nivNum <= h.nivelFin));
+                    let cumpleNiv = false;
+                    if (nivVal.includes('_')) {
+                        const [nStr, orig] = nivVal.split('_');
+                        const nivNum = parseInt(nStr, 10);
+                        cumpleNiv = (orig === 'E' && h.nivelFin === nivNum) || (orig === 'D' && h.nivelIni === nivNum);
+                    } else {
+                        const nivNum = parseInt(nivVal, 10);
+                        cumpleNiv = (h.nivelFin === nivNum || h.nivelIni === nivNum);
+                    }
                     if (!cumpleNiv) return false;
                 }
                 if (horVal && h.horaFmt !== horVal) return false;
@@ -4651,6 +4699,7 @@
             let html = '';
             resultados.forEach((g, idx) => {
                 const progNombre = nombresProgramas[g.subjectCode] || g.subjectCode;
+                const isTeenPteen = (g.subjectCode === 'TEEN' || g.subjectCode === 'PTEE');
                 const cant = g.alumnosInscritos || 0;
                 let badgeAlumnos = '';
                 if (cant <= 7) {
@@ -4681,6 +4730,19 @@
                     `;
                 }
 
+                let nivelMostrarHtml = '';
+                if (isTeenPteen) {
+                    if (g.nivelFin !== null && !isNaN(g.nivelFin)) {
+                        nivelMostrarHtml = `Nivel ${g.nivelFin} <span class="ml-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">Starting</span>`;
+                    } else if (g.nivelIni !== null && !isNaN(g.nivelIni)) {
+                        nivelMostrarHtml = `Nivel ${g.nivelIni} <span class="ml-1 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">Ending</span>`;
+                    } else {
+                        nivelMostrarHtml = 'N/A';
+                    }
+                } else {
+                    nivelMostrarHtml = `Nivel ${g.nivelFin !== null ? g.nivelFin : (g.nivelIni || 'N/A')}`;
+                }
+
                 html += `
                     <div class="bg-white border-2 border-purple-100 hover:border-purple-400 rounded-2xl p-4 shadow-sm hover:shadow transition-all space-y-3">
                         <div class="flex items-center justify-between">
@@ -4696,7 +4758,7 @@
                         <div class="grid grid-cols-2 gap-2 text-xs text-gray-700 bg-gray-50/80 p-3 rounded-xl border border-gray-200">
                             <div>
                                 <span class="text-gray-400 font-bold block text-[10px] uppercase">Nivel</span>
-                                <span class="font-black text-gray-900 text-sm">Nivel ${g.nivelFin || g.nivelIni || 'N/A'}</span>
+                                <span class="font-black text-gray-900 text-sm flex items-center flex-wrap">${nivelMostrarHtml}</span>
                             </div>
                             <div>
                                 <span class="text-gray-400 font-bold block text-[10px] uppercase">Programa</span>
