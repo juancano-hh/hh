@@ -3290,19 +3290,8 @@
         function obtenerPeriodoParaRecuperacion(alumno) {
             if (!alumno) return null;
             
-            // 1. Intentar periodo anterior del periodoSiguiente
-            if (alumno.periodoSiguiente) {
-                const periodoAnt = calcularPeriodoAnterior(alumno.periodoSiguiente);
-                if (periodoAnt) {
-                    const datosAnt = obtenerDatosPeriodo(periodoAnt);
-                    if (datosAnt) return datosAnt;
-                }
-                // 2. Intentar directamente periodoSiguiente
-                const datosSig = obtenerDatosPeriodo(alumno.periodoSiguiente);
-                if (datosSig) return datosSig;
-            }
-
-            // 3. Buscar en periodosCalendario según la modalidad del alumno y fecha actual
+            // 1. PRIMERO: Buscar en periodosCalendario según la modalidad del alumno y la fecha ACTUAL (hoy)
+            // Esto asegura que al cambiar el mes, el calendario de recuperación se actualice automáticamente.
             if (periodosCalendario && periodosCalendario.length > 0) {
                 const mod = alumno.programa || '04'; // '04' o '08'
                 const hoy = new Date();
@@ -3313,12 +3302,18 @@
 
                 const actual = lista.find(p => hoy >= p.inicio && hoy <= p.fin);
                 if (actual) return actual;
+            }
 
-                const futuros = lista.filter(p => p.fin >= hoy).sort((a,b) => a.inicio - b.inicio);
-                if (futuros.length > 0) return futuros[0];
-
-                const pasados = [...lista].sort((a,b) => b.fin - a.fin);
-                if (pasados.length > 0) return pasados[0];
+            // 2. FALLBACK: Intentar periodo anterior del periodoSiguiente si no se encontró un periodo actual
+            if (alumno.periodoSiguiente) {
+                const periodoAnt = calcularPeriodoAnterior(alumno.periodoSiguiente);
+                if (periodoAnt) {
+                    const datosAnt = obtenerDatosPeriodo(periodoAnt);
+                    if (datosAnt) return datosAnt;
+                }
+                // Intentar directamente periodoSiguiente
+                const datosSig = obtenerDatosPeriodo(alumno.periodoSiguiente);
+                if (datosSig) return datosSig;
             }
 
             // 4. Fallback de emergencia
