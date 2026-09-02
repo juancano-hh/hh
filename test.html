@@ -1362,6 +1362,24 @@
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalBuscadorCRN()">✕</button>
             </div>
             <div class="p-4 sm:p-5 bg-white space-y-4 overflow-y-auto flex-1 rounded-b-2xl">
+                <!-- Barra de Búsqueda Directa por CRN -->
+                <div class="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 focus-within:border-pink-500 rounded-2xl p-2.5 px-3.5 flex items-center gap-2.5 transition-all shadow-sm">
+                    <span class="text-pink-600 text-lg select-none">🔎</span>
+                    <input type="text" id="bcrn-input-busqueda" 
+                           placeholder="Buscar directamente por número de CRN (ej. 43157, 11655)..." 
+                           oninput="bcrnBuscarPorTextoDirecto(this.value)"
+                           class="w-full bg-transparent text-xs sm:text-sm font-bold text-gray-800 placeholder-gray-400 outline-none">
+                    <button type="button" onclick="bcrnLimpiarBusquedaTexto()" id="bcrn-btn-clear-texto" class="hidden text-gray-400 hover:text-pink-600 text-xs font-bold px-2 py-1 rounded-full hover:bg-pink-100 transition" title="Limpiar búsqueda">
+                        ✕
+                    </button>
+                </div>
+
+                <div class="flex items-center text-gray-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+                    <div class="flex-1 border-t border-gray-200"></div>
+                    <span class="px-2.5 text-gray-400 bg-white">O selecciona mediante filtros</span>
+                    <div class="flex-1 border-t border-gray-200"></div>
+                </div>
+
                 <!-- Selectores de filtrado -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-3.5 rounded-2xl border border-gray-200">
                     <!-- 1. Programa / Tipo -->
@@ -4434,6 +4452,11 @@
         }
 
         function bcrnResetearFiltros() {
+            const inputBusq = document.getElementById('bcrn-input-busqueda');
+            if (inputBusq) inputBusq.value = '';
+            const btnClear = document.getElementById('bcrn-btn-clear-texto');
+            if (btnClear) btnClear.classList.add('hidden');
+
             document.getElementById('bcrn-programa').value = '';
             
             const selFrec = document.getElementById('bcrn-frecuencia');
@@ -4452,12 +4475,77 @@
             document.getElementById('bcrn-resultados').innerHTML = `
                 <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
                     <span class="text-2xl block mb-1">🔍</span>
-                    Selecciona el programa, modalidad, nivel y horario para consultar los grupos disponibles.
+                    Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
                 </div>
             `;
         }
 
+        function bcrnBuscarPorTextoDirecto(query) {
+            const q = String(query || '').trim().toUpperCase();
+            const btnClear = document.getElementById('bcrn-btn-clear-texto');
+            if (btnClear) {
+                if (q.length > 0) btnClear.classList.remove('hidden');
+                else btnClear.classList.add('hidden');
+            }
+
+            if (!q) {
+                const prog = document.getElementById('bcrn-programa').value;
+                if (prog) {
+                    bcrnBuscarResultados();
+                } else {
+                    document.getElementById('bcrn-conteo-resultados').innerText = '';
+                    document.getElementById('bcrn-resultados').innerHTML = `
+                        <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
+                            <span class="text-2xl block mb-1">🔍</span>
+                            Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // Desactivar temporalmente los selectores para dar prioridad a la búsqueda directa
+            document.getElementById('bcrn-programa').value = '';
+            document.getElementById('bcrn-frecuencia').value = '';
+            document.getElementById('bcrn-frecuencia').disabled = true;
+            document.getElementById('bcrn-nivel').value = '';
+            document.getElementById('bcrn-nivel').disabled = true;
+            document.getElementById('bcrn-horario').value = '';
+            document.getElementById('bcrn-horario').disabled = true;
+
+            // Filtrar directamente en horariosRecuperacion por CRN (o teacher/código)
+            const resultados = horariosRecuperacion.filter(h => {
+                const crnStr = String(h.crn || '').toUpperCase();
+                const docStr = String(h.docente || '').toUpperCase();
+                const subjStr = String(h.subjectCode || '').toUpperCase();
+                return crnStr.includes(q) || docStr.includes(q) || subjStr === q;
+            });
+
+            bcrnRenderizarResultados(resultados, `por CRN / texto "${query}"`);
+        }
+
+        function bcrnLimpiarBusquedaTexto() {
+            const inputBusq = document.getElementById('bcrn-input-busqueda');
+            if (inputBusq) inputBusq.value = '';
+            const btnClear = document.getElementById('bcrn-btn-clear-texto');
+            if (btnClear) btnClear.classList.add('hidden');
+            
+            const prog = document.getElementById('bcrn-programa').value;
+            if (prog) {
+                bcrnBuscarResultados();
+            } else {
+                bcrnResetearFiltros();
+            }
+        }
+
         function bcrnActualizarFrecuencias() {
+            const inputBusq = document.getElementById('bcrn-input-busqueda');
+            if (inputBusq && inputBusq.value) {
+                inputBusq.value = '';
+                const btnClear = document.getElementById('bcrn-btn-clear-texto');
+                if (btnClear) btnClear.classList.add('hidden');
+            }
+
             const prog = document.getElementById('bcrn-programa').value;
             const selFrec = document.getElementById('bcrn-frecuencia');
             const selNiv = document.getElementById('bcrn-nivel');
@@ -4642,7 +4730,7 @@
                 contResultados.innerHTML = `
                     <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
                         <span class="text-2xl block mb-1">🔍</span>
-                        Selecciona al menos un programa para comenzar la búsqueda.
+                        Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
                     </div>
                 `;
                 return;
@@ -4668,6 +4756,13 @@
                 return true;
             });
 
+            bcrnRenderizarResultados(resultados, 'filtros');
+        }
+
+        function bcrnRenderizarResultados(resultados, tipoBusqueda = '') {
+            const contResultados = document.getElementById('bcrn-resultados');
+            const conteoEl = document.getElementById('bcrn-conteo-resultados');
+
             resultados.sort((a, b) => {
                 const hA = parseInt(a.horario.padStart(4, '0'), 10);
                 const hB = parseInt(b.horario.padStart(4, '0'), 10);
@@ -4680,7 +4775,7 @@
             if (resultados.length === 0) {
                 contResultados.innerHTML = `
                     <div class="p-6 text-center bg-orange-50 border border-orange-200 rounded-2xl text-orange-700 text-xs font-semibold">
-                        ⚠️ No se encontraron grupos para los filtros seleccionados.
+                        ⚠️ No se encontraron grupos para la consulta realizada.
                     </div>
                 `;
                 return;
