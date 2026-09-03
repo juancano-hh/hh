@@ -403,7 +403,12 @@
                 </button>
             </p>
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
-            <p class="text-sm text-gray-700"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700">
+                <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-2"></span>
+                <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                    📅 Horarios
+                </button>
+            </p>
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
                 <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
                 <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
