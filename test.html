@@ -3029,6 +3029,11 @@
         }
         function calAddDays(date, days) { const r=new Date(date); r.setDate(r.getDate()+days); return r; }
         
+        function calAjustarInicioSabado(fecha) {
+            const dia=fecha.getDay(); if(dia===6) return new Date(fecha);
+            return calAddDays(fecha, (6-dia+7)%7);
+        }
+
         function calAjustarInicio(fecha, tipoClase) {
             const dia=fecha.getDay();
             if(tipoClase==='sabado') {
