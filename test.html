@@ -1500,7 +1500,7 @@
                 </div>
                 <div class="modal-controls">
                     <!-- Selects deshabilitados para mostrar la config al usuario sin permitir que la cambie -->
-                    <select id="cal-modalidad" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
+                    <select id="cal-modalidad" class="cal-sel" onchange="calActualizarOpcionesTipoClase(); renderizarCalendarioModal()" disabled>
                         <option value="04">Adultos</option>
                         <option value="08">Kids / Teens</option>
                     </select>
@@ -2877,8 +2877,10 @@
             if (!document.getElementById('cal-modalidad').value) {
                 document.getElementById('cal-modalidad').value = '08';
             }
+            
+            calActualizarOpcionesTipoClase();
             if (!document.getElementById('cal-tipoClase').value) {
-                document.getElementById('cal-tipoClase').value = 'entre-semana';
+                document.getElementById('cal-tipoClase').value = 'lunes-miercoles';
             }
             
             document.getElementById('modal-calendario').classList.remove('hidden');
@@ -2893,7 +2895,8 @@
             document.getElementById('cal-tipoClase').disabled = true;
 
             const modalidad = alumnoActual.programa;        // '04' o '08'
-            const tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
+            let tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
+            
             // Filtro NON/PAR deducido del código de periodo
             let filtroMes = 'non';
             if (alumnoActual.periodoSiguiente && alumnoActual.periodoSiguiente.length >= 6) {
@@ -2902,9 +2905,26 @@
             }
             // Pre-configurar selectores
             document.getElementById('cal-modalidad').value  = modalidad;
+            calActualizarOpcionesTipoClase();
+            
+            // Map 'entre-semana' for Kids/Teens to default to lunes-miercoles in student view
+            // If they are Kids and the original type was 'entre-semana', we default to 'lunes-miercoles'
+            // because we don't have finer data, but they can't change it anyway. Wait, if it's disabled, 
+            // maybe we shouldn't change the options? If the modal is disabled, it will just show Lunes y Miércoles 
+            // for all Kids entre-semana. We should check if we can preserve 'entre-semana' or just let it be.
+            if (modalidad === '08' && tipoClase === 'entre-semana') {
+                tipoClase = 'lunes-miercoles';
+            }
+            
             document.getElementById('cal-tipoClase').value  = tipoClase;
             document.getElementById('cal-filtroMes').value  = filtroMes;
             document.getElementById('cal-filtroMes').disabled = (modalidad === '04' || !esCalendarioIndependiente);
+            
+            // Permitir que el usuario cambie entre Lunes-Miércoles y Martes-Jueves si es un Kid/Teen entre semana
+            if (modalidad === '08' && (tipoClase === 'lunes-miercoles' || tipoClase === 'martes-jueves')) {
+                document.getElementById('cal-tipoClase').disabled = false;
+            }
+            
             // Mostrar modal
             document.getElementById('modal-calendario').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -2914,6 +2934,34 @@
         function cerrarModalCalendario() {
             document.getElementById('modal-calendario').classList.add('hidden');
             document.body.style.overflow = '';
+        }
+
+        function calActualizarOpcionesTipoClase() {
+            const modalidad = document.getElementById('cal-modalidad').value;
+            const selTipoClase = document.getElementById('cal-tipoClase');
+            const valorAnterior = selTipoClase.value;
+        
+            selTipoClase.innerHTML = '';
+            if (modalidad === '04') {
+                selTipoClase.innerHTML += '<option value="entre-semana">L - J</option>';
+                selTipoClase.innerHTML += '<option value="sabado">Sábados</option>';
+            } else {
+                selTipoClase.innerHTML += '<option value="lunes-miercoles">Lunes y Miércoles</option>';
+                selTipoClase.innerHTML += '<option value="martes-jueves">Martes y Jueves</option>';
+                selTipoClase.innerHTML += '<option value="sabado">Sábados</option>';
+            }
+        
+            let valid = false;
+            for (let i = 0; i < selTipoClase.options.length; i++) {
+                if (selTipoClase.options[i].value === valorAnterior) {
+                    valid = true; break;
+                }
+            }
+            if (valid) {
+                selTipoClase.value = valorAnterior;
+            } else {
+                selTipoClase.value = modalidad === '04' ? 'entre-semana' : 'lunes-miercoles';
+            }
         }
 
         document.addEventListener('keydown', function(e) {
@@ -2926,7 +2974,11 @@
             const filtroMes = document.getElementById('cal-filtroMes').value;
             document.getElementById('cal-filtroMes').disabled = (modalidad === '04');
             const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids / Teens';
-            const nombreTipo  = tipoClase === 'entre-semana' ? 'Lunes a Jueves' : 'Sábados';
+            let nombreTipo = '';
+            if (tipoClase === 'entre-semana') nombreTipo = 'Lunes a Jueves';
+            else if (tipoClase === 'lunes-miercoles') nombreTipo = 'Lunes y Miércoles';
+            else if (tipoClase === 'martes-jueves') nombreTipo = 'Martes y Jueves';
+            else nombreTipo = 'Sábados';
             const nombreFiltro = modalidad === '08' ? ` · Meses ${filtroMes.toUpperCase()}` : '';
             
             let tituloFinal = `${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
@@ -2971,10 +3023,19 @@
             return d>=s && d<=e;
         }
         function calAddDays(date, days) { const r=new Date(date); r.setDate(r.getDate()+days); return r; }
-        function calAjustarInicioSabado(fecha) {
-            const dia=fecha.getDay(); if(dia===6) return new Date(fecha);
-            return calAddDays(fecha, (6-dia+7)%7);
+        
+        function calAjustarInicio(fecha, tipoClase) {
+            const dia=fecha.getDay();
+            if(tipoClase==='sabado') {
+                if(dia===6) return new Date(fecha);
+                return calAddDays(fecha, (6-dia+7)%7);
+            }
+            if (tipoClase==='martes-jueves' && dia===1) {
+                return calAddDays(fecha, 1);
+            }
+            return new Date(fecha);
         }
+
         function calAjustarFinSabado(fecha) {
             const dia=fecha.getDay();
             if(dia===0) return calAddDays(fecha,-1);
@@ -2988,7 +3049,12 @@
             return new Date(fecha);
         }
         function calAjustarFin(fecha, tipoClase) {
-            return tipoClase==='sabado' ? calAjustarFinSabado(fecha) : calAjustarFinEntreSemana(fecha);
+            if (tipoClase==='sabado') return calAjustarFinSabado(fecha);
+            let finA = calAjustarFinEntreSemana(fecha);
+            if (tipoClase==='lunes-miercoles' && finA.getDay()===4) {
+                finA = calAddDays(finA, -1);
+            }
+            return finA;
         }
 
         function generarMesModal(mes, anio, periodosFiltrados, modalidad, tipoClase) {
@@ -3026,13 +3092,15 @@
                     for (const p of periodosActivos) {
                         let iniA=new Date(p.inicio), finA=new Date(p.fin);
                         const iniOrig=new Date(p.inicio);
-                        if (tipoClase==='sabado') iniA=calAjustarInicioSabado(iniA);
+                        iniA=calAjustarInicio(iniA, tipoClase);
                         finA=calAjustarFin(finA,tipoClase);
                         if (calIsSameDay(cur,iniA)) esInicio=true;
                         if (calIsSameDay(cur,finA)) esFin=true;
                         const enRango=calIsInRange(cur,iniA,finA);
                         if (enRango && !esDom) {
                             if (tipoClase==='entre-semana' && dow>=1 && dow<=4) esClase=true;
+                            else if (tipoClase==='lunes-miercoles' && (dow===1 || dow===3)) esClase=true;
+                            else if (tipoClase==='martes-jueves' && (dow===2 || dow===4)) esClase=true;
                             else if (tipoClase==='sabado' && esSab) esClase=true;
                         }
                         const diffDias=Math.floor((cur-iniOrig)/(1000*60*60*24));
