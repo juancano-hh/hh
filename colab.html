@@ -3258,7 +3258,10 @@
                         const matchObj = {
                             salon: matrizSalones.salones[i] || 'No definido',
                             teacher: currentTeacher,
-                            dias: fila.dias
+                            dias: fila.dias,
+                            colIdx: i,
+                            horaFmt: filaHStr,
+                            isSabado: esSabado
                         };
 
                         if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
@@ -5245,14 +5248,27 @@
         }
 
         function abrirModalHorariosLayout() {
+            let highlightObj = null;
+            if (typeof alumnoActual !== 'undefined' && alumnoActual) {
+                const esSab = (alumnoActual.tipoClaseCal === 'sabado');
+                const esLayP = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                highlightObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSab, null, esLayP);
+            }
+
             // Render thead
             let thead = `
                 <thead>
                     <tr class="text-gray-800 font-bold bg-gray-100 border-b border-gray-300">
-                        ${(matrizSalones.salones || []).map(s => `<th class="p-1 border border-gray-300">${s}</th>`).join('')}
+                        ${(matrizSalones.salones || []).map((s, idx) => {
+                            let matchH = highlightObj && highlightObj.colIdx === idx;
+                            return `<th class="p-1 border border-gray-300 ${matchH ? 'bg-yellow-200' : ''}">${s}</th>`;
+                        }).join('')}
                     </tr>
                     <tr class="text-gray-700 font-bold bg-gray-50 border-b border-gray-300">
-                        ${(matrizSalones.teachers || []).map(t => `<th class="p-1 border border-gray-300">${t}</th>`).join('')}
+                        ${(matrizSalones.teachers || []).map((t, idx) => {
+                            let matchH = highlightObj && highlightObj.colIdx === idx;
+                            return `<th class="p-1 border border-gray-300 ${matchH ? 'bg-yellow-200' : ''}">${t}</th>`;
+                        }).join('')}
                     </tr>
                 </thead>
             `;
@@ -5261,8 +5277,15 @@
 
             // Render filas entre semana
             (matrizSalones.filas || []).forEach(f => {
+                let matchFila = highlightObj && !highlightObj.isSabado && highlightObj.horaFmt === f.horaFmt && (!highlightObj.dias || highlightObj.dias === f.dias);
                 tbodyHtml += '<tr>';
                 f.celdas.forEach((c, idx) => {
+                    let cellClass = "border border-gray-300 p-1";
+                    let matchCell = matchFila && highlightObj.colIdx === idx;
+                    if (matchCell) {
+                        cellClass += " bg-yellow-300 ring-2 ring-yellow-500 font-bold transform scale-105 z-10 relative shadow-md";
+                    }
+
                     if (idx === 0) {
                         let cellContent = c;
                         if (f.dias === 'Lunes y Miércoles') {
@@ -5272,7 +5295,7 @@
                         }
                         tbodyHtml += `<td class="font-bold border border-gray-300 py-1 leading-tight">${cellContent}</td>`;
                     } else {
-                        tbodyHtml += `<td class="border border-gray-300 p-1">${c}</td>`;
+                        tbodyHtml += `<td class="${cellClass}">${c}</td>`;
                     }
                 });
                 tbodyHtml += '</tr>';
@@ -5288,12 +5311,19 @@
 
             // Render filas Sabado
             (matrizSalones.filasSabado || []).forEach(f => {
+                let matchFila = highlightObj && highlightObj.isSabado && highlightObj.horaFmt === f.horaFmt;
                 tbodyHtml += '<tr>';
                 f.celdas.forEach((c, idx) => {
+                    let cellClass = "border border-gray-300 p-1";
+                    let matchCell = matchFila && highlightObj.colIdx === idx;
+                    if (matchCell) {
+                        cellClass += " bg-yellow-300 ring-2 ring-yellow-500 font-bold transform scale-105 z-10 relative shadow-md";
+                    }
+
                     if (idx === 0) {
                         tbodyHtml += `<td class="font-bold border border-gray-300 py-1">${c}</td>`;
                     } else {
-                        tbodyHtml += `<td class="border border-gray-300 p-1">${c}</td>`;
+                        tbodyHtml += `<td class="${cellClass}">${c}</td>`;
                     }
                 });
                 tbodyHtml += '</tr>';
