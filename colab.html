@@ -5293,7 +5293,7 @@
                         } else if (f.dias === 'Martes y Jueves') {
                             cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Ma y Ju)</span>';
                         }
-                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 leading-tight">${cellContent}</td>`;
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 leading-tight ${matchFila ? 'bg-yellow-200' : ''}">${cellContent}</td>`;
                     } else {
                         tbodyHtml += `<td class="${cellClass}">${c}</td>`;
                     }
@@ -5321,7 +5321,7 @@
                     }
 
                     if (idx === 0) {
-                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1">${c}</td>`;
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 ${matchFila ? 'bg-yellow-200' : ''}">${c}</td>`;
                     } else {
                         tbodyHtml += `<td class="${cellClass}">${c}</td>`;
                     }
