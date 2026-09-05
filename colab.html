@@ -5548,24 +5548,39 @@
                 // Determinar los días de clase según diasTarget
                 // JS: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
                 let diasClase = null; // array de días de la semana [primerDia, segundoDia]
+                let diasClaseInicio = null; // días válidos para fecha de inicio
+                let diasClaseFin = null;    // días válidos para fecha de fin
                 if (diasTarget === 'Sábados') {
                     diasClase = [6]; // Sábado
                 } else if (diasTarget === 'Martes y Jueves') {
                     diasClase = [2, 4]; // Martes, Jueves
+                    diasClaseInicio = [2]; // Inicio en Martes
+                    diasClaseFin = [4];    // Fin en Jueves
                 } else if (diasTarget === 'Lunes y Miércoles') {
                     diasClase = [1, 3]; // Lunes, Miércoles
+                    diasClaseInicio = [1]; // Inicio en Lunes
+                    diasClaseFin = [3];    // Fin en Miércoles
+                } else if (diasTarget === 'Lunes - Jueves') {
+                    diasClase = [1, 2, 3, 4]; // Lunes a Jueves
+                    diasClaseInicio = [1]; // Inicio en Lunes
+                    diasClaseFin = [4];    // Fin en Jueves
                 }
 
                 let fechaInicioAjustada = new Date(actual.inicio);
                 let fechaFinAjustada = new Date(actual.fin);
 
                 if (diasClase) {
+                    // Para inicio, usar diasClaseInicio si existe, sino diasClase
+                    const diasParaInicio = diasClaseInicio || diasClase;
+                    // Para fin, usar diasClaseFin si existe, sino diasClase
+                    const diasParaFin = diasClaseFin || diasClase;
+
                     // Ajustar fecha de inicio: avanzar al primer día de clase >= inicio del periodo
                     const diaIni = fechaInicioAjustada.getDay();
-                    if (!diasClase.includes(diaIni)) {
+                    if (!diasParaInicio.includes(diaIni)) {
                         // Buscar el día de clase más cercano hacia adelante
                         let mejorAvance = 7;
-                        for (const dc of diasClase) {
+                        for (const dc of diasParaInicio) {
                             let avance = (dc - diaIni + 7) % 7;
                             if (avance === 0) avance = 7;
                             if (avance < mejorAvance) mejorAvance = avance;
@@ -5575,10 +5590,10 @@
 
                     // Ajustar fecha de fin: retroceder al último día de clase <= fin del periodo
                     const diaFin = fechaFinAjustada.getDay();
-                    if (!diasClase.includes(diaFin)) {
+                    if (!diasParaFin.includes(diaFin)) {
                         // Buscar el día de clase más cercano hacia atrás
                         let mejorRetroceso = 7;
-                        for (const dc of diasClase) {
+                        for (const dc of diasParaFin) {
                             let retroceso = (diaFin - dc + 7) % 7;
                             if (retroceso === 0) retroceso = 7;
                             if (retroceso < mejorRetroceso) mejorRetroceso = retroceso;
