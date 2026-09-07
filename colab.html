@@ -4693,35 +4693,20 @@
             const subjectCodes = (prog === 'ADUL') ? ['ADUL', 'ADDU'] : [prog];
             const matching = horariosRecuperacion.filter(h => subjectCodes.includes(h.subjectCode) && h.frecuencia === frec);
 
-            const nivelesMap = new Map();
+            const nivelesSet = new Set();
             matching.forEach(h => {
-                // Niveles de la columna E (Starting para TEEN/PTEE)
-                if (h.nivelFin !== null && !isNaN(h.nivelFin)) {
-                    const key = isTeenPteen ? `${h.nivelFin}_E` : `${h.nivelFin}`;
-                    if (!nivelesMap.has(key)) {
-                        nivelesMap.set(key, { nivel: h.nivelFin, tipo: isTeenPteen ? ' (Starting)' : '', origen: 'E' });
-                    }
+                let nivelEfectivo = null;
+                if (h.nivelFin !== null && h.nivelFin !== '') {
+                    nivelEfectivo = h.nivelFin;
+                } else if ((h.nivelFin === null || h.nivelFin === '') && h.colH && (h.colH.includes('NON') || h.colH.includes('PAR')) && h.nivelIni !== null) {
+                    nivelEfectivo = h.nivelIni;
                 }
-                // Niveles de la columna D (Ending para TEEN/PTEE)
-                if (h.nivelIni !== null && !isNaN(h.nivelIni)) {
-                    if (isTeenPteen) {
-                        const key = `${h.nivelIni}_D`;
-                        if (!nivelesMap.has(key)) {
-                            nivelesMap.set(key, { nivel: h.nivelIni, tipo: ' (Ending)', origen: 'D' });
-                        }
-                    } else if (h.nivelFin === null) {
-                        const key = `${h.nivelIni}`;
-                        if (!nivelesMap.has(key)) {
-                            nivelesMap.set(key, { nivel: h.nivelIni, tipo: '', origen: 'D' });
-                        }
-                    }
+                if (nivelEfectivo !== null) {
+                    nivelesSet.add(nivelEfectivo);
                 }
             });
 
-            const nivelesArr = Array.from(nivelesMap.values()).sort((a, b) => {
-                if (a.nivel !== b.nivel) return a.nivel - b.nivel;
-                return a.origen.localeCompare(b.origen);
-            });
+            const nivelesArr = Array.from(nivelesSet).sort((a, b) => a - b);
 
             if (nivelesArr.length === 0) {
                 selNiv.innerHTML = '<option value="">No hay niveles disponibles</option>';
@@ -4729,8 +4714,8 @@
             } else {
                 nivelesArr.forEach(item => {
                     const opt = document.createElement('option');
-                    opt.value = isTeenPteen ? `${item.nivel}_${item.origen}` : `${item.nivel}`;
-                    opt.textContent = `Nivel ${item.nivel}${item.tipo}`;
+                    opt.value = item;
+                    opt.textContent = `Nivel ${item}`;
                     selNiv.appendChild(opt);
                 });
                 selNiv.disabled = false;
@@ -4757,14 +4742,15 @@
                 const cumpleProg = subjectCodes.includes(h.subjectCode);
                 const cumpleFrec = h.frecuencia === frec;
                 let cumpleNiv = false;
-                if (nivVal.includes('_')) {
-                    const [nStr, orig] = nivVal.split('_');
-                    const nivNum = parseInt(nStr, 10);
-                    cumpleNiv = (orig === 'E' && h.nivelFin === nivNum) || (orig === 'D' && h.nivelIni === nivNum);
-                } else {
-                    const nivNum = parseInt(nivVal, 10);
-                    cumpleNiv = (h.nivelFin === nivNum || h.nivelIni === nivNum);
+                const nivNum = parseInt(nivVal, 10);
+                let nivelEfectivo = null;
+                if (h.nivelFin !== null && h.nivelFin !== '') {
+                    nivelEfectivo = h.nivelFin;
+                } else if ((h.nivelFin === null || h.nivelFin === '') && h.colH && (h.colH.includes('NON') || h.colH.includes('PAR')) && h.nivelIni !== null) {
+                    nivelEfectivo = h.nivelIni;
                 }
+                cumpleNiv = (nivelEfectivo === nivNum);
+                
                 return cumpleProg && cumpleFrec && cumpleNiv;
             });
 
@@ -4822,16 +4808,14 @@
                 if (!subjectCodes.includes(h.subjectCode)) return false;
                 if (frec && h.frecuencia !== frec) return false;
                 if (nivVal) {
-                    let cumpleNiv = false;
-                    if (nivVal.includes('_')) {
-                        const [nStr, orig] = nivVal.split('_');
-                        const nivNum = parseInt(nStr, 10);
-                        cumpleNiv = (orig === 'E' && h.nivelFin === nivNum) || (orig === 'D' && h.nivelIni === nivNum);
-                    } else {
-                        const nivNum = parseInt(nivVal, 10);
-                        cumpleNiv = (h.nivelFin === nivNum || h.nivelIni === nivNum);
+                    const nivNum = parseInt(nivVal, 10);
+                    let nivelEfectivo = null;
+                    if (h.nivelFin !== null && h.nivelFin !== '') {
+                        nivelEfectivo = h.nivelFin;
+                    } else if ((h.nivelFin === null || h.nivelFin === '') && h.colH && (h.colH.includes('NON') || h.colH.includes('PAR')) && h.nivelIni !== null) {
+                        nivelEfectivo = h.nivelIni;
                     }
-                    if (!cumpleNiv) return false;
+                    if (nivelEfectivo !== nivNum) return false;
                 }
                 if (horVal && h.horaFmt !== horVal) return false;
                 return true;
@@ -4906,18 +4890,13 @@
                     `;
                 }
 
-                let nivelMostrarHtml = '';
-                if (isTeenPteen) {
-                    if (g.nivelFin !== null && !isNaN(g.nivelFin)) {
-                        nivelMostrarHtml = `Nivel ${g.nivelFin} <span class="ml-1 bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-200">Starting</span>`;
-                    } else if (g.nivelIni !== null && !isNaN(g.nivelIni)) {
-                        nivelMostrarHtml = `Nivel ${g.nivelIni} <span class="ml-1 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-purple-200">Ending</span>`;
-                    } else {
-                        nivelMostrarHtml = 'N/A';
-                    }
-                } else {
-                    nivelMostrarHtml = `Nivel ${g.nivelFin !== null ? g.nivelFin : (g.nivelIni || 'N/A')}`;
+                let nivelEfectivo = 'N/A';
+                if (g.nivelFin !== null && g.nivelFin !== '') {
+                    nivelEfectivo = g.nivelFin;
+                } else if ((g.nivelFin === null || g.nivelFin === '') && g.colH && (g.colH.includes('NON') || g.colH.includes('PAR')) && g.nivelIni !== null) {
+                    nivelEfectivo = g.nivelIni;
                 }
+                let nivelMostrarHtml = `Nivel ${nivelEfectivo}`;
 
                 html += `
                     <div class="bg-white border-2 border-purple-100 hover:border-purple-400 rounded-2xl p-4 shadow-sm hover:shadow transition-all space-y-3">
