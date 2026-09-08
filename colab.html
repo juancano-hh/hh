@@ -3425,6 +3425,12 @@
             const headerWizard = document.getElementById('rec-indicador-1');
             if (headerWizard) headerWizard.parentElement.classList.remove('hidden');
             
+            const btnEnviar = document.getElementById('rec-btn-enviar');
+            if (btnEnviar) {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Enviar Solicitud';
+            }
+            
             irAPasoRec(1);
 
             // Pre-llenar correo
