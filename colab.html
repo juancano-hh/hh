@@ -660,9 +660,16 @@
                     <p class="text-2xl mb-1">✅</p>
                     <p class="font-bold text-green-800 text-sm">¡Solicitud enviada!</p>
                     <p class="text-xs text-green-600 mt-1">Te contactaremos pronto con los detalles.</p>
-                    <div id="rec-link-container" class="hidden mt-3">
-                        <p class="text-xs text-green-700 mb-1">con este link puedes entrar a tu clase en linea:</p>
-                        <a id="rec-link" href="#" target="_blank" class="text-sm text-blue-600 underline break-all font-bold">link</a>
+                    <div id="rec-link-container" class="hidden mt-4 pt-3 border-t border-green-200">
+                        <p class="text-xs text-green-700 mb-2 font-medium">Con este link puedes entrar a tu clase en línea:</p>
+                        <div class="flex items-center gap-2">
+                            <a id="rec-link-btn" href="#" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition duration-200 text-center flex items-center justify-center gap-1.5 shadow-sm">
+                                <span>🔗</span> Unirse a la clase
+                            </a>
+                            <button onclick="navigator.clipboard.writeText(document.getElementById('rec-link-btn').href); alert('Link de clase copiado al portapapeles');" class="bg-white hover:bg-gray-50 text-gray-700 font-bold py-2 px-3 rounded-xl text-xs transition duration-200 border border-gray-300 shadow-sm" title="Copiar enlace">
+                                📋 Copiar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1548,7 +1555,7 @@
         const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
         const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
         // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHKsVTMF67mzqWW0oXFxCthojsH56S94OvFoaWBJHDp3UyWOaNrbvLyLskdORmENAzPg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1m5V3OLuZo1x3AqmF1yhzuI6h4dNZ36uoJpGT0FcsROEHD-OlRs4sl6wNejPsXDow/exec';
         const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
 
         // Variables globales existentes
@@ -4093,7 +4100,7 @@
 
                 const linkClase = optSel ? optSel.dataset.link : '';
                 const recLinkContainer = document.getElementById('rec-link-container');
-                const recLink = document.getElementById('rec-link');
+                const recLink = document.getElementById('rec-link-btn');
                 if (linkClase) {
                     recLink.href = linkClase;
                     recLinkContainer.classList.remove('hidden');
