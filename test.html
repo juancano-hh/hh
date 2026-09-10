@@ -315,11 +315,11 @@
                             <span class="text-xl">📅</span>
                             <span class="text-left leading-tight">Calendario</span>
                         </button>
-                        <button onclick="abrirModalMateriales()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirModalMateriales()" style="display:none !important;" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">📚</span>
                             <span class="text-left leading-tight">Materiales</span>
                         </button>
-                        <button onclick="abrirModalHorariosLayout()" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirModalHorariosLayout()" style="display:none !important;" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">🕒</span>
                             <span class="text-left leading-tight">Horarios</span>
                         </button>
@@ -380,10 +380,10 @@
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
             <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
-            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
+            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago" style="display:none !important;"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2"></span>
-                <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
+                <button id="btn-whatsapp-alumno" style="display:none !important;" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
                     💬 WhatsApp
                 </button>
             </p>
@@ -400,13 +400,13 @@
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-2"></span>
-                <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                <button onclick="abrirModalHorariosLayout()" style="display:none !important;" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
                     📅 Horarios
                 </button>
             </p>
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
                 <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
-                <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                <button onclick="abrirModalMateriales()" style="display:none !important;" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
                     📚 Ver más
                 </button>
             </p>
@@ -435,10 +435,10 @@
                     <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         📅 Calendario
                     </button>
-                    <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionFactura()" style="display:none !important;" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🖨️ Cotización
                     </button>
-                    <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionRecibo()" style="display:none !important;" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🧾 Recibo
                     </button>
                 </div>
@@ -476,7 +476,7 @@
             </div>
 
             <!-- CARGO POR SERVICIO -->
-            <div id="servicio-container" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
+            <div id="servicio-container" style="display:none !important;" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-bold text-purple-800">Cargo por Servicio</p>
@@ -504,7 +504,7 @@
                     <span class="flex items-center gap-1 font-medium">
                         Precio por curso:
                         <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
-                            <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
+                            <input type="number" id="input-descuento-custom" readonly disabled  min="0" max="100" step="1" 
                                    oninput="cambiarDescuentoManual(this.value)" 
                                    class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
                                    title="Ingresa un porcentaje de descuento para simular la cotización">
@@ -513,7 +513,7 @@
                     </span>
                     <span id="uni-desc" class="font-bold"></span>
                 </div>
-                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca">
+                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca" style="display:none !important;">
                     <div class="flex justify-between items-center">
                         <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
                         <span id="uni-beca-sin" class="font-bold"></span>
@@ -6193,6 +6193,4 @@
     </div>
 </body>
 </html>
-
-
 
