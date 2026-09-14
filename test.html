@@ -4426,9 +4426,9 @@
                 if (niv <= 4)  return 'A1';
                 if (niv <= 8)  return 'A2';
                 if (niv <= 12) return 'B1';
-                if (niv <= 16) return 'B2';
-                if (niv <= 20) return 'C1';
-                return 'C2';
+                if (niv <= 16) return 'B1+';
+                if (niv <= 20) return 'B2';
+                return 'C1';
             }
             const nivelMCER = mostrarMCER ? obtenerNivelMCER(nivel) : '';
 
@@ -4477,15 +4477,15 @@
             // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
             const constanciaHtml = `
                 <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
-                <p class="constancia-asunto">Asunto: Constancia de estudios.</p>
+                <p class="constancia-asunto">Asunto: Constancia de estudios.<br></p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-destinatario">${dirigidaA}.</p>
                 <p class="constancia-presente">PRESENTE.</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
-                <p class="constancia-salto">&nbsp;</p>
+                <br>
                 <p class="constancia-nombre">${alumnoActual.idOriginal} ${nombre.toUpperCase()}</p>
-                <p class="constancia-salto">&nbsp;</p>
+                <br>
                 <p class="constancia-body">${textoPrincipal}</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
