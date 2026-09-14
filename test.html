@@ -418,9 +418,9 @@
                             <span class="text-xl">📈</span>
                             <span class="text-left leading-tight">Dashboard</span>
                         </button>
-                        <button onclick="abrirCalculadoraManual()" class="col-span-2 flex items-center justify-center gap-2.5 p-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-xl border border-green-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirCalculadoraManual()" class="flex items-center gap-2.5 p-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-xl border border-green-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">🧮</span>
-                            <span class="leading-tight">Calculadora de Pagos</span>
+                            <span class="text-left leading-tight">Calculadora de Pagos</span>
                         </button>
                     </div>
                 </div>
@@ -6576,6 +6576,7 @@
                         x: { max: 100, ticks: { callback: function(value) { return value + "%" } } }
                     }
                 }
+            });
         }
 
         // ================= CALCULADORA MANUAL =================
