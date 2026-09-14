@@ -83,6 +83,11 @@
         .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
         .cal-wday.dom { color: #e11d48; }
 
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
         @media print {
             body {
                 background: white !important;
@@ -99,43 +104,68 @@
             }
             #print-constancia {
                 display: block !important;
-                width: 100%;
+                /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
+                   top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
+                width: 8.5in;
+                min-height: 11in;
+                max-height: 11in;
+                overflow: hidden;
+                margin: 0 auto;
+                padding: 2.49cm 3.0cm;
+                box-sizing: border-box;
                 font-family: Arial, sans-serif;
                 font-size: 12pt;
                 color: #000;
-                padding: 2cm 3cm;
-                box-sizing: border-box;
+                /* Interlineado DOCX w:line="240" = double spacing en Word */
+                line-height: 2;
+            }
+            #print-constancia p {
+                margin: 0;
+                padding: 0;
             }
             #print-constancia .constancia-fecha {
                 text-align: right;
-                margin-bottom: 10pt;
+                line-height: 2;
             }
             #print-constancia .constancia-asunto {
                 text-align: right;
-                margin-bottom: 10pt;
+                line-height: 2;
+            }
+            #print-constancia .constancia-salto {
+                /* Línea en blanco entre secciones — equivale a un párrafo vacío en DOCX */
+                line-height: 2;
+                display: block;
+            }
+            #print-constancia .constancia-destinatario {
+                text-align: left;
+                font-weight: bold;
+                line-height: 2;
+            }
+            #print-constancia .constancia-presente {
+                text-align: left;
+                font-weight: bold;
+                line-height: 2;
             }
             #print-constancia .constancia-body {
                 text-align: justify;
-                margin-bottom: 12pt;
-                line-height: 1.5;
+                line-height: 2;
             }
             #print-constancia .constancia-nombre {
                 text-align: center;
                 font-weight: bold;
-                margin: 12pt 0;
-                font-size: 13pt;
+                line-height: 2;
             }
             #print-constancia .constancia-footer-text {
                 text-align: justify;
-                margin-bottom: 30pt;
-                line-height: 1.5;
+                line-height: 2;
             }
             #print-constancia .constancia-atentamente {
                 text-align: center;
-                margin-bottom: 60pt;
+                line-height: 2;
             }
             #print-constancia .constancia-firma {
                 text-align: center;
+                line-height: 2;
             }
             
             #print-factura {
@@ -4364,32 +4394,8 @@
 
             // ── Modalidad de clase ─────────────────────────────────────────────────
             const tipoClase = alumnoActual.tipoClaseCal || 'entre-semana'; // 'sabado' o 'entre-semana'
-            let modalidadTexto = '';
-            let horarioDuracion = '';
 
-            if (tipoClase === 'sabado') {
-                // Detectar si es sábado o domingo usando prefijoMod del alumno
-                const prefijoMod = alumnoActual.prefijoMod || '';
-                const esDomingo = (prefijoMod === 'DO');
-                if (esDomingo) {
-                    modalidadTexto = 'dominical';
-                } else {
-                    modalidadTexto = 'sabatino';
-                }
-                // Duración según programa
-                if (programa === 'ADULTO') {
-                    horarioDuracion = '6 horas';
-                } else {
-                    // KIDS, PTEEN, TEENS → 3 horas en sábado/domingo
-                    horarioDuracion = '3 horas';
-                }
-            } else {
-                modalidadTexto = 'entre semana con clases de lunes a jueves';
-                horarioDuracion = '1 hora y 30 minutos';
-            }
-
-            // ── Horario (hora de inicio → calcular fin) ────────────────────────────
-            // horario tiene formato como "11:00", "11:00 SA", "7:30", etc.
+            // ── Horario: calcular hora inicio y fin ────────────────────────────────
             let horaInicioTexto = '';
             let horaFinTexto = '';
             const horarioMatch = horario.match(/(\d{1,2}):(\d{2})/);
@@ -4397,56 +4403,65 @@
                 let h = parseInt(horarioMatch[1]);
                 let m = parseInt(horarioMatch[2]);
                 horaInicioTexto = `${h}:${String(m).padStart(2,'0')} hrs`;
-                // Calcular fin según duración
+                // Duración: entre semana 1h30m; sábado/domingo ADULTO 6h, demás 3h
                 let durHoras = 1, durMins = 30;
                 if (tipoClase === 'sabado') {
-                    if (programa === 'ADULTO') {
-                        durHoras = 6; durMins = 0;
-                    } else {
-                        durHoras = 3; durMins = 0;
-                    }
+                    durHoras = (programa === 'ADULTO') ? 6 : 3;
+                    durMins = 0;
                 }
                 let finH = h + durHoras;
                 let finM = m + durMins;
                 if (finM >= 60) { finH++; finM -= 60; }
                 horaFinTexto = `${finH}:${String(finM).padStart(2,'0')} hrs`;
             }
-            const horarioCompleto = horaInicioTexto && horaFinTexto
-                ? ` en un horario de ${horaInicioTexto} a ${horaFinTexto}`
-                : '';
 
             // ── Nivel máximo y MCER ────────────────────────────────────────────────
             let nivelMax = 24;
             let mostrarMCER = true;
-            if (programa === 'KIDS') { nivelMax = 15; mostrarMCER = false; }
+            if (programa === 'KIDS')       { nivelMax = 15; mostrarMCER = false; }
             else if (programa === 'PTEEN') { nivelMax = 12; mostrarMCER = false; }
-            else if (programa === 'TEENS') { nivelMax = 24; mostrarMCER = true; }
-            else { nivelMax = 24; mostrarMCER = true; } // ADULTO
+            // TEENS y ADULTO: 24 niveles, sí muestran MCER
 
-            // Mapeo MCER: cursos 1–8 → A1/A2, 9–16 → B1/B2, 17–24 → C1/C2
-            function obtenerNivelMCER(niv, maxNiv) {
-                if (maxNiv === 24) {
-                    if (niv <= 4)  return 'A1';
-                    if (niv <= 8)  return 'A2';
-                    if (niv <= 12) return 'B1';
-                    if (niv <= 16) return 'B2';
-                    if (niv <= 20) return 'C1';
-                    return 'C2';
-                }
-                return '';
+            function obtenerNivelMCER(niv) {
+                if (niv <= 4)  return 'A1';
+                if (niv <= 8)  return 'A2';
+                if (niv <= 12) return 'B1';
+                if (niv <= 16) return 'B2';
+                if (niv <= 20) return 'C1';
+                return 'C2';
             }
-            const nivelMCER = mostrarMCER ? obtenerNivelMCER(nivel, nivelMax) : '';
+            const nivelMCER = mostrarMCER ? obtenerNivelMCER(nivel) : '';
 
-            // ── Fechas de curso actual (inicio y fin) ──────────────────────────────
+            // ── Fechas del curso actual ────────────────────────────────────────────
             const inicioActual = document.getElementById('lbl-inicio-actual').innerText || '';
             const finActual    = document.getElementById('lbl-fin-actual').innerText    || '';
 
-            // ── Nombre de programa para el texto ──────────────────────────────────
-            let programaTextoConstancia = alumnoActual.programaTexto || 'Adulto';
+            // ── Texto de modalidad + horario integrados ────────────────────────────
+            let textoModalidadHorario = '';
+
+            if (tipoClase === 'sabado') {
+                const prefijoMod = alumnoActual.prefijoMod || '';
+                const esDomingo = (prefijoMod === 'DO');
+                const modalidadNombre = esDomingo ? 'dominical' : 'sabatino';
+
+                if (horaInicioTexto && horaFinTexto) {
+                    textoModalidadHorario = `en modalidad ${modalidadNombre}, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
+                } else {
+                    textoModalidadHorario = `en modalidad ${modalidadNombre}`;
+                }
+            } else {
+                // Entre semana
+                if (horaInicioTexto && horaFinTexto) {
+                    textoModalidadHorario = `en modalidad entre semana de lunes a jueves, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
+                } else {
+                    textoModalidadHorario = `en modalidad entre semana de lunes a jueves`;
+                }
+            }
+
 
             // ── Construcción del párrafo central ──────────────────────────────────
-            let parrafoNivel = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla, ${modalidadTexto}${horarioCompleto}. `;
-            parrafoNivel += `Actualmente se encuentra en un curso ${nivel} de ${nivelMax} posibles`;
+            let parrafoNivel = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla, ${textoModalidadHorario}. `;
+            parrafoNivel += `Actualmente se encuentra en curso ${nivel} de ${nivelMax} posibles`;
             if (mostrarMCER && nivelMCER) {
                 parrafoNivel += `, ante el Marco Común Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
             }
@@ -4457,30 +4472,31 @@
                 parrafoNivel += ` El curso actual inicia el ${inicioActual} y finaliza el ${finActual}.`;
             }
 
-            // ── Género del alumno para "inscrito/inscrita" ─────────────────────────
-            // Usamos "inscrito(a)" para ser neutro, o detectamos por nombre si quieren
-            // El doc original usó "inscrito" para hombre e "interesada" para mujer.
-            // Sin datos de género, usaremos neutro:
             const textoPrincipal = parrafoNivel;
 
-            // ── Generar el HTML de la constancia ──────────────────────────────────
+            // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
             const constanciaHtml = `
                 <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
                 <p class="constancia-asunto">Asunto: Constancia de estudios.</p>
-                <br>
-                <p class="constancia-body"><strong>${dirigidaA}.</strong></p>
-                <p class="constancia-body"><strong>PRESENTE.</strong></p>
-                <br>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-destinatario">${dirigidaA}.</p>
+                <p class="constancia-presente">PRESENTE.</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
-                <br>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-nombre">${alumnoActual.idOriginal} ${nombre.toUpperCase()}</p>
-                <br>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-body">${textoPrincipal}</p>
-                <br>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-footer-text">La presente constancia se emite a solicitud del interesado para los fines legales que a éste convenga.</p>
-                <br><br>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-atentamente">Atentamente</p>
-                <br><br><br><br>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
             `;
 
