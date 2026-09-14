@@ -117,7 +117,7 @@
                 font-size: 12pt;
                 color: #000;
                 /* Interlineado DOCX w:line="240" = double spacing en Word */
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia p {
                 margin: 0;
@@ -125,43 +125,43 @@
             }
             #print-constancia .constancia-fecha {
                 text-align: right;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-asunto {
                 text-align: right;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-salto {
                 /* Línea en blanco entre secciones — equivale a un párrafo vacío en DOCX */
-                line-height: 2;
+                line-height: 1.5;
                 display: block;
             }
             #print-constancia .constancia-destinatario {
                 text-align: left;
                 font-weight: bold;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-presente {
                 text-align: left;
                 font-weight: bold;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-body {
                 text-align: justify;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-nombre {
                 text-align: center;
                 font-weight: bold;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-footer-text {
                 text-align: justify;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-atentamente {
                 text-align: center;
-                line-height: 2;
+                line-height: 1.5;
             }
             #print-constancia .constancia-firma {
                 text-align: center;
@@ -4452,9 +4452,9 @@
             } else {
                 // Entre semana
                 if (horaInicioTexto && horaFinTexto) {
-                    textoModalidadHorario = `en modalidad entre semana de lunes a jueves, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
+                    textoModalidadHorario = `entre semana con clases de lunes a jueves, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
                 } else {
-                    textoModalidadHorario = `en modalidad entre semana de lunes a jueves`;
+                    textoModalidadHorario = `entre semana con clases de lunes a jueves`;
                 }
             }
 
@@ -4481,7 +4481,6 @@
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-destinatario">${dirigidaA}.</p>
                 <p class="constancia-presente">PRESENTE.</p>
-                <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
                 <p class="constancia-salto">&nbsp;</p>
