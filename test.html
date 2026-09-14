@@ -518,7 +518,7 @@
                         🧾 Recibo
                     </button>
                     <button onclick="abrirModalConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                        📄 Constancia
+                        🎓 Constancia
                     </button>
                 </div>
             </div>
@@ -1429,7 +1429,28 @@
                     <input type="text" id="constancia-dirigida" placeholder="Ej. A quien corresponda, Recursos Humanos..." class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-purple-500 outline-none" value="A quien corresponda">
                     <p class="text-xs text-gray-500 mt-1">Este texto aparecerá en el campo de destinatario.</p>
                 </div>
-                <button onclick="generarConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-200">Generar e Imprimir</button>
+                
+                <div class="mt-4 space-y-2 border-t pt-3">
+                    <p class="font-bold mb-2">Información a incluir:</p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-modalidad" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Modalidad (sabatino, dominical, entre semana...)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-horario" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Horario (ej. en un horario de 11:00 hrs a 12:30 hrs)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-cefr" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Nivel CEFR (equivalente ante el Marco Común...)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-fechas" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Fechas de inicio y fin del curso actual</span>
+                    </label>
+                </div>
+
+                <button onclick="generarConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-200 mt-4">Generar e Imprimir</button>
             </div>
         </div>
     </div>
@@ -1782,6 +1803,7 @@
                     const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                     const tieneR = estatusPagoRaw.toUpperCase() === 'R';
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+                    const esNuevoLayout = fila[0] ? String(fila[0]).trim().toUpperCase() === 'N' : false;
 
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
@@ -1797,6 +1819,7 @@
                         codigoClase: codigoClaseLayout,
                         esPrimerMes: false,
                         esLayPasado: false,
+                        esNuevoLayout: esNuevoLayout,
                         noLeTocaPago: false
                     };
                     baseAlumnos[id] = alumno;
@@ -2417,7 +2440,8 @@
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
-                document.getElementById('lbl-id').innerText       = alumnoActual.idOriginal;
+                let tagNuevo = alumnoActual.esNuevoLayout ? ' <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full inline-block align-middle ml-2 shadow-sm">NUEVO</span>' : '';
+                document.getElementById('lbl-id').innerHTML       = alumnoActual.idOriginal + tagNuevo;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
                 
                 // Actualizar estatus
@@ -2436,6 +2460,11 @@
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                 }
+
+                if (alumnoActual.esLayPasado) {
+                    statusBadge += ' <span class="bg-gray-200 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block ml-2 border border-gray-300">[INI ANTERIOR]</span>';
+                }
+
                 document.getElementById('lbl-estatus-pago').innerHTML = statusBadge;
                 document.getElementById('contenedor-estatus-pago').classList.remove('hidden');
                 document.getElementById('contenedor-estatus-pago').classList.add('flex');
@@ -4436,43 +4465,57 @@
             const inicioActual = document.getElementById('lbl-inicio-actual').innerText || '';
             const finActual    = document.getElementById('lbl-fin-actual').innerText    || '';
 
+            // ── Leer opciones de los checkboxes ────────────────────────────────────
+            const includeModalidad = document.getElementById('chk-const-modalidad').checked;
+            const includeHorario   = document.getElementById('chk-const-horario').checked;
+            const includeCefr      = document.getElementById('chk-const-cefr').checked;
+            const includeFechas    = document.getElementById('chk-const-fechas').checked;
+
             // ── Texto de modalidad + horario integrados ────────────────────────────
-            let textoModalidadHorario = '';
+            let textoModalidad = '';
+            let textoHorario = '';
 
             if (tipoClase === 'sabado') {
                 const prefijoMod = alumnoActual.prefijoMod || '';
                 const esDomingo = (prefijoMod === 'DO');
-                const modalidadNombre = esDomingo ? 'dominical' : 'sabatino';
-
-                if (horaInicioTexto && horaFinTexto) {
-                    textoModalidadHorario = `en modalidad ${modalidadNombre}, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
-                } else {
-                    textoModalidadHorario = `en modalidad ${modalidadNombre}`;
-                }
+                textoModalidad = esDomingo ? 'en modalidad dominical' : 'en modalidad sabatino';
             } else {
-                // Entre semana
-                if (horaInicioTexto && horaFinTexto) {
-                    textoModalidadHorario = `entre semana con clases de lunes a jueves, en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
-                } else {
-                    textoModalidadHorario = `entre semana con clases de lunes a jueves`;
-                }
+                textoModalidad = 'entre semana con clases de lunes a jueves';
             }
 
+            if (horaInicioTexto && horaFinTexto) {
+                textoHorario = `en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
+            }
+
+            let modYHor = '';
+            if (includeModalidad && includeHorario && textoHorario) {
+                modYHor = `${textoModalidad}, ${textoHorario}`;
+            } else if (includeModalidad) {
+                modYHor = textoModalidad;
+            } else if (includeHorario && textoHorario) {
+                modYHor = textoHorario;
+            }
 
             // ── Construcción del párrafo central ──────────────────────────────────
-            let parrafoNivel = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla, ${textoModalidadHorario}. `;
-            parrafoNivel += `Actualmente se encuentra en curso ${nivel} de ${nivelMax} posibles`;
-            if (mostrarMCER && nivelMCER) {
-                parrafoNivel += `, ante el Marco Común Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
-            }
-            parrafoNivel += '.';
-
-            // Agregar fechas si están disponibles
-            if (inicioActual && inicioActual !== 'No disponible' && finActual && finActual !== 'No disponible') {
-                parrafoNivel += ` El curso actual inicia el ${inicioActual} y finaliza el ${finActual}.`;
+            let oracion1 = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla`;
+            if (modYHor) {
+                oracion1 += `, ${modYHor}. `;
+            } else {
+                oracion1 += `. `;
             }
 
-            const textoPrincipal = parrafoNivel;
+            let oracion2 = `Actualmente se encuentra en curso ${nivel} de ${nivelMax} posibles`;
+            if (mostrarMCER && nivelMCER && includeCefr) {
+                oracion2 += `, equivalente ante el Marco Común Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
+            }
+            oracion2 += `.`;
+
+            let oracion3 = '';
+            if (includeFechas && inicioActual && inicioActual !== 'No disponible' && finActual && finActual !== 'No disponible') {
+                oracion3 = ` El curso actual inicia el ${inicioActual} y finaliza el ${finActual}.`;
+            }
+
+            const textoPrincipal = oracion1 + oracion2 + oracion3;
 
             // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
             const constanciaHtml = `
@@ -4483,9 +4526,9 @@
                 <p class="constancia-presente">PRESENTE.</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
-                <br>
+                <br><br>
                 <p class="constancia-nombre">${alumnoActual.idOriginal} ${nombre.toUpperCase()}</p>
-                <br>
+                <br><br>
                 <p class="constancia-body">${textoPrincipal}</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
@@ -4493,9 +4536,7 @@
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-atentamente">Atentamente</p>
-                <p class="constancia-salto">&nbsp;</p>
-                <p class="constancia-salto">&nbsp;</p>
-                <p class="constancia-salto">&nbsp;</p>
+                <br><br><br><br><br><br>
                 <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
             `;
 
