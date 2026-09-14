@@ -2001,14 +2001,18 @@
         // ===== NUEVO: Calcular periodo anterior =====
         function calcularPeriodoAnterior(periodo) {
             if (!periodo || periodo.length < 6) return null;
-            const anio = periodo.substring(0, 2);
+            let anio = parseInt(periodo.substring(0, 2), 10);
             const mod  = periodo.substring(2, 4);
-            const mesNum = parseInt(periodo.substring(4, 6), 10);
+            let mesNum = parseInt(periodo.substring(4, 6), 10);
             if (isNaN(mesNum)) return null;
-            // Adultos: -1 mes; Kids/08: -2 meses
-            let mesAnterior = mesNum - (mod === '04' ? 1 : 2);
-            if (mesAnterior <= 0) mesAnterior += 12;
-            return `${anio}${mod}${String(mesAnterior).padStart(2, '0')}`;
+            
+            // Retrocedemos 1 mes lógico para todos los programas
+            mesNum -= 1;
+            if (mesNum <= 0) {
+                mesNum += 12;
+                anio -= 1; // Cambia de año (ej. 270401 -> 260412)
+            }
+            return `${String(anio).padStart(2, '0')}${mod}${String(mesNum).padStart(2, '0')}`;
         }
 
         // ===== NUEVO: Sumar periodos (volumen) =====
@@ -2017,13 +2021,14 @@
             const anio = parseInt(periodoBase.substring(0, 2), 10);
             const mod = periodoBase.substring(2, 4);
             let mes = parseInt(periodoBase.substring(4, 6), 10);
-            const incremento = mod === '04' ? 1 : 2;
-            let mesesSumar = cantidadSumar * incremento;
-            mes += mesesSumar;
+            
+            // Sumamos exactamente la cantidad de cursos como meses (todos avanzan secuencialmente)
+            mes += cantidadSumar;
             let anioSumar = Math.floor((mes - 1) / 12);
             mes = mes - (anioSumar * 12);
             let nuevoAnio = anio + anioSumar;
-            return `${nuevoAnio}${mod}${String(mes).padStart(2, '0')}`;
+            
+            return `${String(nuevoAnio).padStart(2, '0')}${mod}${String(mes).padStart(2, '0')}`;
         }
 
         // ===== NUEVO: Formatear fecha legible =====
@@ -2440,7 +2445,7 @@
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
-                let tagNuevo = alumnoActual.esNuevoLayout ? ' <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full inline-block align-middle ml-2 shadow-sm">NUEVO</span>' : '';
+                let tagNuevo = alumnoActual.esNuevoLayout ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-3 py-[1px] rounded-full inline-block align-baseline relative -top-[1px] ml-1 tracking-wider border border-blue-200">NUEVO</span>' : '';
                 document.getElementById('lbl-id').innerHTML       = alumnoActual.idOriginal + tagNuevo;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
                 
@@ -4512,7 +4517,7 @@
 
             let oracion3 = '';
             if (includeFechas && inicioActual && inicioActual !== 'No disponible' && finActual && finActual !== 'No disponible') {
-                oracion3 = ` El curso actual inicia el ${inicioActual} y finaliza el ${finActual}.`;
+                oracion3 = ` El curso actual tiene fecha de inicio el ${inicioActual} y fecha de finalización el ${finActual}.`;
             }
 
             const textoPrincipal = oracion1 + oracion2 + oracion3;
