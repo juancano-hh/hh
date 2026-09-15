@@ -6629,20 +6629,10 @@
             const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
 
-            const promoVolumen = obtenerMejorPromoVigente(cantCursos);
-            
             let descuentoAplicar = 0;
             let etiquetaPromo = "Sin promoción";
-            let fechaTexto = "";
 
-            if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBase) {
-                descuentoAplicar = promoVolumen.descuento;
-                etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
-                }
-            } else if (becaBase > 0) {
+            if (becaBase > 0) {
                 descuentoAplicar = becaBase;
                 etiquetaPromo = "Beca asignada";
             }
@@ -6701,14 +6691,8 @@
             }
 
             const txtVigencia = document.getElementById('calc-fecha-vigencia');
-            if (fechaTexto) {
-                txtVigencia.innerText = fechaTexto;
-                txtVigencia.classList.remove('hidden');
-                txtVigencia.classList.add('block');
-            } else {
-                txtVigencia.classList.add('hidden');
-                txtVigencia.classList.remove('block');
-            }
+            txtVigencia.classList.add('hidden');
+            txtVigencia.classList.remove('block');
         }
 </script>
     <!-- ===== MODAL WHATSAPP OPCIONES ===== -->
