@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -83,6 +83,11 @@
         .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
         .cal-wday.dom { color: #e11d48; }
 
+        @page {
+            size: letter;
+            margin: 0;
+        }
+
         @media print {
             body {
                 background: white !important;
@@ -94,8 +99,73 @@
                 min-height: 0 !important;
                 height: auto !important;
             }
-            body > *:not(#print-factura) {
+            body > *:not(#print-factura):not(#print-constancia) {
                 display: none !important;
+            }
+            #print-constancia {
+                display: block !important;
+                /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
+                   top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
+                width: 8.5in;
+                min-height: 11in;
+                max-height: 11in;
+                overflow: hidden;
+                margin: 0 auto;
+                padding: 2.49cm 3.0cm;
+                box-sizing: border-box;
+                font-family: Arial, sans-serif;
+                font-size: 12pt;
+                color: #000;
+                /* Interlineado DOCX w:line="240" = double spacing en Word */
+                line-height: 1.5;
+            }
+            #print-constancia p {
+                margin: 0;
+                padding: 0;
+            }
+            #print-constancia .constancia-fecha {
+                text-align: right;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-asunto {
+                text-align: right;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-salto {
+                /* Línea en blanco entre secciones — equivale a un párrafo vacío en DOCX */
+                line-height: 1.5;
+                display: block;
+            }
+            #print-constancia .constancia-destinatario {
+                text-align: left;
+                font-weight: bold;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-presente {
+                text-align: left;
+                font-weight: bold;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-body {
+                text-align: justify;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-nombre {
+                text-align: center;
+                font-weight: bold;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-footer-text {
+                text-align: justify;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-atentamente {
+                text-align: center;
+                line-height: 1.5;
+            }
+            #print-constancia .constancia-firma {
+                text-align: center;
+                line-height: 2;
             }
             
             #print-factura {
@@ -288,19 +358,20 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="print-factura" class="hidden"></div>
+    <div id="print-constancia" class="hidden"></div>
     <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
 
         <!-- PASO 1: BÚSQUEDA -->
         <div id="seccion-busqueda">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
-                <p class="text-gray-500 text-sm mt-1">Ingresa tu matrícula para calcular tus pagos</p>
+                <p class="text-gray-500 text-sm mt-1">Ingresa tu ID para calcular tus pagos</p>
             </div>
             <div class="space-y-4">
                 <div class="relative">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu Matrícula</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID, Nombre o Celular</label>
                     <div class="flex gap-2">
-                        <input type="text" id="alumno-id" placeholder="Ingresa tu matrícula" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()" autocomplete="off">
+                        <input type="text" id="alumno-id" placeholder="Ej. 991122 o Juan Pérez" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()" oninput="filtrarAlumnosBuscador()" autocomplete="off">
                         <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
                             Buscar
                         </button>
@@ -308,18 +379,18 @@
                     <ul id="autocomplete-list" class="absolute z-10 w-full bg-white border border-gray-200 rounded-xl mt-1 max-h-64 overflow-y-auto hidden shadow-xl divide-y divide-gray-100"></ul>
                 </div>
                 <!-- BOTONES EXTRAS EN GRID DE 2 COLUMNAS -->
-                <div id="botones-extras" class="hidden">
+                <div id="botones-extras" class="mt-5 border-t border-gray-100 pt-4">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5 text-center">Herramientas y Consultas</p>
                     <div class="grid grid-cols-2 gap-2.5">
                         <button onclick="abrirModalCalendarioIndependiente()" class="flex items-center gap-2.5 p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">📅</span>
                             <span class="text-left leading-tight">Calendario</span>
                         </button>
-                        <button onclick="abrirModalMateriales()" style="display:none !important;" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirModalMateriales()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">📚</span>
                             <span class="text-left leading-tight">Materiales</span>
                         </button>
-                        <button onclick="abrirModalHorariosLayout()" style="display:none !important;" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirModalHorariosLayout()" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">🕒</span>
                             <span class="text-left leading-tight">Horarios</span>
                         </button>
@@ -343,12 +414,125 @@
                             <span class="text-xl">🔎</span>
                             <span class="text-left leading-tight">Buscador CRN</span>
                         </button>
-                        <button onclick="abrirModalPasswordDashboard()" class="col-span-2 flex items-center justify-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                        <button onclick="abrirModalPasswordDashboard()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
                             <span class="text-xl">📈</span>
-                            <span class="leading-tight">Dashboard</span>
+                            <span class="text-left leading-tight">Dashboard</span>
+                        </button>
+                        <button onclick="abrirCalculadoraManual()" class="flex items-center gap-2.5 p-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-xl border border-green-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
+                            <span class="text-xl">🧮</span>
+                            <span class="text-left leading-tight">Calculadora de Pagos</span>
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: CALCULADORA MANUAL -->
+        <div id="seccion-calculadora-manual" class="hidden">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-6">
+                <button onclick="cerrarCalculadoraManual()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-1 px-3 transition-all duration-200 bg-gray-50 hover:bg-gray-100">← Regresar</button>
+                <h2 class="font-bold text-gray-800 text-xl">🧮 Calculadora</h2>
+            </div>
+
+            <!-- Inputs -->
+            <div class="space-y-4 p-5 bg-gray-50 border border-gray-200 rounded-2xl mb-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Curso Registrado (1-24)</label>
+                    <input type="number" id="calc-curso" min="1" max="24" value="1" oninput="actualizarCalculadoraManual()" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 outline-none transition">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Programa</label>
+                        <select id="calc-programa" onchange="actualizarCalculadoraManual()" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 outline-none transition">
+                            <option value="04">04</option>
+                            <option value="08">08</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Horario</label>
+                        <select id="calc-horario" onchange="actualizarCalculadoraManual()" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 outline-none transition">
+                            <option value="FFI">Entre Semana</option>
+                            <option value="SA">Sabatino</option>
+                            <option value="DO">Dominical</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">Beca Base (%)</label>
+                    <input type="number" id="calc-beca" min="0" max="100" placeholder="Ej. 25" oninput="actualizarCalculadoraManual()" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 outline-none transition">
+                </div>
+                <div class="flex items-center justify-between border-t border-gray-200 pt-3 mt-1">
+                    <label class="text-xs font-bold text-gray-600">Cargo por Servicio ($90)</label>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="calc-servicio" onchange="actualizarCalculadoraManual()" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Slider -->
+            <div class="mb-5 px-1">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-sm font-bold text-gray-700">¿Cuántos cursos a pagar?</label>
+                    <span id="calc-cursos-val" class="bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
+                </div>
+                <input type="range" id="calc-slider" min="1" max="24" value="1" oninput="actualizarCalculadoraManual()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+            </div>
+
+            <!-- Resumen -->
+            <div class="bg-white border-2 border-green-100 rounded-2xl p-5 shadow-sm space-y-3">
+                <h3 class="text-center font-bold text-gray-800 text-lg border-b pb-2">Resumen de Pago</h3>
+                
+                <div class="flex justify-between items-center border-b border-gray-50 pb-2 mt-3">
+                    <span class="text-sm text-gray-500">Precio de lista unitario:</span>
+                    <span id="calc-uni-lista" class="font-mono text-gray-400 line-through text-sm"></span>
+                </div>
+                
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div>
+                        <span class="block text-sm font-bold text-gray-700">Precio por curso:</span>
+                        <span id="calc-etiqueta-promo" class="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold"></span>
+                    </div>
+                    <span id="calc-uni-desc" class="font-mono font-bold text-lg text-gray-900"></span>
+                </div>
+                
+                <div id="calc-fila-beca" class="hidden space-y-1 mt-2 p-3 bg-blue-50 rounded-xl border border-blue-100 text-sm">
+                    <div class="flex justify-between items-center">
+                        <span id="calc-lbl-uni-beca-sin" class="text-blue-800 text-xs font-semibold"></span>
+                        <span id="calc-uni-beca-sin" class="font-mono font-bold text-blue-900"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span id="calc-lbl-uni-beca-con" class="text-blue-800 text-xs font-semibold"></span>
+                        <span id="calc-uni-beca-con" class="font-mono font-bold text-blue-900"></span>
+                    </div>
+                </div>
+
+                <div id="calc-fila-cargo-serv" class="flex justify-between items-center border-b border-gray-50 pb-2 pt-2 hidden">
+                    <div>
+                        <span class="block text-sm text-gray-500">Cargo por servicio:</span>
+                        <span id="calc-desglose-cargo" class="text-[10px] text-gray-400"></span>
+                    </div>
+                    <span id="calc-cargo-tot" class="font-mono text-sm text-gray-700"></span>
+                </div>
+
+                <div class="flex justify-between items-center pt-2">
+                    <span class="text-sm font-bold text-gray-700">Total cursos:</span>
+                    <span id="calc-tot-cur" class="font-mono font-bold text-gray-900"></span>
+                </div>
+
+                <div class="flex justify-between items-center bg-green-50 p-4 rounded-xl mt-3 border border-green-200 shadow-sm">
+                    <span class="text-base font-black text-green-900 uppercase tracking-wide">Total:</span>
+                    <span id="calc-res-total" class="font-mono font-black text-2xl text-green-700"></span>
+                </div>
+
+                <div id="calc-ahorro-container" class="mt-4 text-center hidden">
+                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm animate-pulse">
+                        💰 Ahorro total: <span id="calc-lbl-ahorro"></span>
+                    </span>
+                </div>
+                
+                <p id="calc-fecha-vigencia" class="text-[10px] text-center font-bold text-gray-400 mt-2 hidden"></p>
             </div>
         </div>
 
@@ -359,12 +543,15 @@
                 <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
             </div>
             <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
-            <div class="grid grid-cols-1 gap-3 max-w-xs mx-auto">
+            <div class="grid grid-cols-2 gap-3">
                 <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
                     <span class="text-3xl">💳</span>
                     <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
                 </button>
-                
+                <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">🔁</span>
+                    <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                </button>
             </div>
             <p class="text-center mt-4">
                 <button onclick="regresarBusqueda()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-6 transition-all duration-200 bg-gray-50 hover:bg-gray-100">
@@ -376,14 +563,16 @@
         <!-- ===== FICHA ALUMNO (se muestra al elegir una opción) ===== -->
         <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
             <!-- Botón regresar al menú -->
-            
+            <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 mb-2">
+                ← Cambiar opción
+            </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
             <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
-            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago" style="display:none !important;"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
+            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2"></span>
-                <button id="btn-whatsapp-alumno" style="display:none !important;" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
+                <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
                     💬 WhatsApp
                 </button>
             </p>
@@ -400,13 +589,13 @@
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-2"></span>
-                <button onclick="abrirModalHorariosLayout()" style="display:none !important;" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
                     📅 Horarios
                 </button>
             </p>
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
                 <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
-                <button onclick="abrirModalMateriales()" style="display:none !important;" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
                     📚 Ver más
                 </button>
             </p>
@@ -435,11 +624,14 @@
                     <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         📅 Calendario
                     </button>
-                    <button onclick="ejecutarImpresionFactura()" style="display:none !important;" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🖨️ Cotización
                     </button>
-                    <button onclick="ejecutarImpresionRecibo()" style="display:none !important;" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
                         🧾 Recibo
+                    </button>
+                    <button onclick="abrirModalConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        🎓 Constancia
                     </button>
                 </div>
             </div>
@@ -476,7 +668,7 @@
             </div>
 
             <!-- CARGO POR SERVICIO -->
-            <div id="servicio-container" style="display:none !important;" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
+            <div id="servicio-container" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-bold text-purple-800">Cargo por Servicio</p>
@@ -504,7 +696,7 @@
                     <span class="flex items-center gap-1 font-medium">
                         Precio por curso:
                         <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
-                            <input type="number" id="input-descuento-custom" readonly disabled  min="0" max="100" step="1" 
+                            <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
                                    oninput="cambiarDescuentoManual(this.value)" 
                                    class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
                                    title="Ingresa un porcentaje de descuento para simular la cotización">
@@ -513,7 +705,7 @@
                     </span>
                     <span id="uni-desc" class="font-bold"></span>
                 </div>
-                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca" style="display:none !important;">
+                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca">
                     <div class="flex justify-between items-center">
                         <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
                         <span id="uni-beca-sin" class="font-bold"></span>
@@ -1337,7 +1529,47 @@
         </div>
     </div>
 
+    <!-- ===== MODAL CONSTANCIA ===== -->
+    <div id="modal-constancia-opciones" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-constancia-opciones').classList.add('hidden')">
+        <div class="modal-box" style="max-width: 420px;">
+            <div class="modal-header bg-purple-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-lg">📄 Constancia de Estudios</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-constancia-opciones').classList.add('hidden')">✕</button>
+            </div>
+            <div class="p-5 bg-white rounded-b-2xl space-y-4 text-sm text-gray-700">
+                <div>
+                    <label class="block font-bold mb-1">¿A quién va dirigida la constancia?</label>
+                    <input type="text" id="constancia-dirigida" placeholder="Ej. A quien corresponda, Recursos Humanos..." class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-purple-500 outline-none" value="A quien corresponda">
+                    <p class="text-xs text-gray-500 mt-1">Este texto aparecerá en el campo de destinatario.</p>
+                </div>
+                
+                <div class="mt-4 space-y-2 border-t pt-3">
+                    <p class="font-bold mb-2">Información a incluir:</p>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-modalidad" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Modalidad (sabatino, dominical, entre semana...)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-horario" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Horario (ej. en un horario de 11:00 hrs a 12:30 hrs)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-cefr" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Nivel CEFR (equivalente ante el Marco Común...)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-fechas" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Fechas de inicio y fin del curso actual</span>
+                    </label>
+                </div>
+
+                <button onclick="generarConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-200 mt-4">Generar e Imprimir</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== MODAL SELECCIONAR GRUPO / SALÓN (RECUPERACIÓN) ===== -->
+
     <div id="modal-seleccion-grupo-rec" class="modal-overlay hidden" style="z-index: 2100;" onclick="if(event.target===this) cerrarModalSeleccionGrupoRec()">
         <div class="modal-box" style="max-width: 480px;">
             <div class="modal-header bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
@@ -1684,6 +1916,7 @@
                     const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                     const tieneR = estatusPagoRaw.toUpperCase() === 'R';
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+                    const esNuevoLayout = fila[0] ? String(fila[0]).trim().toUpperCase() === 'N' : false;
 
                     const alumno = {
                         idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
@@ -1699,6 +1932,7 @@
                         codigoClase: codigoClaseLayout,
                         esPrimerMes: false,
                         esLayPasado: false,
+                        esNuevoLayout: esNuevoLayout,
                         noLeTocaPago: false
                     };
                     baseAlumnos[id] = alumno;
@@ -1880,14 +2114,18 @@
         // ===== NUEVO: Calcular periodo anterior =====
         function calcularPeriodoAnterior(periodo) {
             if (!periodo || periodo.length < 6) return null;
-            const anio = periodo.substring(0, 2);
+            let anio = parseInt(periodo.substring(0, 2), 10);
             const mod  = periodo.substring(2, 4);
-            const mesNum = parseInt(periodo.substring(4, 6), 10);
+            let mesNum = parseInt(periodo.substring(4, 6), 10);
             if (isNaN(mesNum)) return null;
-            // Adultos: -1 mes; Kids/08: -2 meses
-            let mesAnterior = mesNum - (mod === '04' ? 1 : 2);
-            if (mesAnterior <= 0) mesAnterior += 12;
-            return `${anio}${mod}${String(mesAnterior).padStart(2, '0')}`;
+            
+            // Retrocedemos 1 mes lógico para todos los programas
+            mesNum -= 1;
+            if (mesNum <= 0) {
+                mesNum += 12;
+                anio -= 1; // Cambia de año (ej. 270401 -> 260412)
+            }
+            return `${String(anio).padStart(2, '0')}${mod}${String(mesNum).padStart(2, '0')}`;
         }
 
         // ===== NUEVO: Sumar periodos (volumen) =====
@@ -1896,13 +2134,14 @@
             const anio = parseInt(periodoBase.substring(0, 2), 10);
             const mod = periodoBase.substring(2, 4);
             let mes = parseInt(periodoBase.substring(4, 6), 10);
-            const incremento = mod === '04' ? 1 : 2;
-            let mesesSumar = cantidadSumar * incremento;
-            mes += mesesSumar;
+            
+            // Sumamos exactamente la cantidad de cursos como meses (todos avanzan secuencialmente)
+            mes += cantidadSumar;
             let anioSumar = Math.floor((mes - 1) / 12);
             mes = mes - (anioSumar * 12);
             let nuevoAnio = anio + anioSumar;
-            return `${nuevoAnio}${mod}${String(mes).padStart(2, '0')}`;
+            
+            return `${String(nuevoAnio).padStart(2, '0')}${mod}${String(mes).padStart(2, '0')}`;
         }
 
         // ===== NUEVO: Formatear fecha legible =====
@@ -2215,8 +2454,7 @@
             return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
         }
 
-        function filtrarAlumnosBuscador() { return;
-
+        function filtrarAlumnosBuscador() {
             const input = document.getElementById('alumno-id');
             const val = input.value.trim();
             const list = document.getElementById('autocomplete-list');
@@ -2320,7 +2558,8 @@
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
-                document.getElementById('lbl-id').innerText       = alumnoActual.idOriginal;
+                let tagNuevo = alumnoActual.esNuevoLayout ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-3 py-[1px] rounded-full inline-block align-baseline relative -top-[1px] ml-1 tracking-wider border border-blue-200">NUEVO</span>' : '';
+                document.getElementById('lbl-id').innerHTML       = alumnoActual.idOriginal + tagNuevo;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
                 
                 // Actualizar estatus
@@ -2339,6 +2578,11 @@
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                 }
+
+                if (alumnoActual.esLayPasado) {
+                    statusBadge += ' <span class="bg-gray-200 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block ml-2 border border-gray-300">[INI ANTERIOR]</span>';
+                }
+
                 document.getElementById('lbl-estatus-pago').innerHTML = statusBadge;
                 document.getElementById('contenedor-estatus-pago').classList.remove('hidden');
                 document.getElementById('contenedor-estatus-pago').classList.add('flex');
@@ -2401,9 +2645,10 @@
                 document.getElementById('lbl-horario').innerText  = horarioAMostrar;
 
                 // PASO 2: mostrar solo botones (dejamos visible el buscador arriba)
-                document.getElementById('menu-principal').classList.add('hidden');
+                document.getElementById('menu-principal').classList.remove('hidden');
                 document.getElementById('botones-extras').classList.add('hidden');
-                mostrarSeccionPagos();
+                ficha.classList.add('hidden');
+                calculos.classList.add('hidden');
             } else {
                 alumnoActual = null;
                 ficha.classList.add('hidden');
@@ -4248,6 +4493,7 @@
                 </div>
             `;
             
+            document.getElementById('print-constancia').innerHTML = '';
             document.getElementById('print-factura').innerHTML = facturaHtml;
             
             setTimeout(() => {
@@ -4263,6 +4509,165 @@
             document.getElementById('recibo-rfc').value = '';
             document.getElementById('modal-recibo-opciones').classList.remove('hidden');
         }
+        
+        function abrirModalConstancia() {
+            if (!alumnoActual) {
+                alert("No hay alumno seleccionado.");
+                return;
+            }
+            document.getElementById('constancia-dirigida').value = 'A quien corresponda';
+            document.getElementById('modal-constancia-opciones').classList.remove('hidden');
+        }
+
+        function generarConstancia() {
+            document.getElementById('modal-constancia-opciones').classList.add('hidden');
+
+            const dirigidaA = document.getElementById('constancia-dirigida').value.trim() || 'A quien corresponda';
+
+            // ── Fecha del día ──────────────────────────────────────────────────────
+            const hoy = new Date();
+            const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            const mesesNombre = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+            const diaNum   = hoy.getDate();
+            const mesNombre = mesesNombre[hoy.getMonth()];
+            const anio     = hoy.getFullYear();
+            const fechaTexto = `${diaNum} de ${mesNombre} de ${anio}`;
+
+            // ── Datos del alumno ───────────────────────────────────────────────────
+            const nombre  = alumnoActual.nombre || '';
+            const programa = alumnoActual.programaNombre || 'ADULTO'; // KIDS, PTEEN, TEENS, ADULTO
+            const nivel   = alumnoActual.nivelActual || 0;
+            const horario = alumnoActual.horario || '';
+
+            // ── Modalidad de clase ─────────────────────────────────────────────────
+            const tipoClase = alumnoActual.tipoClaseCal || 'entre-semana'; // 'sabado' o 'entre-semana'
+
+            // ── Horario: calcular hora inicio y fin ────────────────────────────────
+            let horaInicioTexto = '';
+            let horaFinTexto = '';
+            const horarioMatch = horario.match(/(\d{1,2}):(\d{2})/);
+            if (horarioMatch) {
+                let h = parseInt(horarioMatch[1]);
+                let m = parseInt(horarioMatch[2]);
+                horaInicioTexto = `${h}:${String(m).padStart(2,'0')} hrs`;
+                // Duración: entre semana 1h30m; sábado/domingo ADULTO 6h, demás 3h
+                let durHoras = 1, durMins = 30;
+                if (tipoClase === 'sabado') {
+                    durHoras = (programa === 'ADULTO') ? 6 : 3;
+                    durMins = 0;
+                }
+                let finH = h + durHoras;
+                let finM = m + durMins;
+                if (finM >= 60) { finH++; finM -= 60; }
+                horaFinTexto = `${finH}:${String(finM).padStart(2,'0')} hrs`;
+            }
+
+            // ── Nivel máximo y MCER ────────────────────────────────────────────────
+            let nivelMax = 24;
+            let mostrarMCER = true;
+            if (programa === 'KIDS')       { nivelMax = 15; mostrarMCER = false; }
+            else if (programa === 'PTEEN') { nivelMax = 12; mostrarMCER = false; }
+            // TEENS y ADULTO: 24 niveles, sí muestran MCER
+
+            function obtenerNivelMCER(niv) {
+                if (niv <= 4)  return 'A1';
+                if (niv <= 8)  return 'A2';
+                if (niv <= 12) return 'B1';
+                if (niv <= 16) return 'B1+';
+                if (niv <= 20) return 'B2';
+                return 'C1';
+            }
+            const nivelMCER = mostrarMCER ? obtenerNivelMCER(nivel) : '';
+
+            // ── Fechas del curso actual ────────────────────────────────────────────
+            const inicioActual = document.getElementById('lbl-inicio-actual').innerText || '';
+            const finActual    = document.getElementById('lbl-fin-actual').innerText    || '';
+
+            // ── Leer opciones de los checkboxes ────────────────────────────────────
+            const includeModalidad = document.getElementById('chk-const-modalidad').checked;
+            const includeHorario   = document.getElementById('chk-const-horario').checked;
+            const includeCefr      = document.getElementById('chk-const-cefr').checked;
+            const includeFechas    = document.getElementById('chk-const-fechas').checked;
+
+            // ── Texto de modalidad + horario integrados ────────────────────────────
+            let textoModalidad = '';
+            let textoHorario = '';
+
+            if (tipoClase === 'sabado') {
+                const prefijoMod = alumnoActual.prefijoMod || '';
+                const esDomingo = (prefijoMod === 'DO');
+                textoModalidad = esDomingo ? 'en modalidad dominical' : 'en modalidad sabatino';
+            } else {
+                textoModalidad = 'entre semana con clases de lunes a jueves';
+            }
+
+            if (horaInicioTexto && horaFinTexto) {
+                textoHorario = `en un horario de ${horaInicioTexto} a ${horaFinTexto}`;
+            }
+
+            let modYHor = '';
+            if (includeModalidad && includeHorario && textoHorario) {
+                modYHor = `${textoModalidad}, ${textoHorario}`;
+            } else if (includeModalidad) {
+                modYHor = textoModalidad;
+            } else if (includeHorario && textoHorario) {
+                modYHor = textoHorario;
+            }
+
+            // ── Construcción del párrafo central ──────────────────────────────────
+            let oracion1 = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla`;
+            if (modYHor) {
+                oracion1 += `, ${modYHor}. `;
+            } else {
+                oracion1 += `. `;
+            }
+
+            let oracion2 = `Actualmente se encuentra en curso ${nivel} de ${nivelMax} posibles`;
+            if (mostrarMCER && nivelMCER && includeCefr) {
+                oracion2 += `, equivalente ante el Marco Común Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
+            }
+            oracion2 += `.`;
+
+            let oracion3 = '';
+            if (includeFechas && inicioActual && inicioActual !== 'No disponible' && finActual && finActual !== 'No disponible') {
+                oracion3 = ` El curso actual tiene fecha de inicio el ${inicioActual} y fecha de finalización el ${finActual}.`;
+            }
+
+            const textoPrincipal = oracion1 + oracion2 + oracion3;
+
+            // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
+            const constanciaHtml = `
+                <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
+                <p class="constancia-asunto">Asunto: Constancia de estudios.<br></p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-destinatario">${dirigidaA}.</p>
+                <p class="constancia-presente">PRESENTE.</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
+                <br><br>
+                <p class="constancia-nombre">${alumnoActual.idOriginal} ${nombre.toUpperCase()}</p>
+                <br><br>
+                <p class="constancia-body">${textoPrincipal}</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-footer-text">La presente constancia se emite a solicitud del interesado para los fines legales que a éste convenga.</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-salto">&nbsp;</p>
+                <p class="constancia-atentamente">Atentamente</p>
+                <div style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
+                    <img src="data:image/jpeg;base64,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" style="height: 120px; width: auto; display: inline-block; object-fit: contain; mix-blend-mode: multiply; filter: contrast(1.5) brightness(1.1) grayscale(100%);" alt="Firma">
+                </div>
+                <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
+            `;
+
+            document.getElementById('print-factura').innerHTML = '';
+            document.getElementById('print-constancia').innerHTML = constanciaHtml;
+
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
         
         function generarReciboConOpciones() {
             document.getElementById('modal-recibo-opciones').classList.add('hidden');
@@ -4444,7 +4849,7 @@
                     </div>
                 </div>
             `;
-            
+            document.getElementById('print-constancia').innerHTML = '';
             document.getElementById('print-factura').innerHTML = reciboHtml;
             
             setTimeout(() => {
@@ -6175,6 +6580,122 @@
                 }
             });
         }
+
+        // ================= CALCULADORA MANUAL =================
+        function abrirCalculadoraManual() {
+            document.getElementById('seccion-busqueda').classList.add('hidden');
+            document.getElementById('seccion-calculadora-manual').classList.remove('hidden');
+            actualizarCalculadoraManual();
+        }
+
+        function cerrarCalculadoraManual() {
+            document.getElementById('seccion-calculadora-manual').classList.add('hidden');
+            document.getElementById('seccion-busqueda').classList.remove('hidden');
+        }
+
+        function actualizarCalculadoraManual() {
+            const cursoEl = document.getElementById('calc-curso');
+            let curso = parseInt(cursoEl.value);
+            if(isNaN(curso) || curso < 1) curso = 1;
+            if(curso > 24) curso = 24;
+            
+            const maxCursos = Math.max(1, 25 - curso);
+            const slider = document.getElementById('calc-slider');
+            slider.max = maxCursos;
+            
+            let valSlider = parseInt(slider.value);
+            if(valSlider > maxCursos) {
+                slider.value = maxCursos;
+                valSlider = maxCursos;
+            }
+            document.getElementById('calc-cursos-val').innerText = valSlider;
+
+            const cantCursos = valSlider;
+            const programa = document.getElementById('calc-programa').value;
+            const horario = document.getElementById('calc-horario').value;
+            
+            let becaInput = parseFloat(document.getElementById('calc-beca').value) || 0;
+            const becaBase = becaInput / 100;
+            
+            const extraServicio = document.getElementById('calc-servicio').checked ? 90 : 0;
+
+            let cursosBajos = 0, cursosAltos = 0;
+            const primerNivel = curso;
+            const ultimoNivel = primerNivel + cantCursos - 1;
+            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
+                (nivel >= 21) ? cursosAltos++ : cursosBajos++;
+            }
+
+            const llaveBaja = `${horario}${programa}BAJO`;
+            const llaveAlta = `${horario}${programa}21`;
+            const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
+            const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
+
+            let descuentoAplicar = 0;
+            let etiquetaPromo = "Sin promoción";
+
+            if (becaBase > 0) {
+                descuentoAplicar = becaBase;
+                etiquetaPromo = "Beca asignada";
+            }
+
+            const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
+            const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - descuentoAplicar));
+            
+            const totalCursosConServicio = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
+            
+            const totalListaGeneral = ((precioBaseBajo + extraServicio) * cursosBajos) + ((precioBaseAlto + extraServicio) * cursosAltos);
+
+            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+            const primerEsAlto = primerNivel >= 21;
+            const unitarioLista = (primerEsAlto ? precioBaseAlto : precioBaseBajo) + extraServicio;
+            const unitarioDesc  = (primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ) + extraServicio;
+
+            document.getElementById('calc-uni-lista').innerHTML = fmt.format(unitarioLista);
+            document.getElementById('calc-uni-desc').innerHTML = fmt.format(unitarioDesc);
+            document.getElementById('calc-etiqueta-promo').innerText = etiquetaPromo;
+
+            const filaBeca = document.getElementById('calc-fila-beca');
+            if (becaBase > 0) {
+                filaBeca.classList.remove('hidden');
+                const pBecaSinServ = primerEsAlto ? (precioBaseAlto * (1 - becaBase)) : (precioBaseBajo * (1 - becaBase));
+                const unitarioBecaSin = Math.round(pBecaSinServ);
+                const unitarioBecaCon = unitarioBecaSin + 90;
+                const becaPct = Math.round(becaBase * 100);
+                
+                document.getElementById('calc-lbl-uni-beca-sin').innerText = `Precio de beca (${becaPct}%) sin servicio:`;
+                document.getElementById('calc-uni-beca-sin').innerText = fmt.format(unitarioBecaSin);
+                document.getElementById('calc-lbl-uni-beca-con').innerText = `Precio de beca (${becaPct}%) con servicio:`;
+                document.getElementById('calc-uni-beca-con').innerText = fmt.format(unitarioBecaCon);
+            } else {
+                filaBeca.classList.add('hidden');
+            }
+
+            const filaCargo = document.getElementById('calc-fila-cargo-serv');
+            if (extraServicio > 0) {
+                filaCargo.classList.remove('hidden');
+                document.getElementById('calc-desglose-cargo').innerText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
+                document.getElementById('calc-cargo-tot').innerText = fmt.format(90 * cantCursos);
+            } else {
+                filaCargo.classList.add('hidden');
+            }
+
+            document.getElementById('calc-tot-cur').innerText = fmt.format(totalCursosConServicio);
+            document.getElementById('calc-res-total').innerText = fmt.format(totalCursosConServicio);
+
+            const ahorro = totalListaGeneral - totalCursosConServicio;
+            const ahorroCont = document.getElementById('calc-ahorro-container');
+            if (ahorro > 0) {
+                ahorroCont.classList.remove('hidden');
+                document.getElementById('calc-lbl-ahorro').innerText = fmt.format(ahorro);
+            } else {
+                ahorroCont.classList.add('hidden');
+            }
+
+            const txtVigencia = document.getElementById('calc-fecha-vigencia');
+            txtVigencia.classList.add('hidden');
+            txtVigencia.classList.remove('block');
+        }
 </script>
     <!-- ===== MODAL WHATSAPP OPCIONES ===== -->
     <div id="modal-whatsapp-options" class="modal-overlay hidden" style="z-index: 60;" onclick="if(event.target===this) document.getElementById('modal-whatsapp-options').classList.add('hidden')">
@@ -6193,4 +6714,3 @@
     </div>
 </body>
 </html>
-
