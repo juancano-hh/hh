@@ -445,8 +445,8 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Programa</label>
                         <select id="calc-programa" onchange="actualizarCalculadoraManual()" class="w-full p-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 outline-none transition">
-                            <option value="04">Adulto</option>
-                            <option value="08">Kids / Pteen / Teen</option>
+                            <option value="04">04</option>
+                            <option value="08">08</option>
                         </select>
                     </div>
                     <div>
@@ -4654,7 +4654,9 @@
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-atentamente">Atentamente</p>
-                <br><br><br><br><br><br>
+                <div style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
+                    <img src="firma.jpeg" style="height: 120px; width: auto; display: inline-block; object-fit: contain;" alt="Firma">
+                </div>
                 <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
             `;
 
@@ -6613,7 +6615,7 @@
             const horario = document.getElementById('calc-horario').value;
             
             let becaInput = parseFloat(document.getElementById('calc-beca').value) || 0;
-            const becaBase = becaInput > 1 ? becaInput / 100 : becaInput;
+            const becaBase = becaInput / 100;
             
             const extraServicio = document.getElementById('calc-servicio').checked ? 90 : 0;
 
@@ -6629,20 +6631,10 @@
             const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
 
-            const promoVolumen = obtenerMejorPromoVigente(cantCursos);
-            
             let descuentoAplicar = 0;
             let etiquetaPromo = "Sin promoción";
-            let fechaTexto = "";
 
-            if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBase) {
-                descuentoAplicar = promoVolumen.descuento;
-                etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
-                }
-            } else if (becaBase > 0) {
+            if (becaBase > 0) {
                 descuentoAplicar = becaBase;
                 etiquetaPromo = "Beca asignada";
             }
@@ -6701,14 +6693,8 @@
             }
 
             const txtVigencia = document.getElementById('calc-fecha-vigencia');
-            if (fechaTexto) {
-                txtVigencia.innerText = fechaTexto;
-                txtVigencia.classList.remove('hidden');
-                txtVigencia.classList.add('block');
-            } else {
-                txtVigencia.classList.add('hidden');
-                txtVigencia.classList.remove('block');
-            }
+            txtVigencia.classList.add('hidden');
+            txtVigencia.classList.remove('block');
         }
 </script>
     <!-- ===== MODAL WHATSAPP OPCIONES ===== -->
