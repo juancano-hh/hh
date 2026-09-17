@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -104,8 +104,8 @@
             }
             #print-constancia {
                 display: block !important;
-                /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
-                   top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
+                /* Carta: 8.5" x 11" â€” mÃ¡rgenes exactos del DOCX:
+                   top/bottom = 1417 twips â‰ˆ 2.49cm, left/right = 1701 twips â‰ˆ 3.0cm */
                 width: 8.5in;
                 min-height: 11in;
                 max-height: 11in;
@@ -132,7 +132,7 @@
                 line-height: 1.5;
             }
             #print-constancia .constancia-salto {
-                /* Línea en blanco entre secciones — equivale a un párrafo vacío en DOCX */
+                /* LÃ­nea en blanco entre secciones â€” equivale a un pÃ¡rrafo vacÃ­o en DOCX */
                 line-height: 1.5;
                 display: block;
             }
@@ -284,7 +284,7 @@
             .cal-d { font-size: 0.47rem; }
             .modal-controls { gap: 4px; }
         }
-        /* ===== MODAL RECUPERACIÓN ===== */
+        /* ===== MODAL RECUPERACIÃ“N ===== */
         .rec-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.7);
@@ -335,7 +335,7 @@
         .rec-submit:hover { opacity: 0.9; transform: translateY(-1px); }
         .rec-submit:active { transform: translateY(0); }
         .rec-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        /* ===== MINI CALENDAR RECUPERACIÓN ===== */
+        /* ===== MINI CALENDAR RECUPERACIÃ“N ===== */
         .mini-cal-header { background: #6366f1; color: #fff; text-align: center; padding: 8px; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; }
         .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; background: #fff; }
         .mini-cal-day-label { text-align: center; font-size: 0.6rem; font-weight: 700; color: #9ca3af; padding: 3px 0; }
@@ -361,7 +361,7 @@
     <div id="print-constancia" class="hidden"></div>
     <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
 
-        <!-- PASO 1: BÚSQUEDA -->
+        <!-- PASO 1: BÃšSQUEDA -->
         <div id="seccion-busqueda">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-gray-800">Consulta de Costos</h1>
@@ -371,7 +371,7 @@
                 <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ingresa tu ID, Nombre o Celular</label>
                     <div class="flex gap-2">
-                        <input type="text" id="alumno-id" placeholder="Ej. 991122 o Juan Pérez" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()" oninput="filtrarAlumnosBuscador()" autocomplete="off">
+                        <input type="text" id="alumno-id" placeholder="Ej. 991122 o Juan PÃ©rez" class="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition uppercase" onkeypress="if(event.key==='Enter') buscarAlumno()" oninput="filtrarAlumnosBuscador()" autocomplete="off">
                         <button onclick="buscarAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 rounded-xl transition duration-200 flex-shrink-0">
                             Buscar
                         </button>
@@ -383,43 +383,43 @@
                     <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2.5 text-center">Herramientas y Consultas</p>
                     <div class="grid grid-cols-2 gap-2.5">
                         <button onclick="abrirModalCalendarioIndependiente()" class="flex items-center gap-2.5 p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">📅</span>
+                            <span class="text-xl">ðŸ“…</span>
                             <span class="text-left leading-tight">Calendario</span>
                         </button>
                         <button onclick="abrirModalMateriales()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">📚</span>
+                            <span class="text-xl">ðŸ“š</span>
                             <span class="text-left leading-tight">Materiales</span>
                         </button>
                         <button onclick="abrirModalHorariosLayout()" class="flex items-center gap-2.5 p-3 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs rounded-xl border border-orange-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🕒</span>
+                            <span class="text-xl">ðŸ•’</span>
                             <span class="text-left leading-tight">Horarios</span>
                         </button>
                         <button onclick="abrirModalRevisionGrupos()" class="flex items-center gap-2.5 p-3 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 font-bold text-xs rounded-xl border border-cyan-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">📊</span>
-                            <span class="text-left leading-tight">Revisión Grupos</span>
+                            <span class="text-xl">ðŸ“Š</span>
+                            <span class="text-left leading-tight">RevisiÃ³n Grupos</span>
                         </button>
                         <button onclick="abrirModalGrupos()" class="flex items-center gap-2.5 p-3 bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold text-xs rounded-xl border border-teal-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🔍</span>
+                            <span class="text-xl">ðŸ”</span>
                             <span class="text-left leading-tight">Buscar Grupos</span>
                         </button>
                         <button onclick="abrirModalMapaSalones()" class="flex items-center gap-2.5 p-3 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold text-xs rounded-xl border border-violet-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🗺️</span>
+                            <span class="text-xl">ðŸ—ºï¸</span>
                             <span class="text-left leading-tight">Salones</span>
                         </button>
                         <button onclick="imprimirSaloneo()" class="flex items-center gap-2.5 p-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-xl border border-emerald-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🖨️</span>
+                            <span class="text-xl">ðŸ–¨ï¸</span>
                             <span class="text-left leading-tight">Saloneo</span>
                         </button>
                         <button onclick="abrirModalBuscadorCRN()" class="flex items-center gap-2.5 p-3 bg-pink-50 hover:bg-pink-100 text-pink-700 font-bold text-xs rounded-xl border border-pink-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🔎</span>
+                            <span class="text-xl">ðŸ”Ž</span>
                             <span class="text-left leading-tight">Buscador CRN</span>
                         </button>
                         <button onclick="abrirModalPasswordDashboard()" class="flex items-center gap-2.5 p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs rounded-xl border border-indigo-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">📈</span>
+                            <span class="text-xl">ðŸ“ˆ</span>
                             <span class="text-left leading-tight">Dashboard</span>
                         </button>
                         <button onclick="abrirCalculadoraManual()" class="flex items-center gap-2.5 p-3 bg-green-50 hover:bg-green-100 text-green-700 font-bold text-xs rounded-xl border border-green-200 transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5">
-                            <span class="text-xl">🧮</span>
+                            <span class="text-xl">ðŸ§®</span>
                             <span class="text-left leading-tight">Calculadora de Pagos</span>
                         </button>
                     </div>
@@ -427,12 +427,12 @@
             </div>
         </div>
 
-        <!-- SECCIÓN: CALCULADORA MANUAL -->
+        <!-- SECCIÃ“N: CALCULADORA MANUAL -->
         <div id="seccion-calculadora-manual" class="hidden">
             <!-- Header -->
             <div class="flex items-center gap-3 mb-6">
-                <button onclick="cerrarCalculadoraManual()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-1 px-3 transition-all duration-200 bg-gray-50 hover:bg-gray-100">← Regresar</button>
-                <h2 class="font-bold text-gray-800 text-xl">🧮 Calculadora</h2>
+                <button onclick="cerrarCalculadoraManual()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-1 px-3 transition-all duration-200 bg-gray-50 hover:bg-gray-100">â† Regresar</button>
+                <h2 class="font-bold text-gray-800 text-xl">ðŸ§® Calculadora</h2>
             </div>
 
             <!-- Inputs -->
@@ -474,7 +474,7 @@
             <!-- Slider -->
             <div class="mb-5 px-1">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-sm font-bold text-gray-700">¿Cuántos cursos a pagar?</label>
+                    <label class="text-sm font-bold text-gray-700">Â¿CuÃ¡ntos cursos a pagar?</label>
                     <span id="calc-cursos-val" class="bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
                 </div>
                 <input type="range" id="calc-slider" min="1" max="24" value="1" oninput="actualizarCalculadoraManual()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
@@ -528,7 +528,7 @@
 
                 <div id="calc-ahorro-container" class="mt-4 text-center hidden">
                     <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm animate-pulse">
-                        💰 Ahorro total: <span id="calc-lbl-ahorro"></span>
+                        ðŸ’° Ahorro total: <span id="calc-lbl-ahorro"></span>
                     </span>
                 </div>
                 
@@ -542,61 +542,61 @@
                 <h2 id="menu-saludo-nombre" class="text-lg font-bold text-gray-800"></h2>
                 <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
             </div>
-            <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
+            <p class="text-center text-sm font-semibold text-gray-500 mb-3">Â¿QuÃ© deseas hacer?</p>
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
-                    <span class="text-3xl">💳</span>
+                    <span class="text-3xl">ðŸ’³</span>
                     <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
                 </button>
                 <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
-                    <span class="text-3xl">🔁</span>
-                    <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                    <span class="text-3xl">ðŸ”</span>
+                    <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>RecuperaciÃ³n</span>
                 </button>
             </div>
             <p class="text-center mt-4">
                 <button onclick="regresarBusqueda()" class="text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-6 transition-all duration-200 bg-gray-50 hover:bg-gray-100">
-                    ↩ Buscar otra matrícula
+                    â†© Buscar otra matrÃ­cula
                 </button>
             </p>
         </div>
 
-        <!-- ===== FICHA ALUMNO (se muestra al elegir una opción) ===== -->
+        <!-- ===== FICHA ALUMNO (se muestra al elegir una opciÃ³n) ===== -->
         <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
-            <!-- Botón regresar al menú -->
+            <!-- BotÃ³n regresar al menÃº -->
             <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 mb-2">
-                ← Cambiar opción
+                â† Cambiar opciÃ³n
             </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
-            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
-            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>MatrÃ­cula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono cursor-pointer hover:bg-yellow-100 hover:text-blue-700 transition px-1 rounded" onclick="copiarAlPortapapeles(this)" title="Clic para copiar"></span></p>
+            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 cursor-pointer hover:bg-yellow-100 hover:text-blue-700 transition px-1 rounded" onclick="copiarAlPortapapeles(this)" title="Clic para copiar"></span></p>
             <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2"></span>
                 <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
-                    💬 WhatsApp
+                    ðŸ’¬ WhatsApp
                 </button>
             </p>
-            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all"></span></p>
+            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all cursor-pointer hover:bg-yellow-100 hover:text-blue-700 transition px-1 rounded" onclick="copiarAlPortapapeles(this)" title="Clic para copiar"></span></p>
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
             <p id="contenedor-salon" class="hidden text-sm text-gray-700">
-                <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
+                <strong>SalÃ³n:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
                 <button onclick="abrirModalMapaSalones()" class="ml-2 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-2 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
-                    🗺️ Ver mapa
+                    ðŸ—ºï¸ Ver mapa
                 </button>
             </p>
             <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
             <p class="text-sm text-gray-700">
                 <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-2"></span>
                 <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                    📅 Horarios
+                    ðŸ“… Horarios
                 </button>
             </p>
             <p id="contenedor-libro" class="hidden text-sm text-gray-700">
                 <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
                 <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                    📚 Ver más
+                    ðŸ“š Ver mÃ¡s
                 </button>
             </p>
             <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
@@ -605,13 +605,13 @@
             <div id="seccion-periodos" class="hidden pt-3 border-t border-gray-200 space-y-2">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
                 <div class="bg-blue-50 rounded-xl p-3 space-y-1 border border-blue-100">
-                    <p class="text-xs font-bold text-blue-700">📚 Curso actual (en curso)</p>
+                    <p class="text-xs font-bold text-blue-700">ðŸ“š Curso actual (en curso)</p>
                     <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
                 </div>
                 <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100 relative">
-                    <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
+                    <p class="text-xs font-bold text-green-700">ðŸŽ¯ PrÃ³ximo curso</p>
                     <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
                     <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
@@ -622,16 +622,16 @@
                 </div>
                 <div class="flex gap-2">
                     <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                        📅 Calendario
+                        ðŸ“… Calendario
                     </button>
                     <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                        🖨️ Cotización
+                        ðŸ–¨ï¸ CotizaciÃ³n
                     </button>
                     <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                        🧾 Recibo
+                        ðŸ§¾ Recibo
                     </button>
                     <button onclick="abrirModalConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
-                        🎓 Constancia
+                        ðŸŽ“ Constancia
                     </button>
                 </div>
             </div>
@@ -640,7 +640,7 @@
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
             <div>
                 <div class="flex justify-between items-center mb-1">
-                    <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
+                    <label class="text-sm font-medium text-gray-700">Â¿CuÃ¡ntos niveles/cursos vas a pagar?</label>
                     <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
                 </div>
                 <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
@@ -649,11 +649,11 @@
 
             <div id="info-promo-adicional" class="hidden text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-yellow-800 text-center font-medium"></div>
 
-            <!-- SECCIÓN LIBROS CON CHECKBOXES INDIVIDUALES -->
+            <!-- SECCIÃ“N LIBROS CON CHECKBOXES INDIVIDUALES -->
             <div id="libro-container" class="hidden bg-blue-50 p-4 rounded-xl border border-blue-200 space-y-3">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-bold text-blue-800">📚 ¡Te toca cambio de libro!</p>
+                        <p class="text-sm font-bold text-blue-800">ðŸ“š Â¡Te toca cambio de libro!</p>
                         <p id="libro-mensaje" class="text-xs text-blue-700"></p>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
@@ -699,7 +699,7 @@
                             <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
                                    oninput="cambiarDescuentoManual(this.value)" 
                                    class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
-                                   title="Ingresa un porcentaje de descuento para simular la cotización">
+                                   title="Ingresa un porcentaje de descuento para simular la cotizaciÃ³n">
                             <span class="text-[11px] font-bold text-green-800 ml-0.5">%</span>
                         </span>
                     </span>
@@ -737,11 +737,11 @@
             </div>
 
             <div id="ahorro-container" class="hidden text-right text-sm font-bold text-red-600 mt-1">
-                💰 Ahorro total: <span id="lbl-ahorro">$0.00</span>
+                ðŸ’° Ahorro total: <span id="lbl-ahorro">$0.00</span>
             </div>
             <!-- COTIZACION FECHA -->
             <div id="cotizacion-fecha-container" class="hidden text-center text-sm font-bold text-blue-700 mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                📅 Si pagas esta cotización, tu próxima fecha de pago será:<br>
+                ðŸ“… Si pagas esta cotizaciÃ³n, tu prÃ³xima fecha de pago serÃ¡:<br>
                 <span id="lbl-cotizacion-fecha"></span>
             </div>
 
@@ -751,10 +751,10 @@
 
         <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
 
-        <!-- ===== FORMULARIO INLINE DE RECUPERACIÓN (WIZARD) ===== -->
+        <!-- ===== FORMULARIO INLINE DE RECUPERACIÃ“N (WIZARD) ===== -->
         <div id="seccion-recuperacion" class="hidden mt-4 space-y-4">
             <div class="border-t border-purple-100 pt-4">
-                <p class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-4">🔁 Clase de Recuperación</p>
+                <p class="text-xs font-bold uppercase tracking-wider text-purple-600 mb-4">ðŸ” Clase de RecuperaciÃ³n</p>
 
                 <!-- Indicador de pasos -->
                 <div class="flex justify-between items-center mb-4 px-2">
@@ -767,19 +767,19 @@
 
                 <div id="rec-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2 text-center mb-3"></div>
 
-                <!-- WIZARD: PASO 1 (Datos de contacto y clase en línea) -->
+                <!-- WIZARD: PASO 1 (Datos de contacto y clase en lÃ­nea) -->
                 <div id="rec-paso-1" class="space-y-4 transition-all">
                     <div class="mb-3">
-                        <label class="rec-label">Correo electrónico</label>
+                        <label class="rec-label">Correo electrÃ³nico</label>
                         <input type="email" id="rec-correo" class="rec-input" placeholder="tu@correo.com">
                     </div>
 
                     <div class="mb-3">
-                        <label class="rec-label">¿Qué día quieres recuperar tu clase en línea?</label>
+                        <label class="rec-label">Â¿QuÃ© dÃ­a quieres recuperar tu clase en lÃ­nea?</label>
                         <select id="rec-tipo" class="rec-select" onchange="filtrarHorariosPorTipo()">
                             <option value="">-- Selecciona el tipo --</option>
                         </select>
-                        <p id="nota-entre-semana" class="hidden text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-2">Entre semana solo se puede recuperar el mismo día.</p>
+                        <p id="nota-entre-semana" class="hidden text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 mt-2">Entre semana solo se puede recuperar el mismo dÃ­a.</p>
                     </div>
 
                     <div class="mb-3" id="rec-horario-container" style="display:none">
@@ -789,44 +789,44 @@
                         </select>
                         <p id="rec-horario-aviso" class="text-xs text-orange-500 mt-1 hidden">No hay horarios disponibles para este tipo de clase.</p>
                         
-                        <!-- Caja de confirmación de grupo elegido si hay varios -->
+                        <!-- Caja de confirmaciÃ³n de grupo elegido si hay varios -->
                         <div id="rec-grupo-elegido-info" class="hidden mt-2 p-2.5 bg-purple-50 border border-purple-200 rounded-xl text-xs flex items-center justify-between">
                             <div class="text-purple-900 font-medium">
                                 <span id="lbl-rec-grupo-elegido-detalle"></span>
                             </div>
                             <button type="button" onclick="reabrirModalGruposRec()" class="text-purple-700 hover:text-purple-900 font-bold underline text-[11px] ml-2 shrink-0">
-                                Cambiar salón
+                                Cambiar salÃ³n
                             </button>
                         </div>
                     </div>
 
                     <button onclick="avanzarPasoRec(2)" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200 mt-2">
-                        Siguiente →
+                        Siguiente â†’
                     </button>
                 </div>
 
                 <!-- WIZARD: PASO 2 (Calendario de falta) -->
                 <div id="rec-paso-2" class="hidden space-y-4 transition-all">
                     <div class="mb-3">
-                        <label class="rec-label text-orange-600">¿Qué día(s) no vendrás de tu clase presencial?</label>
-                        <p class="text-xs text-gray-400 mb-3" id="rec-cal-instrucciones">Selecciona los días que vas a faltar (según tu programa original).</p>
+                        <label class="rec-label text-orange-600">Â¿QuÃ© dÃ­a(s) no vendrÃ¡s de tu clase presencial?</label>
+                        <p class="text-xs text-gray-400 mb-3" id="rec-cal-instrucciones">Selecciona los dÃ­as que vas a faltar (segÃºn tu programa original).</p>
                         <div id="rec-mini-cal" class="rounded-xl border border-orange-100 overflow-hidden bg-orange-50/30"></div>
                     </div>
 
                     <div class="flex gap-2 mt-4">
                         <button onclick="retrocederPasoRec(1)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
-                            ← Atrás
+                            â† AtrÃ¡s
                         </button>
                         <button onclick="avanzarPasoRec(3)" class="w-2/3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
-                            Siguiente →
+                            Siguiente â†’
                         </button>
                     </div>
                 </div>
 
-                <!-- WIZARD: PASO 3 (Resumen y Envío) -->
+                <!-- WIZARD: PASO 3 (Resumen y EnvÃ­o) -->
                 <div id="rec-paso-3" class="hidden space-y-4 transition-all">
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                        <h4 class="font-bold text-gray-800 text-sm mb-3 border-b pb-2">📋 Resumen de tu solicitud</h4>
+                        <h4 class="font-bold text-gray-800 text-sm mb-3 border-b pb-2">ðŸ“‹ Resumen de tu solicitud</h4>
                         <div class="space-y-2 text-sm text-gray-600" id="rec-resumen-container">
                             <!-- Inyectado por JS -->
                         </div>
@@ -834,7 +834,7 @@
 
                     <div class="flex gap-2 mt-4">
                         <button onclick="retrocederPasoRec(2)" class="w-1/3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 px-4 rounded-xl transition duration-200">
-                            ← Atrás
+                            â† AtrÃ¡s
                         </button>
                         <button id="rec-btn-enviar" onclick="enviarFormRecuperacion()" class="w-2/3 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">
                             Enviar Solicitud
@@ -844,17 +844,17 @@
 
                 <!-- MENSAJE EXITO -->
                 <div id="rec-exito" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 text-center mt-3">
-                    <p class="text-2xl mb-1">✅</p>
-                    <p class="font-bold text-green-800 text-sm">¡Solicitud enviada!</p>
+                    <p class="text-2xl mb-1">âœ…</p>
+                    <p class="font-bold text-green-800 text-sm">Â¡Solicitud enviada!</p>
                     <p class="text-xs text-green-600 mt-1">Te contactaremos pronto con los detalles.</p>
                     <div id="rec-link-container" class="hidden mt-4 pt-3 border-t border-green-200">
-                        <p class="text-xs text-green-700 mb-2 font-medium">Con este link puedes entrar a tu clase en línea:</p>
+                        <p class="text-xs text-green-700 mb-2 font-medium">Con este link puedes entrar a tu clase en lÃ­nea:</p>
                         <div class="flex items-center gap-2">
                             <a id="rec-link-btn" href="#" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition duration-200 text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                <span>🔗</span> Unirse a la clase
+                                <span>ðŸ”—</span> Unirse a la clase
                             </a>
                             <button onclick="navigator.clipboard.writeText(document.getElementById('rec-link-btn').href); alert('Link de clase copiado al portapapeles');" class="bg-white hover:bg-gray-50 text-gray-700 font-bold py-2 px-3 rounded-xl text-xs transition duration-200 border border-gray-300 shadow-sm" title="Copiar enlace">
-                                📋 Copiar
+                                ðŸ“‹ Copiar
                             </button>
                         </div>
                     </div>
@@ -871,13 +871,13 @@
             <!-- Header Compacto -->
             <div class="modal-header bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-3.5 py-2.5 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-2">
-                    <span class="text-xl">🗺️</span>
+                    <span class="text-xl">ðŸ—ºï¸</span>
                     <div>
                         <p class="font-bold text-sm sm:text-base leading-tight">Mapa de Salones</p>
-                        <p class="text-[10px] text-violet-100 font-normal">Ubicación y distribución de aulas por piso</p>
+                        <p class="text-[10px] text-violet-100 font-normal">UbicaciÃ³n y distribuciÃ³n de aulas por piso</p>
                     </div>
                 </div>
-                <button class="text-white hover:text-gray-200 text-xl font-bold px-2 py-0.5 rounded-lg transition" onclick="cerrarModalMapaSalones()">✕</button>
+                <button class="text-white hover:text-gray-200 text-xl font-bold px-2 py-0.5 rounded-lg transition" onclick="cerrarModalMapaSalones()">âœ•</button>
             </div>
 
             <div class="p-2.5 sm:p-3.5 bg-gray-50 flex-1 flex flex-col justify-between">
@@ -885,32 +885,32 @@
                 <div class="flex items-center justify-between flex-wrap gap-2 mb-2 pb-2 border-b border-gray-200 shrink-0">
                     <div class="flex items-center gap-2">
                         <button id="btn-piso-1" onclick="seleccionarPisoMapa(1)" title="Primer Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-sky-400 bg-sky-500 text-white font-bold flex flex-col items-center justify-center shadow-md transition-all duration-200 hover:scale-105">
-                            <span class="text-[11px] font-black leading-none">1º</span>
+                            <span class="text-[11px] font-black leading-none">1Âº</span>
                             <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
                         <button id="btn-piso-2" onclick="seleccionarPisoMapa(2)" title="Segundo Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-amber-300 bg-white text-amber-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-[11px] font-black leading-none">2º</span>
+                            <span class="text-[11px] font-black leading-none">2Âº</span>
                             <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
                         <button id="btn-piso-3" onclick="seleccionarPisoMapa(3)" title="Tercer Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-emerald-400 bg-white text-emerald-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-[11px] font-black leading-none">3º</span>
+                            <span class="text-[11px] font-black leading-none">3Âº</span>
                             <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
                         <button id="btn-piso-4" onclick="seleccionarPisoMapa(4)" title="Cuarto Piso" class="btn-piso-circle w-9 h-9 sm:w-10 sm:h-10 rounded-full border-2 border-orange-400 bg-white text-orange-700 font-bold flex flex-col items-center justify-center shadow-sm transition-all duration-200 hover:scale-105">
-                            <span class="text-[11px] font-black leading-none">4º</span>
+                            <span class="text-[11px] font-black leading-none">4Âº</span>
                             <span class="text-[7px] uppercase tracking-tighter">Piso</span>
                         </button>
                     </div>
 
                     <div id="badge-piso-actual" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-200 shadow-sm flex items-center gap-1">
-                        <span>📍</span> <span id="lbl-piso-titulo">Primer Piso (1st Floor)</span>
+                        <span>ðŸ“</span> <span id="lbl-piso-titulo">Primer Piso (1st Floor)</span>
                     </div>
                 </div>
 
-                <!-- Contenedores de cada Piso (Estilo Plano Arquitectónico Compacto) -->
+                <!-- Contenedores de cada Piso (Estilo Plano ArquitectÃ³nico Compacto) -->
                 <div id="contenedor-mapa-pisos" class="relative rounded-xl p-1.5 sm:p-2 shadow-inner border border-slate-300 flex flex-col justify-center transition-all duration-300 bg-slate-100 overflow-hidden">
                     
-                    <!-- ===== MAPA PISO 1 (PLANO ARQUITECTÓNICO AZUL) ===== -->
+                    <!-- ===== MAPA PISO 1 (PLANO ARQUITECTÃ“NICO AZUL) ===== -->
                     <div id="mapa-piso-1" class="mapa-piso-vista w-full max-w-lg mx-auto">
                         <div class="bg-sky-50 border border-sky-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
                             <div class="text-center font-bold text-sky-900 text-[11px] font-mono border-b border-sky-200 pb-1 mb-2 select-none">
@@ -927,7 +927,7 @@
                                 <rect x="5" y="5" width="650" height="510" rx="16" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
                                 <rect x="10" y="10" width="640" height="500" rx="12" fill="url(#grid-piso-1)"/>
 
-                                <!-- Líneas punteadas con forma escalonada del Pasillo Principal (según imagen) -->
+                                <!-- LÃ­neas punteadas con forma escalonada del Pasillo Principal (segÃºn imagen) -->
                                 <line x1="215" y1="98" x2="445" y2="98" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
                                 <line x1="215" y1="98" x2="215" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
                                 <line x1="215" y1="435" x2="300" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
@@ -938,49 +938,49 @@
                                 <!-- Texto Pasillo Principal -->
                                 <text x="330" y="245" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
 
-                                <!-- SALÓN: LONDON (Top Center) -->
+                                <!-- SALÃ“N: LONDON (Top Center) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="200" y="15" width="260" height="75" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="206" y="21" width="248" height="63" rx="12" fill="#0369a1" opacity="0.4"/>
                                     <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">LONDON</text>
                                 </g>
 
-                                <!-- SALÓN: OTTAWA (Top Left) -->
+                                <!-- SALÃ“N: OTTAWA (Top Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="25" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="30" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
                                     <text x="115" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">OTTAWA</text>
                                 </g>
 
-                                <!-- SALÓN: SYDNEY (Bottom Left) -->
+                                <!-- SALÃ“N: SYDNEY (Bottom Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="25" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="30" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
                                     <text x="115" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">SYDNEY</text>
                                 </g>
 
-                                <!-- ÁREA: BAÑOS (Abajo de Sydney, alineado a la derecha) -->
+                                <!-- ÃREA: BAÃ‘OS (Abajo de Sydney, alineado a la derecha) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="115" y="305" width="90" height="125" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="120" y="310" width="80" height="115" rx="12" fill="#0369a1" opacity="0.4"/>
-                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÃ‘OS</text>
                                 </g>
 
-                                <!-- SALÓN: ATLANTA (Top Right) -->
+                                <!-- SALÃ“N: ATLANTA (Top Right) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="455" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="460" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
                                     <text x="545" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">ATLANTA</text>
                                 </g>
 
-                                <!-- SALÓN: NEW YORK (Bottom Right) -->
+                                <!-- SALÃ“N: NEW YORK (Bottom Right) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="455" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <rect x="460" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
                                     <text x="545" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">NEW YORK</text>
                                 </g>
 
-                                <!-- ÁREA: RECEPTION (Bottom Right - Alineado a la derecha como en la imagen) -->
+                                <!-- ÃREA: RECEPTION (Bottom Right - Alineado a la derecha como en la imagen) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="340" y="450" width="230" height="52" rx="14" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
                                     <text x="455" y="482" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">RECEPTION</text>
@@ -989,7 +989,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== MAPA PISO 2 (PLANO ARQUITECTÓNICO AMARILLO - SEGÚN BOCETO) ===== -->
+                    <!-- ===== MAPA PISO 2 (PLANO ARQUITECTÃ“NICO AMARILLO - SEGÃšN BOCETO) ===== -->
                     <div id="mapa-piso-2" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
                         <div class="bg-amber-50 border border-amber-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
                             <div class="text-center font-bold text-amber-900 text-[11px] font-mono border-b border-amber-200 pb-1 mb-2 select-none">
@@ -1026,7 +1026,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== MAPA PISO 3 (PLANO ARQUITECTÓNICO VERDE) ===== -->
+                    <!-- ===== MAPA PISO 3 (PLANO ARQUITECTÃ“NICO VERDE) ===== -->
                     <div id="mapa-piso-3" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
                         <div class="bg-emerald-50 border border-emerald-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
                             <div class="text-center font-bold text-emerald-900 text-[11px] font-mono border-b border-emerald-200 pb-1 mb-2 select-none">
@@ -1043,7 +1043,7 @@
                                 <rect x="5" y="5" width="650" height="435" rx="16" fill="#f0fdf4" stroke="#059669" stroke-width="3"/>
                                 <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-3)"/>
 
-                                <!-- Líneas punteadas con forma escalonada del Pasillo Principal (igual a Piso 1) -->
+                                <!-- LÃ­neas punteadas con forma escalonada del Pasillo Principal (igual a Piso 1) -->
                                 <line x1="215" y1="98" x2="445" y2="98" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
                                 <line x1="215" y1="98" x2="215" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
                                 <line x1="215" y1="435" x2="300" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
@@ -1054,42 +1054,42 @@
                                 <!-- Texto Pasillo Principal -->
                                 <text x="330" y="245" font-size="13" font-weight="900" fill="#047857" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
 
-                                <!-- SALÓN: HOUSTON (Top Center) -->
+                                <!-- SALÃ“N: HOUSTON (Top Center) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="200" y="15" width="260" height="75" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="206" y="21" width="248" height="63" rx="12" fill="#065f46" opacity="0.4"/>
                                     <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">HOUSTON</text>
                                 </g>
 
-                                <!-- SALÓN: CAMBRIDGE (Top Left) -->
+                                <!-- SALÃ“N: CAMBRIDGE (Top Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="25" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="30" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
                                     <text x="115" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">CAMBRIDGE</text>
                                 </g>
 
-                                <!-- SALÓN: SAN FRANCISCO (Bottom Left) -->
+                                <!-- SALÃ“N: SAN FRANCISCO (Bottom Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="25" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="30" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
                                     <text x="115" y="254" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">SAN FRANCISCO</text>
                                 </g>
 
-                                <!-- ÁREA: BAÑOS (Abajo de San Francisco, alineado a la derecha) -->
+                                <!-- ÃREA: BAÃ‘OS (Abajo de San Francisco, alineado a la derecha) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="115" y="305" width="90" height="125" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="120" y="310" width="80" height="115" rx="12" fill="#065f46" opacity="0.4"/>
-                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                                    <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÃ‘OS</text>
                                 </g>
 
-                                <!-- SALÓN: MELBOURNE (Top Right) -->
+                                <!-- SALÃ“N: MELBOURNE (Top Right) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="455" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="460" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
                                     <text x="545" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">MELBOURNE</text>
                                 </g>
 
-                                <!-- SALÓN: TORONTO (Bottom Right) -->
+                                <!-- SALÃ“N: TORONTO (Bottom Right) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="455" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
                                     <rect x="460" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
@@ -1099,7 +1099,7 @@
                         </div>
                     </div>
 
-                    <!-- ===== MAPA PISO 4 (PLANO ARQUITECTÓNICO NARANJA) ===== -->
+                    <!-- ===== MAPA PISO 4 (PLANO ARQUITECTÃ“NICO NARANJA) ===== -->
                     <div id="mapa-piso-4" class="mapa-piso-vista hidden w-full max-w-lg mx-auto">
                         <div class="bg-orange-50 border border-orange-400 rounded-xl p-2 sm:p-3 shadow relative overflow-hidden">
                             <div class="text-center font-bold text-orange-900 text-[11px] font-mono border-b border-orange-200 pb-1 mb-2 select-none">
@@ -1116,28 +1116,28 @@
                                 <rect x="5" y="5" width="650" height="435" rx="16" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
                                 <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-4)"/>
 
-                                <!-- SALÓN: ORLANDO (Top Left) -->
+                                <!-- SALÃ“N: ORLANDO (Top Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="35" y="30" width="260" height="165" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
                                     <rect x="43" y="38" width="244" height="149" rx="12" fill="#9a3412" opacity="0.4"/>
                                     <text x="165" y="120" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">ORLANDO</text>
                                 </g>
 
-                                <!-- SALÓN: OXFORD (Bottom Left) -->
+                                <!-- SALÃ“N: OXFORD (Bottom Left) -->
                                 <g class="cursor-pointer transition-transform hover:opacity-95">
                                     <rect x="35" y="225" width="260" height="170" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
                                     <rect x="43" y="233" width="244" height="154" rx="12" fill="#9a3412" opacity="0.4"/>
                                     <text x="165" y="318" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">OXFORD</text>
                                 </g>
 
-                                <!-- ESPACIO DE USOS MÚLTIPLES (Right Side) -->
+                                <!-- ESPACIO DE USOS MÃšLTIPLES (Right Side) -->
                                 <g class="select-none">
                                     <rect x="345" y="30" width="280" height="365" rx="24" fill="#ffedd5" stroke="#f97316" stroke-width="3" stroke-dasharray="6 6"/>
                                     <rect x="353" y="38" width="264" height="349" rx="18" fill="#fed7aa" opacity="0.25"/>
                                     <circle cx="485" cy="180" r="32" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
-                                    <text x="485" y="190" font-size="26" text-anchor="middle">✨</text>
+                                    <text x="485" y="190" font-size="26" text-anchor="middle">âœ¨</text>
                                     <text x="485" y="240" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">ESPACIO DE</text>
-                                    <text x="485" y="263" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">USOS MÚLTIPLES</text>
+                                    <text x="485" y="263" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">USOS MÃšLTIPLES</text>
                                 </g>
                             </svg>
                         </div>
@@ -1147,7 +1147,7 @@
 
                 <!-- Footer info -->
                 <div class="mt-2 text-center text-[11px] text-gray-500 font-medium flex items-center justify-center gap-1 shrink-0">
-                    <span>💡</span> Selecciona un piso arriba para ver su distribución.
+                    <span>ðŸ’¡</span> Selecciona un piso arriba para ver su distribuciÃ³n.
                 </div>
             </div>
         </div>
@@ -1157,44 +1157,44 @@
     <div id="modal-horarios-layout" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-horarios-layout').classList.add('hidden')">
         <div class="modal-box" style="max-width: 900px; width: 95%;">
             <div class="modal-header bg-orange-500 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">🕒 Horarios (LAYOUT)</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-horarios-layout').classList.add('hidden')">×</button>
+                <p class="font-bold text-lg">ðŸ•’ Horarios (LAYOUT)</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-horarios-layout').classList.add('hidden')">Ã—</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl overflow-x-auto">
                 <table id="tabla-horarios-dinamica" class="w-full text-center text-xs border-collapse font-sans">
-                    <!-- Se llena dinámicamente con JS -->
+                    <!-- Se llena dinÃ¡micamente con JS -->
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- ===== MODAL REVISIÓN GRUPOS ===== -->
+    <!-- ===== MODAL REVISIÃ“N GRUPOS ===== -->
     <div id="modal-revision-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-revision-grupos').classList.add('hidden')">
         <div class="modal-box" style="max-width: 900px; width: 95%;">
             <div class="modal-header bg-cyan-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">📊 Revisión de grupos (Pagos)</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-revision-grupos').classList.add('hidden')">✕</button>
+                <p class="font-bold text-lg">ðŸ“Š RevisiÃ³n de grupos (Pagos)</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-revision-grupos').classList.add('hidden')">âœ•</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl overflow-x-auto">
                 <table id="tabla-revision-dinamica" class="w-full text-center text-xs border-collapse font-sans">
-                    <!-- Se llena dinámicamente con JS -->
+                    <!-- Se llena dinÃ¡micamente con JS -->
                 </table>
                 <div class="mt-5 flex flex-wrap gap-4 text-sm text-gray-700 justify-center items-center font-medium bg-gray-50 py-3 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-green-600 shadow-sm rounded"></span>
-                        <span class="text-xs">≥ 80%</span>
+                        <span class="text-xs">â‰¥ 80%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-green-300 border border-green-400 shadow-sm rounded"></span>
-                        <span class="text-xs">≥ 60%</span>
+                        <span class="text-xs">â‰¥ 60%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-yellow-300 border border-yellow-400 shadow-sm rounded"></span>
-                        <span class="text-xs">≥ 50%</span>
+                        <span class="text-xs">â‰¥ 50%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-orange-300 border border-orange-400 shadow-sm rounded"></span>
-                        <span class="text-xs">≥ 40%</span>
+                        <span class="text-xs">â‰¥ 40%</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-red-400 border border-red-500 shadow-sm rounded"></span>
@@ -1206,7 +1206,7 @@
                     </div>
                     <div class="flex items-center gap-1">
                         <span class="inline-block w-4 h-4 bg-red-500 shadow-sm rounded"></span>
-                        <span class="text-xs font-bold text-red-700">≤ 5 inscritos (Peligro)</span>
+                        <span class="text-xs font-bold text-red-700">â‰¤ 5 inscritos (Peligro)</span>
                     </div>
                 </div>
             </div>
@@ -1217,11 +1217,11 @@
     <div id="modal-pwd-dashboard" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-pwd-dashboard').classList.add('hidden')">
         <div class="modal-box" style="max-width: 400px; padding: 2rem;">
             <div class="text-center mb-4">
-                <p class="font-bold text-xl text-indigo-700">🔒 Acceso Restringido</p>
-                <p class="text-sm text-gray-500 mt-2">Ingresa la contraseña para ver el Dashboard.</p>
+                <p class="font-bold text-xl text-indigo-700">ðŸ”’ Acceso Restringido</p>
+                <p class="text-sm text-gray-500 mt-2">Ingresa la contraseÃ±a para ver el Dashboard.</p>
             </div>
-            <input type="password" id="input-pwd-dashboard" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Contraseña">
-            <p id="error-pwd-dashboard" class="text-red-500 text-sm hidden mb-4 font-bold text-center">Contraseña incorrecta</p>
+            <input type="password" id="input-pwd-dashboard" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="ContraseÃ±a">
+            <p id="error-pwd-dashboard" class="text-red-500 text-sm hidden mb-4 font-bold text-center">ContraseÃ±a incorrecta</p>
             <div class="flex gap-4">
                 <button onclick="document.getElementById('modal-pwd-dashboard').classList.add('hidden')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">Cancelar</button>
                 <button onclick="validarPasswordDashboard()" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">Ingresar</button>
@@ -1234,7 +1234,7 @@
         <div class="modal-box" style="max-width: 500px; padding: 2rem;">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
                 <p class="font-bold text-lg text-gray-800" id="titulo-lista-grupo">Alumnos Pagados (R)</p>
-                <button class="text-gray-500 hover:text-gray-800 font-bold text-xl" onclick="document.getElementById('modal-dashboard-lista').classList.add('hidden')">✕</button>
+                <button class="text-gray-500 hover:text-gray-800 font-bold text-xl" onclick="document.getElementById('modal-dashboard-lista').classList.add('hidden')">âœ•</button>
             </div>
             <ul id="ul-lista-alumnos" class="list-none text-gray-700 text-sm max-h-64 overflow-y-auto space-y-2">
                 <!-- JS -->
@@ -1242,7 +1242,7 @@
         </div>
     </div>
 
-    <!-- ===== VISTA DASHBOARD PRINCIPAL (PÁGINA COMPLETA) ===== -->
+    <!-- ===== VISTA DASHBOARD PRINCIPAL (PÃGINA COMPLETA) ===== -->
     <div id="dashboard-container" class="hidden bg-gray-100 w-full min-h-[90vh] rounded-2xl shadow-xl border border-gray-100 flex-col overflow-hidden" style="max-width: 1400px;">
         <div class="bg-transparent text-gray-800 p-6 pb-4 flex justify-between items-center flex-shrink-0 border-b border-gray-200">
             <p class="font-black text-3xl">Dashboard</p>
@@ -1273,7 +1273,7 @@
                         <p class="text-2xl font-black text-orange-500 mt-1" id="kpi-promesas">0</p>
                     </div>
                     <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-red-500 flex flex-col justify-between">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">No Continúa / Bajas</p>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">No ContinÃºa / Bajas</p>
                         <p class="text-2xl font-black text-red-600 mt-1" id="kpi-bajas">0</p>
                     </div>
                     <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500 flex flex-col justify-between">
@@ -1290,9 +1290,9 @@
                     </div>
                 </div>
 
-                <!-- Gráfica de Estatus (Ancho completo) -->
+                <!-- GrÃ¡fica de Estatus (Ancho completo) -->
                 <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col justify-center mb-6">
-                    <p class="font-bold text-gray-700 mb-6">📊 Distribución de Alumnos por Estatus</p>
+                    <p class="font-bold text-gray-700 mb-6">ðŸ“Š DistribuciÃ³n de Alumnos por Estatus</p>
                     <div id="estatus-stacked-bar" class="w-full h-14 flex rounded-md overflow-hidden shadow-inner border border-gray-200">
                         <!-- JS will populate this -->
                     </div>
@@ -1301,10 +1301,10 @@
                     </div>
                 </div>
 
-                <!-- Segunda fila de Gráficas: Modalidad (Opcionalmente centrada) -->
+                <!-- Segunda fila de GrÃ¡ficas: Modalidad (Opcionalmente centrada) -->
                 <div class="grid grid-cols-1 gap-6 mb-6">
                     <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col items-center">
-                        <p class="font-bold text-gray-700 mb-4">💻 Alumnos: Presencial vs En Línea</p>
+                        <p class="font-bold text-gray-700 mb-4">ðŸ’» Alumnos: Presencial vs En LÃ­nea</p>
                         <div class="relative h-64 w-full flex-grow flex justify-center items-center">
                             <canvas id="chart-modalidad"></canvas>
                         </div>
@@ -1315,7 +1315,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <!-- Chart -->
                     <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
+                        <p class="font-bold text-gray-700 mb-4 text-lg">ðŸ† Carrera de Profesores (Meta 100% R)</p>
                         <div class="relative h-80 w-full flex-grow">
                             <canvas id="chart-teachers"></canvas>
                         </div>
@@ -1324,13 +1324,13 @@
                     <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
                         <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                             <div>
-                                <p class="font-bold text-gray-700 text-lg">🏆 Ranking de Profesores</p>
+                                <p class="font-bold text-gray-700 text-lg">ðŸ† Ranking de Profesores</p>
                                 <p class="text-xs text-gray-500 mt-1">Total de alumnos por profesor (Presenciales)</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-xs font-semibold px-2 py-1 bg-gray-100 rounded text-gray-600">Ordenar por:</span>
                                 <select id="select-orden-profesores" onchange="renderRankingProfesores()" class="border border-gray-300 text-sm rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500 text-gray-700">
-                                    <option value="percent">% de Reinscripción</option>
+                                    <option value="percent">% de ReinscripciÃ³n</option>
                                     <option value="countR">Total Reinscritos (Cantidad)</option>
                                     <option value="total">Cantidad Total de Alumnos</option>
                                 </select>
@@ -1360,7 +1360,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <!-- Weighted Chart -->
                     <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4">⚖️ Desempeño Ponderado por Profesor</p>
+                        <p class="font-bold text-gray-700 mb-4">âš–ï¸ DesempeÃ±o Ponderado por Profesor</p>
                         <div class="relative h-80 w-full flex-grow">
                             <canvas id="chart-weighted-leaderboard"></canvas>
                         </div>
@@ -1368,8 +1368,8 @@
                     <!-- Weighted Table -->
                     <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
                         <div class="mb-4">
-                            <p class="font-bold text-gray-700 text-lg">📊 Ranking Global Ponderado (% Score)</p>
-                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
+                            <p class="font-bold text-gray-700 text-lg">ðŸ“Š Ranking Global Ponderado (% Score)</p>
+                            <p class="text-xs text-gray-500 mt-1">Equilibra % ReinscripciÃ³n (60%) y Volumen de Alumnos (40%)</p>
                         </div>
                         <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
                             <table class="w-full text-sm text-center text-gray-600">
@@ -1395,11 +1395,11 @@
                 <!-- Tabla Grupos Cruzados -->
                 <div class="bg-white p-5 rounded-lg shadow-sm overflow-x-auto">
                     <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                        <p class="font-bold text-gray-700">📋 Tabla de Grupos Cruzados</p>
+                        <p class="font-bold text-gray-700">ðŸ“‹ Tabla de Grupos Cruzados</p>
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-semibold px-2 py-1 bg-gray-100 rounded text-gray-600">Ordenar por:</span>
                             <select id="select-orden-grupos" onchange="renderGruposTable()" class="border border-gray-300 text-sm rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500 text-gray-700">
-                                <option value="100_percent">Mayor % Reinscripción</option>
+                                <option value="100_percent">Mayor % ReinscripciÃ³n</option>
                                 <option value="reinscritos_desc">Total Reinscritos (Mayor a menor)</option>
                                 <option value="reinscritos_asc">Total Reinscritos (Menor a mayor)</option>
                             </select>
@@ -1408,8 +1408,8 @@
                     <table class="w-full text-sm text-center">
                         <thead>
                             <tr class="text-gray-500 border-b">
-                                <th class="py-2 text-left pl-2">PROFESOR / SALÓN</th>
-                                <th class="py-2">NIVEL / CÓDIGO</th>
+                                <th class="py-2 text-left pl-2">PROFESOR / SALÃ“N</th>
+                                <th class="py-2">NIVEL / CÃ“DIGO</th>
                                 <th class="py-2">HORARIO</th>
                                 <th class="py-2 text-green-600">REINSCRITOS (R)</th>
                                 <th class="py-2 text-yellow-600">EN SEGUIMIENTO</th>
@@ -1430,8 +1430,8 @@
     <div id="modal-grupos" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-grupos').classList.add('hidden')">
         <div class="modal-box" style="max-width: 600px;">
             <div class="modal-header bg-teal-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">🔍 Buscar Grupos</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">✕</button>
+                <p class="font-bold text-lg">ðŸ” Buscar Grupos</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-grupos').classList.add('hidden')">âœ•</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl">
                 <div id="bg-selectores-container" class="space-y-4">
@@ -1462,7 +1462,7 @@
                 <div id="bg-info" class="mt-6 hidden">
                     <div class="bg-gray-50 border border-gray-200 p-4 rounded-xl">
                         <div class="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
-                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Salón</span><span id="bg-lbl-salon" class="font-bold text-gray-800 text-base"></span></div>
+                            <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">SalÃ³n</span><span id="bg-lbl-salon" class="font-bold text-gray-800 text-base"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Teacher</span><span id="bg-lbl-teacher" class="font-bold text-gray-800 text-base"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Programa</span><span id="bg-lbl-programa" class="font-bold text-gray-800"></span></div>
                             <div><span class="text-gray-500 block text-[11px] uppercase tracking-wider">Nivel</span><span id="bg-lbl-nivel" class="font-bold text-gray-800"></span></div>
@@ -1493,10 +1493,10 @@
 
                     <div class="mt-4 flex gap-3">
                         <button onclick="bgResetearBusqueda()" class="w-1/3 bg-gray-100 text-gray-700 border border-gray-200 font-bold py-3 px-2 rounded-xl hover:bg-gray-200 transition duration-200 flex justify-center items-center gap-1 shadow-sm text-sm">
-                            🔄 Buscar Otro
+                            ðŸ”„ Buscar Otro
                         </button>
                         <button onclick="bgAbrirCalendario()" class="w-2/3 bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold py-3 px-4 rounded-xl hover:bg-indigo-100 transition duration-200 flex justify-center items-center gap-2 shadow-sm text-sm">
-                            📅 Ver Calendario
+                            ðŸ“… Ver Calendario
                         </button>
                     </div>
                 </div>
@@ -1508,8 +1508,8 @@
     <div id="modal-recibo-opciones" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-recibo-opciones').classList.add('hidden')">
         <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header bg-green-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">🧾 Opciones de Recibo</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-recibo-opciones').classList.add('hidden')">✕</button>
+                <p class="font-bold text-lg">ðŸ§¾ Opciones de Recibo</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-recibo-opciones').classList.add('hidden')">âœ•</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl space-y-4 text-sm text-gray-700">
                 <div>
@@ -1533,18 +1533,18 @@
     <div id="modal-constancia-opciones" class="modal-overlay hidden" onclick="if(event.target===this) document.getElementById('modal-constancia-opciones').classList.add('hidden')">
         <div class="modal-box" style="max-width: 420px;">
             <div class="modal-header bg-purple-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">📄 Constancia de Estudios</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-constancia-opciones').classList.add('hidden')">✕</button>
+                <p class="font-bold text-lg">ðŸ“„ Constancia de Estudios</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="document.getElementById('modal-constancia-opciones').classList.add('hidden')">âœ•</button>
             </div>
             <div class="p-5 bg-white rounded-b-2xl space-y-4 text-sm text-gray-700">
                 <div>
-                    <label class="block font-bold mb-1">¿A quién va dirigida la constancia?</label>
+                    <label class="block font-bold mb-1">Â¿A quiÃ©n va dirigida la constancia?</label>
                     <input type="text" id="constancia-dirigida" placeholder="Ej. A quien corresponda, Recursos Humanos..." class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-purple-500 outline-none" value="A quien corresponda">
-                    <p class="text-xs text-gray-500 mt-1">Este texto aparecerá en el campo de destinatario.</p>
+                    <p class="text-xs text-gray-500 mt-1">Este texto aparecerÃ¡ en el campo de destinatario.</p>
                 </div>
                 
                 <div class="mt-4 space-y-2 border-t pt-3">
-                    <p class="font-bold mb-2">Información a incluir:</p>
+                    <p class="font-bold mb-2">InformaciÃ³n a incluir:</p>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="chk-const-modalidad" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
                         <span>Modalidad (sabatino, dominical, entre semana...)</span>
@@ -1555,7 +1555,7 @@
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="chk-const-cefr" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
-                        <span>Nivel CEFR (equivalente ante el Marco Común...)</span>
+                        <span>Nivel CEFR (equivalente ante el Marco ComÃºn...)</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="chk-const-fechas" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
@@ -1568,23 +1568,23 @@
         </div>
     </div>
 
-    <!-- ===== MODAL SELECCIONAR GRUPO / SALÓN (RECUPERACIÓN) ===== -->
+    <!-- ===== MODAL SELECCIONAR GRUPO / SALÃ“N (RECUPERACIÃ“N) ===== -->
 
     <div id="modal-seleccion-grupo-rec" class="modal-overlay hidden" style="z-index: 2100;" onclick="if(event.target===this) cerrarModalSeleccionGrupoRec()">
         <div class="modal-box" style="max-width: 480px;">
             <div class="modal-header bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
                 <div>
-                    <p class="font-bold text-base flex items-center gap-2">🏫 Seleccionar Salón / Grupo</p>
+                    <p class="font-bold text-base flex items-center gap-2">ðŸ« Seleccionar SalÃ³n / Grupo</p>
                     <p id="lbl-modal-grupo-subtitulo" class="text-xs text-purple-100 mt-0.5 font-medium">Hay varios grupos en este mismo horario</p>
                 </div>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalSeleccionGrupoRec()">✕</button>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalSeleccionGrupoRec()">âœ•</button>
             </div>
             <div class="p-4 bg-gray-50 rounded-b-2xl space-y-3">
                 <p class="text-xs text-gray-600 text-center font-medium">
-                    Compara la cantidad de alumnos y docente para elegir el salón ideal:
+                    Compara la cantidad de alumnos y docente para elegir el salÃ³n ideal:
                 </p>
                 <div id="contenedor-tarjetas-grupos-rec" class="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
-                    <!-- Tarjetas generadas dinámicamente -->
+                    <!-- Tarjetas generadas dinÃ¡micamente -->
                 </div>
             </div>
         </div>
@@ -1595,21 +1595,21 @@
         <div class="modal-box" style="max-width: 580px; max-height: 92vh; display: flex; flex-direction: column;">
             <div class="modal-header bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl shrink-0">
                 <div>
-                    <p class="font-bold text-lg flex items-center gap-2">🔎 Buscador de CRN</p>
-                    <p class="text-xs text-pink-100">Consulta salones, teachers, cupo y links de clases en línea</p>
+                    <p class="font-bold text-lg flex items-center gap-2">ðŸ”Ž Buscador de CRN</p>
+                    <p class="text-xs text-pink-100">Consulta salones, teachers, cupo y links de clases en lÃ­nea</p>
                 </div>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalBuscadorCRN()">✕</button>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalBuscadorCRN()">âœ•</button>
             </div>
             <div class="p-4 sm:p-5 bg-white space-y-4 overflow-y-auto flex-1 rounded-b-2xl">
-                <!-- Barra de Búsqueda Directa por CRN -->
+                <!-- Barra de BÃºsqueda Directa por CRN -->
                 <div class="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 focus-within:border-pink-500 rounded-2xl p-2.5 px-3.5 flex items-center gap-2.5 transition-all shadow-sm">
-                    <span class="text-pink-600 text-lg select-none">🔎</span>
+                    <span class="text-pink-600 text-lg select-none">ðŸ”Ž</span>
                     <input type="text" id="bcrn-input-busqueda" 
-                           placeholder="Buscar directamente por número de CRN (ej. 43157, 11655)..." 
+                           placeholder="Buscar directamente por nÃºmero de CRN (ej. 43157, 11655)..." 
                            oninput="bcrnBuscarPorTextoDirecto(this.value)"
                            class="w-full bg-transparent text-xs sm:text-sm font-bold text-gray-800 placeholder-gray-400 outline-none">
-                    <button type="button" onclick="bcrnLimpiarBusquedaTexto()" id="bcrn-btn-clear-texto" class="hidden text-gray-400 hover:text-pink-600 text-xs font-bold px-2 py-1 rounded-full hover:bg-pink-100 transition" title="Limpiar búsqueda">
-                        ✕
+                    <button type="button" onclick="bcrnLimpiarBusquedaTexto()" id="bcrn-btn-clear-texto" class="hidden text-gray-400 hover:text-pink-600 text-xs font-bold px-2 py-1 rounded-full hover:bg-pink-100 transition" title="Limpiar bÃºsqueda">
+                        âœ•
                     </button>
                 </div>
 
@@ -1630,16 +1630,16 @@
                             <option value="PTEE">Preteens (PTEEN)</option>
                             <option value="TEEN">Teens (TEENS)</option>
                             <option value="TOEF">TOEFL (TOEF)</option>
-                            <option value="ICC">ICC / Conversación (ICC)</option>
+                            <option value="ICC">ICC / ConversaciÃ³n (ICC)</option>
                             <option value="TEAC">Teachers (TEAC)</option>
                         </select>
                     </div>
 
-                    <!-- 2. Modalidad / Días -->
+                    <!-- 2. Modalidad / DÃ­as -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">2. Modalidad / Días</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">2. Modalidad / DÃ­as</label>
                         <select id="bcrn-frecuencia" class="w-full bg-white border border-gray-300 rounded-xl p-2.5 text-xs font-semibold text-gray-800 focus:ring-2 focus:ring-pink-500 outline-none cursor-pointer disabled:bg-gray-100 disabled:text-gray-400" onchange="bcrnActualizarNiveles()" disabled>
-                            <option value="">-- Selecciona Días --</option>
+                            <option value="">-- Selecciona DÃ­as --</option>
                         </select>
                     </div>
 
@@ -1660,18 +1660,18 @@
                     </div>
                 </div>
 
-                <!-- Botones de Acción / Reset -->
+                <!-- Botones de AcciÃ³n / Reset -->
                 <div class="flex justify-between items-center px-1">
                     <span id="bcrn-conteo-resultados" class="text-xs text-gray-500 font-medium"></span>
                     <button type="button" onclick="bcrnResetearFiltros()" class="text-xs text-gray-500 hover:text-pink-600 font-bold flex items-center gap-1">
-                        🔄 Limpiar filtros
+                        ðŸ”„ Limpiar filtros
                     </button>
                 </div>
 
                 <!-- Contenedor de Resultados (Resumen / Tarjetas de CRN) -->
                 <div id="bcrn-resultados" class="space-y-3">
                     <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
-                        <span class="text-2xl block mb-1">🔍</span>
+                        <span class="text-2xl block mb-1">ðŸ”</span>
                         Selecciona el programa, nivel y horario para consultar los datos del grupo y CRN.
                     </div>
                 </div>
@@ -1682,23 +1682,23 @@
     <div id="modal-materiales" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMateriales()">
         <div class="modal-box" style="max-width: 600px;">
             <div class="modal-header bg-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">📚 Consulta de Materiales</p>
-                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalMateriales()">✕</button>
+                <p class="font-bold text-lg">ðŸ“š Consulta de Materiales</p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalMateriales()">âœ•</button>
             </div>
             <div class="p-4 bg-white rounded-b-2xl">
                 <p class="text-center text-sm text-gray-600 mb-4 font-semibold">Selecciona el programa para ver los materiales y precios</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                     <button onclick="mostrarMaterial('kids')" class="py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors flex flex-col items-center">
                         <span class="font-bold text-sm">KIDS</span>
-                        <span class="text-[10px] opacity-90 font-medium">7 a 9 años</span>
+                        <span class="text-[10px] opacity-90 font-medium">7 a 9 aÃ±os</span>
                     </button>
                     <button onclick="mostrarMaterial('preteens')" class="py-2 px-3 rounded-xl border border-green-200 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white transition-colors flex flex-col items-center">
                         <span class="font-bold text-sm">PRETEENS</span>
-                        <span class="text-[10px] opacity-90 font-medium">10 a 12 años</span>
+                        <span class="text-[10px] opacity-90 font-medium">10 a 12 aÃ±os</span>
                     </button>
                     <button onclick="mostrarMaterial('teens')" class="py-2 px-3 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white transition-colors flex flex-col items-center">
                         <span class="font-bold text-sm">TEENS</span>
-                        <span class="text-[10px] opacity-90 font-medium">13 a 16 años</span>
+                        <span class="text-[10px] opacity-90 font-medium">13 a 16 aÃ±os</span>
                     </button>
                     <button onclick="mostrarMaterial('adultos')" class="py-2 px-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white transition-colors flex flex-col items-center">
                         <span class="font-bold text-sm">ADULTOS</span>
@@ -1720,7 +1720,7 @@
                                 </tr>
                             </thead>
                             <tbody id="material-tabla-body" class="divide-y divide-gray-100">
-                                <!-- Filas dinámicas -->
+                                <!-- Filas dinÃ¡micas -->
                             </tbody>
                         </table>
                     </div>
@@ -1734,7 +1734,7 @@
         <div class="modal-box">
             <div class="modal-header">
                 <div>
-                    <p class="modal-header-title">📅 Mi Calendario de Clases</p>
+                    <p class="modal-header-title">ðŸ“… Mi Calendario de Clases</p>
                     <p id="cal-subtitulo" class="modal-header-sub"></p>
                 </div>
                 <div class="modal-controls">
@@ -1745,13 +1745,13 @@
                     </select>
                     <select id="cal-tipoClase" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
                         <option value="entre-semana">L - J</option>
-                        <option value="sabado">Sábados</option>
+                        <option value="sabado">SÃ¡bados</option>
                     </select>
                     <select id="cal-filtroMes" class="cal-sel" onchange="renderizarCalendarioModal()" disabled>
                         <option value="non">Meses NON</option>
                         <option value="par">Meses PAR</option>
                     </select>
-                    <button class="cal-close-btn" onclick="cerrarModalCalendario()">✕</button>
+                    <button class="cal-close-btn" onclick="cerrarModalCalendario()">âœ•</button>
                 </div>
             </div>
             <div class="cal-body">
@@ -1764,7 +1764,7 @@
                     <div class="cal-ley-item"><span class="cal-cuadro morado"></span> Fin</div>
                     <div class="cal-ley-item"><span class="cal-cuadro naranja"></span> Pago</div>
                     <div class="cal-ley-item"><span class="cal-cuadro azul-l"></span> Clase L-J</div>
-                    <div class="cal-ley-item"><span class="cal-cuadro azul"></span> Clase Sáb</div>
+                    <div class="cal-ley-item"><span class="cal-cuadro azul"></span> Clase SÃ¡b</div>
                     <div class="cal-ley-item"><span class="cal-cuadro hoy"></span> Hoy</div>
                 </div>
             </div>
@@ -1772,7 +1772,7 @@
     </div>
 
     <script>
-        // ==================== CONFIGURACIÓN ====================
+        // ==================== CONFIGURACIÃ“N ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
         const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
         const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E';
@@ -1781,7 +1781,7 @@
         const URL_LIBROS  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=LIBROS`;
         const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
         const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
-        // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
+        // â¬‡ï¸ Pega aquÃ­ la URL de tu Google Apps Script despuÃ©s de implementarlo
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1m5V3OLuZo1x3AqmF1yhzuI6h4dNZ36uoJpGT0FcsROEHD-OlRs4sl6wNejPsXDow/exec';
         const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
 
@@ -1818,7 +1818,7 @@
 
         // ===== Periodos del calendario =====
         let periodosCalendario = [];
-        // ===== Horarios de recuperación =====
+        // ===== Horarios de recuperaciÃ³n =====
         let horariosRecuperacion = [];
 
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
@@ -1953,7 +1953,7 @@
                         const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
                         if (!id) continue;
 
-                        // Si ya está en baseAlumnos (cargado desde el layout principal), respetarlo
+                        // Si ya estÃ¡ en baseAlumnos (cargado desde el layout principal), respetarlo
                         if (baseAlumnos[id]) continue;
 
                         // Filtrar estrictamente solo los que son del periodo 2608XX, o Adultos de curso 24 (que suelen tener 2604XX)
@@ -2119,11 +2119,11 @@
             let mesNum = parseInt(periodo.substring(4, 6), 10);
             if (isNaN(mesNum)) return null;
             
-            // Retrocedemos 1 mes lógico para todos los programas
+            // Retrocedemos 1 mes lÃ³gico para todos los programas
             mesNum -= 1;
             if (mesNum <= 0) {
                 mesNum += 12;
-                anio -= 1; // Cambia de año (ej. 270401 -> 260412)
+                anio -= 1; // Cambia de aÃ±o (ej. 270401 -> 260412)
             }
             return `${String(anio).padStart(2, '0')}${mod}${String(mesNum).padStart(2, '0')}`;
         }
@@ -2204,10 +2204,10 @@
                     finProxStr = formatearFechaLinda(fin);
                 }
 
-                document.getElementById('lbl-periodo-actual').innerText    = periodoActual || '—';
+                document.getElementById('lbl-periodo-actual').innerText    = periodoActual || 'â€”';
                 document.getElementById('lbl-inicio-actual').innerText     = inicioActStr;
                 document.getElementById('lbl-fin-actual').innerText        = finActStr;
-                document.getElementById('lbl-periodo-siguiente').innerText = periodoProx || '—';
+                document.getElementById('lbl-periodo-siguiente').innerText = periodoProx || 'â€”';
                 document.getElementById('lbl-inicio-siguiente').innerText  = inicioProxStr;
                 document.getElementById('lbl-fin-siguiente').innerText     = finProxStr;
                 seccion.classList.remove('hidden');
@@ -2217,7 +2217,7 @@
                 const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.add('hidden');
-                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(datosAct, '08');
+                lblProximaFecha.innerText = "PrÃ³xima fecha de pago: " + obtenerRangoPago(datosAct, '08');
                 return;
             }
 
@@ -2247,7 +2247,7 @@
                 finSigStr = formatearFechaLinda(fin);
             }
 
-            document.getElementById('lbl-periodo-actual').innerText    = periodoAnt || '—';
+            document.getElementById('lbl-periodo-actual').innerText    = periodoAnt || 'â€”';
             document.getElementById('lbl-inicio-actual').innerText     = inicioAntStr;
             document.getElementById('lbl-fin-actual').innerText        = finAntStr;
             document.getElementById('lbl-periodo-siguiente').innerText = periodoSig;
@@ -2261,7 +2261,7 @@
             if (alumnoActual.volumen === "TERMINA") {
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.remove('hidden');
-                lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
+                lblCursosPagados.innerText = "Â¡Tu paquete de cursos terminÃ³!";
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
@@ -2269,7 +2269,7 @@
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
-                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
+                lblProximaFecha.innerText = "PrÃ³xima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
             } else if (alumnoActual.volumen.includes(" DE ")) {
                 const partesVol = alumnoActual.volumen.split(" DE ");
                 const currentCourse = parseInt(partesVol[0].trim());
@@ -2283,12 +2283,12 @@
                     lblCursosPagados.classList.remove('hidden');
                     const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
                     lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
-                    lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
+                    lblProximaFecha.innerText = `PrÃ³xima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
                     secVolumen.classList.add('hidden');
                 }
             } else {
-                // Estudiante normal (vacío), mostrar la próxima fecha de pago
+                // Estudiante normal (vacÃ­o), mostrar la prÃ³xima fecha de pago
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
                 
@@ -2298,7 +2298,7 @@
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
-                lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
+                lblProximaFecha.innerText = "PrÃ³xima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
             }
 
             seccion.classList.remove('hidden');
@@ -2503,7 +2503,7 @@
                                 <span>${m.celular}</span>
                             </div>
                             <div class="flex items-center gap-1">
-                                <span class="flex items-center justify-center w-4 h-4 rounded bg-green-100 text-[10px] text-green-700">📚</span>
+                                <span class="flex items-center justify-center w-4 h-4 rounded bg-green-100 text-[10px] text-green-700">ðŸ“š</span>
                                 <span>${m.nivelActual}</span>
                             </div>
                         </div>
@@ -2525,26 +2525,26 @@
             }
         });
 
-        // ==================== BÚSQUEDA ====================
+        // ==================== BÃšSQUEDA ====================
         function buscarAlumno() {
             const idInput = document.getElementById('alumno-id').value.trim().toUpperCase();
             if (!idInput) return;
             const ficha = document.getElementById('ficha-alumno');
             const calculos = document.getElementById('seccion-calculos');
             const errorBox = document.getElementById('error-box');
-            // Si los alumnos aún no han cargado
+            // Si los alumnos aÃºn no han cargado
             if (Object.keys(baseAlumnos).length === 0) {
                 if (_buscarReintentos >= 5) {
                     // Demasiados reintentos: pedir que recargue
                     _buscarReintentos = 0;
-                    errorBox.innerText = "No se pudieron cargar los datos. Por favor recarga la página (F5).";
+                    errorBox.innerText = "No se pudieron cargar los datos. Por favor recarga la pÃ¡gina (F5).";
                     errorBox.classList.remove('hidden');
                     return;
                 }
                 _buscarReintentos++;
                 errorBox.innerText = `Cargando datos... (intento ${_buscarReintentos}/5)`;
                 errorBox.classList.remove('hidden');
-                // Reintentar en 2 segundos sin deshabilitar el botón
+                // Reintentar en 2 segundos sin deshabilitar el botÃ³n
                 setTimeout(function() {
                     errorBox.classList.add('hidden');
                     buscarAlumno();
@@ -2568,13 +2568,13 @@
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
                 if (estatus === 'R') {
-                    statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
+                    statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âœ… PAGADO</span>';
                 } else if (estatus === 'PROMESA') {
-                    statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
+                    statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">ðŸ—“ï¸ PROMESA</span>';
                 } else if (estatus.includes('NO CONTINUA')) {
-                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
+                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âŒ NO CONTINUA</span>';
                 } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
-                    statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
+                    statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âš ï¸ PENDIENTE</span>';
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                 }
@@ -2614,11 +2614,11 @@
                     contLibro.classList.add('hidden');
                 }
                 
-                // NUEVO: Saludo en el menú principal
-                document.getElementById('menu-saludo-nombre').innerText = `¡Hola, ${alumnoActual.nombre}!`;
+                // NUEVO: Saludo en el menÃº principal
+                document.getElementById('menu-saludo-nombre').innerText = `Â¡Hola, ${alumnoActual.nombre}!`;
                 document.getElementById('menu-saludo-id').innerText = `ID: ${alumnoActual.idOriginal}`;
                 
-                // NUEVO: Buscar salón si es presencial
+                // NUEVO: Buscar salÃ³n si es presencial
                 const contSalon = document.getElementById('contenedor-salon');
                 const contTeacher = document.getElementById('contenedor-teacher');
                 contSalon.classList.add('hidden');
@@ -2641,7 +2641,7 @@
                     }
                 }
                 
-                // Actualizar label de horario al final para incluir los días si existen
+                // Actualizar label de horario al final para incluir los dÃ­as si existen
                 document.getElementById('lbl-horario').innerText  = horarioAMostrar;
 
                 // PASO 2: mostrar solo botones (dejamos visible el buscador arriba)
@@ -2655,7 +2655,7 @@
                 calculos.classList.add('hidden');
                 document.getElementById('menu-principal').classList.add('hidden');
                 document.getElementById('seccion-periodos').classList.add('hidden');
-                errorBox.innerText = "ID no encontrado. Verifica tu matrícula (ej. 991122 o 00991122).";
+                errorBox.innerText = "ID no encontrado. Verifica tu matrÃ­cula (ej. 991122 o 00991122).";
                 errorBox.classList.remove('hidden');
             }
         }
@@ -2682,7 +2682,7 @@
             document.getElementById('menu-principal').classList.remove('hidden');
         }
 
-        // ===== Mostrar sección de pagos (paso 3) =====
+        // ===== Mostrar secciÃ³n de pagos (paso 3) =====
         function mostrarSeccionPagos() {
             // PASO 3: ocultar botones, mostrar ficha + calculos
             document.getElementById('menu-principal').classList.add('hidden');
@@ -2698,7 +2698,7 @@
             const slider = document.getElementById('cursos-slider');
             const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
             slider.max = maxCursos; slider.value = 1;
-            document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
+            document.getElementById('lbl-max-permitido').innerText = `*MÃ¡ximo disponible: ${maxCursos} niveles.`;
             document.getElementById('libro-toggle').checked = true;
             librosSeleccionadosIndices = []; ultimosLibrosClave = "";
             
@@ -2752,7 +2752,7 @@
                 const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
                 if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
             }
-            let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
+            let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promociÃ³n", fechaTexto = "";
             
             if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
                 descuentoAplicar = descuentoManualPorcentaje / 100;
@@ -2888,7 +2888,7 @@
             if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); document.getElementById('lbl-ahorro').innerText = fmt.format(ahorro); }
             else { ahorroContainer.classList.add('hidden'); }
 
-            // ===== ACTUALIZAR FECHA DE COTIZACIÓN =====
+            // ===== ACTUALIZAR FECHA DE COTIZACIÃ“N =====
             const lblCotizacionFecha = document.getElementById('lbl-cotizacion-fecha');
             const contCotizacion = document.getElementById('cotizacion-fecha-container');
             if (lblCotizacionFecha && contCotizacion && alumnoActual) {
@@ -2900,7 +2900,7 @@
 
                 let nextPaymentPeriod = targetPeriod;
                 if (alumnoActual.esLayPasado || alumnoActual.esPrimerMes) {
-                    // Para LAYPASADO, la cotización de pago se proyecta hacia el Próximo Curso (ej. 260810)
+                    // Para LAYPASADO, la cotizaciÃ³n de pago se proyecta hacia el PrÃ³ximo Curso (ej. 260810)
                     nextPaymentPeriod = calSumarPeriodos(targetPeriod, cantCursos);
                 } else {
                     const periodoAnt = calcularPeriodoAnterior(targetPeriod);
@@ -3025,7 +3025,7 @@
             win.document.write(html);
             win.document.close();
             win.focus();
-            // setTimeout(() => win.print(), 500); // <-- Auto-impresión desactivada
+            // setTimeout(() => win.print(), 500); // <-- Auto-impresiÃ³n desactivada
         }
 
         function abrirWhatsAppAlumno() {
@@ -3057,7 +3057,7 @@
             }
 
             if (numerosValidos.length === 0) {
-                alert("No se detectó un número válido de 10 dígitos para WhatsApp.");
+                alert("No se detectÃ³ un nÃºmero vÃ¡lido de 10 dÃ­gitos para WhatsApp.");
             } else if (numerosValidos.length === 1) {
                 window.open(`https://wa.me/${numerosValidos[0]}`, '_blank');
             } else {
@@ -3096,24 +3096,24 @@
             let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
                 const librosActivos = infoLibros.libros.filter((_,idx)=>librosSeleccionadosIndices.includes(idx));
-                librosTexto = `\n• *Libros incluidos:* ${librosActivos.map(l=>l.nombre).join(", ")} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
-            } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
+                librosTexto = `\nâ€¢ *Libros incluidos:* ${librosActivos.map(l=>l.nombre).join(", ")} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
+            } else if (infoLibros.cantidad > 0) { librosTexto = `\nâ€¢ *Libros incluidos:* Ninguno`; }
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const mensaje = `Hola, solicito mis fichas de pago por favor.
       
 *Mis Datos:*
-• *ID:* ${alumnoActual.idOriginal}
-• *Nombre:* ${alumnoActual.nombre}
-• *Curso:* ${alumnoActual.cursoVisual}
-• *Programa:* ${alumnoActual.programaTexto}
-• *Modalidad:* ${alumnoActual.modalidad}
-• *Horario:* ${alumnoActual.horario}
+â€¢ *ID:* ${alumnoActual.idOriginal}
+â€¢ *Nombre:* ${alumnoActual.nombre}
+â€¢ *Curso:* ${alumnoActual.cursoVisual}
+â€¢ *Programa:* ${alumnoActual.programaTexto}
+â€¢ *Modalidad:* ${alumnoActual.modalidad}
+â€¢ *Horario:* ${alumnoActual.horario}
 
 *Detalle de la Solicitud:*
-• *Niveles a pagar:* ${cantCursos} curso(s)
-• *Descuento:* ${stringDescuento}
-• *Subtotal:* ${fmt.format(subtotal)}${librosTexto}
-• *Total a pagar:* ${fmt.format(totalFinal)}`;
+â€¢ *Niveles a pagar:* ${cantCursos} curso(s)
+â€¢ *Descuento:* ${stringDescuento}
+â€¢ *Subtotal:* ${fmt.format(subtotal)}${librosTexto}
+â€¢ *Total a pagar:* ${fmt.format(totalFinal)}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
@@ -3149,7 +3149,7 @@
             const modalidad = alumnoActual.programa;        // '04' o '08'
             let tipoClase = alumnoActual.tipoClaseCal;    // 'entre-semana' o 'sabado'
             
-            // Filtro NON/PAR deducido del código de periodo
+            // Filtro NON/PAR deducido del cÃ³digo de periodo
             let filtroMes = 'non';
             if (alumnoActual.periodoSiguiente && alumnoActual.periodoSiguiente.length >= 6) {
                 const mesNum = parseInt(alumnoActual.periodoSiguiente.substring(4, 6), 10);
@@ -3162,7 +3162,7 @@
             // Map 'entre-semana' for Kids/Teens to default to lunes-miercoles in student view
             // If they are Kids and the original type was 'entre-semana', we default to 'lunes-miercoles'
             // because we don't have finer data, but they can't change it anyway. Wait, if it's disabled, 
-            // maybe we shouldn't change the options? If the modal is disabled, it will just show Lunes y Miércoles 
+            // maybe we shouldn't change the options? If the modal is disabled, it will just show Lunes y MiÃ©rcoles 
             // for all Kids entre-semana. We should check if we can preserve 'entre-semana' or just let it be.
             if (modalidad === '08' && tipoClase === 'entre-semana') {
                 tipoClase = 'lunes-miercoles';
@@ -3172,7 +3172,7 @@
             document.getElementById('cal-filtroMes').value  = filtroMes;
             document.getElementById('cal-filtroMes').disabled = (modalidad === '04' || !esCalendarioIndependiente);
             
-            // Permitir que el usuario cambie entre Lunes-Miércoles y Martes-Jueves si es un Kid/Teen entre semana
+            // Permitir que el usuario cambie entre Lunes-MiÃ©rcoles y Martes-Jueves si es un Kid/Teen entre semana
             if (modalidad === '08' && (tipoClase === 'lunes-miercoles' || tipoClase === 'martes-jueves')) {
                 document.getElementById('cal-tipoClase').disabled = false;
             }
@@ -3196,11 +3196,11 @@
             selTipoClase.innerHTML = '';
             if (modalidad === '04') {
                 selTipoClase.innerHTML += '<option value="entre-semana">L - J</option>';
-                selTipoClase.innerHTML += '<option value="sabado">Sábados</option>';
+                selTipoClase.innerHTML += '<option value="sabado">SÃ¡bados</option>';
             } else {
-                selTipoClase.innerHTML += '<option value="lunes-miercoles">Lunes y Miércoles</option>';
+                selTipoClase.innerHTML += '<option value="lunes-miercoles">Lunes y MiÃ©rcoles</option>';
                 selTipoClase.innerHTML += '<option value="martes-jueves">Martes y Jueves</option>';
-                selTipoClase.innerHTML += '<option value="sabado">Sábados</option>';
+                selTipoClase.innerHTML += '<option value="sabado">SÃ¡bados</option>';
             }
         
             let valid = false;
@@ -3228,20 +3228,20 @@
             const nombreModalidad = modalidad === '04' ? 'Adultos' : 'Kids / Teens';
             let nombreTipo = '';
             if (tipoClase === 'entre-semana') nombreTipo = 'Lunes a Jueves';
-            else if (tipoClase === 'lunes-miercoles') nombreTipo = 'Lunes y Miércoles';
+            else if (tipoClase === 'lunes-miercoles') nombreTipo = 'Lunes y MiÃ©rcoles';
             else if (tipoClase === 'martes-jueves') nombreTipo = 'Martes y Jueves';
-            else nombreTipo = 'Sábados';
-            const nombreFiltro = modalidad === '08' ? ` · Meses ${filtroMes.toUpperCase()}` : '';
+            else nombreTipo = 'SÃ¡bados';
+            const nombreFiltro = modalidad === '08' ? ` Â· Meses ${filtroMes.toUpperCase()}` : '';
             
-            let tituloFinal = `${nombreModalidad} · ${nombreTipo}${nombreFiltro}`;
+            let tituloFinal = `${nombreModalidad} Â· ${nombreTipo}${nombreFiltro}`;
             if (!esCalendarioIndependiente && alumnoActual) {
                 const nombreAlumno = alumnoActual.nombre.split(' ').slice(0,2).join(' ');
-                tituloFinal = `${nombreAlumno} · ${tituloFinal}`;
+                tituloFinal = `${nombreAlumno} Â· ${tituloFinal}`;
             }
             document.getElementById('cal-subtitulo').innerText = tituloFinal;
             const filtrados = filtrarPeriodosModal(modalidad, filtroMes);
             const hoyStr = new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
-            document.getElementById('cal-info-bar').innerHTML = `${filtrados.length} períodos · Hoy: ${hoyStr}`;
+            document.getElementById('cal-info-bar').innerHTML = `${filtrados.length} perÃ­odos Â· Hoy: ${hoyStr}`;
             const grid = document.getElementById('cal-grid');
             grid.innerHTML = '';
             for (let mes = 0; mes < 12; mes++) {
@@ -3264,7 +3264,7 @@
             });
         }
 
-        // ── Funciones auxiliares del calendario (adaptadas de calendario.html) ──
+        // â”€â”€ Funciones auxiliares del calendario (adaptadas de calendario.html) â”€â”€
         function calIsSameDay(d1, d2) {
             return d1.getFullYear()===d2.getFullYear() && d1.getMonth()===d2.getMonth() && d1.getDate()===d2.getDate();
         }
@@ -3379,7 +3379,7 @@
             return wrapper;
         }
 
-        // ==================== INICIALIZACIÓN ====================
+        // ==================== INICIALIZACIÃ“N ====================
         function inicializarTodo() {
             const btn = document.querySelector('button[onclick="buscarAlumno()"]');
             const timeoutSeguridad = setTimeout(() => {
@@ -3393,7 +3393,7 @@
             ]).then(() => {
                 clearTimeout(timeoutSeguridad);
                 if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
-                console.log('✅ Datos listos.');
+                console.log('âœ… Datos listos.');
             });
             cargarLibros();
             cargarPromosVolumen();
@@ -3403,7 +3403,7 @@
         // ==================== SALONES Y MAESTROS ====================
         async function cargarSalones() {
             try {
-                // Añadimos un parámetro de tiempo para evitar que el navegador guarde la versión vieja
+                // AÃ±adimos un parÃ¡metro de tiempo para evitar que el navegador guarde la versiÃ³n vieja
                 const urlSinCache = SALONES_CSV_URL + '&t=' + new Date().getTime();
                 const res = await fetch(urlSinCache);
                 const txt = await res.text();
@@ -3421,7 +3421,7 @@
                 for (let i = 2; i < filas.length; i++) {
                     const f = filas[i];
                     const hor = String(f[0] || '').trim().toUpperCase();
-                    if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
+                    if (hor.includes('SABADO') || hor.includes('SÃBADO')) {
                         esSabado = true;
                         continue;
                     }
@@ -3434,14 +3434,14 @@
 
                     const obj = { horaFmt: hStr, celdas: f };
                     if (!esSabado && hStr === '15:45') {
-                        if (count1545 === 0) obj.dias = 'Lunes y Miércoles';
+                        if (count1545 === 0) obj.dias = 'Lunes y MiÃ©rcoles';
                         else obj.dias = 'Martes y Jueves';
                         count1545++;
                     }
                     if (esSabado) matrizSalones.filasSabado.push(obj);
                     else matrizSalones.filas.push(obj);
                 }
-                console.log('✅ Salones cargados. Horarios entre semana:', matrizSalones.filas.length, 'Sábados:', matrizSalones.filasSabado.length);
+                console.log('âœ… Salones cargados. Horarios entre semana:', matrizSalones.filas.length, 'SÃ¡bados:', matrizSalones.filasSabado.length);
             } catch (err) {
                 console.error('Error cargando salones:', err);
             }
@@ -3523,7 +3523,7 @@
                         if (!esLayPasado && tieneE) {
                             return matchObj;
                         }
-                        // Si no tiene sufijo específico, guardar como fallback
+                        // Si no tiene sufijo especÃ­fico, guardar como fallback
                         if (!tieneS && !tieneE && !matchFallback) {
                             matchFallback = matchObj;
                         }
@@ -3533,7 +3533,7 @@
             return matchFallback;
         }
 
-        // ==================== HORARIOS DE RECUPERACIÓN ====================
+        // ==================== HORARIOS DE RECUPERACIÃ“N ====================
         async function cargarHorariosRecuperacion() {
             try {
                 const res = await fetch(HORARIOS_CSV_URL);
@@ -3569,16 +3569,16 @@
                     const h = horario.padStart(4, '0');
                     const horaFmt = h.substring(0, h.length - 2) + ':' + h.substring(h.length - 2);
 
-                    // Determinar días
+                    // Determinar dÃ­as
                     let diasLabel = '';
                     if (frecuencia === 'FF') diasLabel = 'Lunes - Jueves';
-                    else if (frecuencia === 'S1') diasLabel = 'Lunes y Miércoles';
+                    else if (frecuencia === 'S1') diasLabel = 'Lunes y MiÃ©rcoles';
                     else if (frecuencia === 'S2') diasLabel = 'Martes y Jueves';
-                    else if (frecuencia === 'SA' || frecuencia === 'SM' || frecuencia === 'SV') diasLabel = 'Sábados';
+                    else if (frecuencia === 'SA' || frecuencia === 'SM' || frecuencia === 'SV') diasLabel = 'SÃ¡bados';
                     else if (frecuencia === 'DO' || frecuencia === 'DOM') diasLabel = 'Domingos';
                     else diasLabel = frecuencia;
 
-                    // Guardar niveles como números
+                    // Guardar niveles como nÃºmeros
                     const nivIni = nivelIni !== '' ? parseInt(nivelIni, 10) : null;
                     const nivFin = nivelFin !== '' ? parseInt(nivelFin, 10) : null;
                     const esTeenPteen = (subjectCode === 'TEEN' || subjectCode === 'PTEE');
@@ -3601,13 +3601,13 @@
                         alumnosInscritos: alumnosInscritos
                     });
                 }
-                console.log('Horarios recuperación cargados:', horariosRecuperacion.length);
+                console.log('Horarios recuperaciÃ³n cargados:', horariosRecuperacion.length);
             } catch (err) {
-                console.error('Error cargando horarios recuperación:', err);
+                console.error('Error cargando horarios recuperaciÃ³n:', err);
             }
         }
 
-        // ========== VARIABLES DE RECUPERACIÓN ==========
+        // ========== VARIABLES DE RECUPERACIÃ“N ==========
         let diasSeleccionadosRec = new Set(); // Set de strings 'YYYY-MM-DD'
         let inicioRecuperacion = null;
         let finRecuperacion = null;
@@ -3618,8 +3618,8 @@
         function obtenerPeriodoParaRecuperacion(alumno) {
             if (!alumno) return null;
             
-            // 1. PRIMERO: Buscar en periodosCalendario según la modalidad del alumno y la fecha ACTUAL (hoy)
-            // Esto asegura que al cambiar el mes, el calendario de recuperación se actualice automáticamente.
+            // 1. PRIMERO: Buscar en periodosCalendario segÃºn la modalidad del alumno y la fecha ACTUAL (hoy)
+            // Esto asegura que al cambiar el mes, el calendario de recuperaciÃ³n se actualice automÃ¡ticamente.
             if (periodosCalendario && periodosCalendario.length > 0) {
                 const mod = alumno.programa || '04'; // '04' o '08'
                 const hoy = new Date();
@@ -3632,7 +3632,7 @@
                 if (actual) return actual;
             }
 
-            // 2. FALLBACK: Intentar periodo anterior del periodoSiguiente si no se encontró un periodo actual
+            // 2. FALLBACK: Intentar periodo anterior del periodoSiguiente si no se encontrÃ³ un periodo actual
             if (alumno.periodoSiguiente) {
                 const periodoAnt = calcularPeriodoAnterior(alumno.periodoSiguiente);
                 if (periodoAnt) {
@@ -3684,7 +3684,7 @@
             document.getElementById('rec-correo').value =
                 alumnoActual.correo !== 'No registrado' ? alumnoActual.correo : '';
 
-            // ===== Poblar tipos de clase según programa =====
+            // ===== Poblar tipos de clase segÃºn programa =====
             const tipoSel = document.getElementById('rec-tipo');
             tipoSel.innerHTML = '<option value="">-- Selecciona el tipo --</option>';
             const prog = alumnoActual.programaNombre; // ADULTO, PTEEN, TEENS, KIDS
@@ -3692,12 +3692,12 @@
             const opciones = esAdulto
                 ? [
                     { val: 'FF', txt: 'Entre semana (lunes a jueves)' },
-                    { val: 'SA', txt: 'Sábados' },
+                    { val: 'SA', txt: 'SÃ¡bados' },
                     { val: 'DO', txt: 'Domingos' }
                   ]
                 : [
-                    { val: 'S1', txt: 'S1 — Lunes y Miércoles' },
-                    { val: 'S2', txt: 'S2 — Martes y Jueves' }
+                    { val: 'S1', txt: 'S1 â€” Lunes y MiÃ©rcoles' },
+                    { val: 'S2', txt: 'S2 â€” Martes y Jueves' }
                   ];
             opciones.forEach(o => {
                 const opt = document.createElement('option');
@@ -3739,7 +3739,7 @@
                 else nota.classList.add('hidden');
             }
 
-            // Determinar códigos de subject según programaRaw (columna L de layout)
+            // Determinar cÃ³digos de subject segÃºn programaRaw (columna L de layout)
             const raw = (alumnoActual.programaRaw || '').toUpperCase();
             let subjectCodes = [];
             if (raw.includes('ADULTOS')) subjectCodes = ['ADUL'];
@@ -3749,7 +3749,7 @@
             else if (raw.includes('CONVERSATION')) subjectCodes = ['ICC'];
             else if (raw.includes('TOEFL')) subjectCodes = ['TOEF'];
             else {
-                // Fallback a lógica anterior si no coincide
+                // Fallback a lÃ³gica anterior si no coincide
                 const prog = alumnoActual.programaNombre;
                 if (prog === 'ADULTO') subjectCodes = ['ADUL', 'ADDU'];
                 else if (prog === 'PTEEN') subjectCodes = ['PTEE'];
@@ -3814,7 +3814,7 @@
                     if (grupos.length === 1) {
                         const g = grupos[0];
                         opt.value = g.crn;
-                        opt.textContent = `${hora} — ${g.docente} (${g.alumnosInscritos} alumnos)`;
+                        opt.textContent = `${hora} â€” ${g.docente} (${g.alumnosInscritos} alumnos)`;
                         opt.dataset.frecuencia = g.frecuencia;
                         opt.dataset.docente = g.docente;
                         opt.dataset.horafmt = g.horaFmt;
@@ -3822,9 +3822,9 @@
                         opt.dataset.alumnos = g.alumnosInscritos;
                         opt.dataset.crn = g.crn;
                     } else {
-                        // Múltiples salones/grupos en el mismo horario
+                        // MÃºltiples salones/grupos en el mismo horario
                         opt.value = `MULTIPLE_${hora}`;
-                        opt.textContent = `${hora} — (${grupos.length} salones disponibles - Clic para elegir)`;
+                        opt.textContent = `${hora} â€” (${grupos.length} salones disponibles - Clic para elegir)`;
                         opt.dataset.horafmt = hora;
                     }
                     sel.appendChild(opt);
@@ -3887,11 +3887,11 @@
                 let badgeAlumnos = '';
                 const cant = g.alumnosInscritos;
                 if (cant <= 7) {
-                    badgeAlumnos = `<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-300">🟢 ${cant} alumnos (Pocos)</span>`;
+                    badgeAlumnos = `<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full border border-emerald-300">ðŸŸ¢ ${cant} alumnos (Pocos)</span>`;
                 } else if (cant <= 15) {
-                    badgeAlumnos = `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-300">🔵 ${cant} alumnos (Medio)</span>`;
+                    badgeAlumnos = `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-300">ðŸ”µ ${cant} alumnos (Medio)</span>`;
                 } else {
-                    badgeAlumnos = `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">🟠 ${cant} alumnos (Lleno)</span>`;
+                    badgeAlumnos = `<span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-300">ðŸŸ  ${cant} alumnos (Lleno)</span>`;
                 }
 
                 const card = document.createElement('div');
@@ -3902,16 +3902,16 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="bg-purple-100 text-purple-800 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-purple-200">CRN: ${g.crn}</span>
-                            <span class="text-xs font-bold text-gray-700">Salón #${idx + 1}</span>
+                            <span class="text-xs font-bold text-gray-700">SalÃ³n #${idx + 1}</span>
                         </div>
                         ${badgeAlumnos}
                     </div>
                     <div class="text-sm text-gray-800 space-y-0.5">
-                        <p><strong>👨‍🏫 Teacher / Docente:</strong> <span class="text-purple-700 font-bold">${g.docente}</span></p>
-                        <p class="text-xs text-gray-500">👥 Total inscritos en este salón: <strong class="text-gray-800">${g.alumnosInscritos}</strong></p>
+                        <p><strong>ðŸ‘¨â€ðŸ« Teacher / Docente:</strong> <span class="text-purple-700 font-bold">${g.docente}</span></p>
+                        <p class="text-xs text-gray-500">ðŸ‘¥ Total inscritos en este salÃ³n: <strong class="text-gray-800">${g.alumnosInscritos}</strong></p>
                     </div>
                     <button type="button" class="w-full mt-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition duration-150 shadow-sm flex items-center justify-center gap-1.5">
-                        ✓ Seleccionar este Salón (${g.crn})
+                        âœ“ Seleccionar este SalÃ³n (${g.crn})
                     </button>
                 `;
                 contTarjetas.appendChild(card);
@@ -3924,12 +3924,12 @@
             const sel = document.getElementById('rec-horario');
             const hora = grupoObj.horaFmt;
             
-            // Buscar si ya existe la opción o modificarla
+            // Buscar si ya existe la opciÃ³n o modificarla
             let optExistente = Array.from(sel.options).find(o => o.value === `MULTIPLE_${hora}` || o.dataset.horafmt === hora);
             
             if (optExistente) {
                 optExistente.value = grupoObj.crn;
-                optExistente.textContent = `✓ ${hora} — CRN: ${grupoObj.crn} | ${grupoObj.docente} (${grupoObj.alumnosInscritos} alumnos)`;
+                optExistente.textContent = `âœ“ ${hora} â€” CRN: ${grupoObj.crn} | ${grupoObj.docente} (${grupoObj.alumnosInscritos} alumnos)`;
                 optExistente.dataset.frecuencia = grupoObj.frecuencia;
                 optExistente.dataset.docente = grupoObj.docente;
                 optExistente.dataset.horafmt = grupoObj.horaFmt;
@@ -4000,12 +4000,12 @@
                 // Validar Paso 1
                 const correo = document.getElementById('rec-correo').value.trim();
                 if (!correo || !correo.includes('@')) {
-                    errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                    errorDiv.innerText = 'Por favor ingresa un correo vÃ¡lido.';
                     errorDiv.classList.remove('hidden'); return;
                 }
                 const horarioSel = document.getElementById('rec-horario').value;
                 if (!horarioSel) {
-                    errorDiv.innerText = 'Por favor selecciona un horario de recuperación.';
+                    errorDiv.innerText = 'Por favor selecciona un horario de recuperaciÃ³n.';
                     errorDiv.classList.remove('hidden'); return;
                 }
                 if (horarioSel.startsWith('MULTIPLE_')) {
@@ -4018,7 +4018,7 @@
             } else if (destino === 3) {
                 // Validar Paso 2
                 if (diasSeleccionadosRec.size === 0) {
-                    errorDiv.innerText = 'Selecciona al menos un día presencial al que faltarás.';
+                    errorDiv.innerText = 'Selecciona al menos un dÃ­a presencial al que faltarÃ¡s.';
                     errorDiv.classList.remove('hidden'); return;
                 }
                 generarResumenRecuperacion();
@@ -4118,17 +4118,17 @@
             const correo = document.getElementById('rec-correo').value.trim();
             const sel = document.getElementById('rec-horario');
             const opt = sel ? sel.options[sel.selectedIndex] : null;
-            const horaSolo = (opt && opt.dataset.horafmt) ? opt.dataset.horafmt : (opt ? opt.text.split('—')[0].replace('✓', '').trim() : '');
-            const docente = opt && opt.dataset.docente ? `<br><strong>👨‍🏫 Teacher:</strong> ${opt.dataset.docente}` : '';
+            const horaSolo = (opt && opt.dataset.horafmt) ? opt.dataset.horafmt : (opt ? opt.text.split('â€”')[0].replace('âœ“', '').trim() : '');
+            const docente = opt && opt.dataset.docente ? `<br><strong>ðŸ‘¨â€ðŸ« Teacher:</strong> ${opt.dataset.docente}` : '';
             const crn = (opt && opt.dataset.crn) ? opt.dataset.crn : (sel ? sel.value : '');
             
             const diasTexto = formatearTextoDiasRecuperacion(diasSeleccionadosRec);
 
             const html = `
-                <p><strong>📧 Correo:</strong> ${correo}</p>
-                <p><strong>💻 Clase en línea a tomar:</strong> ${horaSolo}</p>
-                <p><strong>🔖 CRN asignado:</strong> ${crn}${docente}</p>
-                <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasTexto}</p>
+                <p><strong>ðŸ“§ Correo:</strong> ${correo}</p>
+                <p><strong>ðŸ’» Clase en lÃ­nea a tomar:</strong> ${horaSolo}</p>
+                <p><strong>ðŸ”– CRN asignado:</strong> ${crn}${docente}</p>
+                <p><strong>ðŸš« DÃ­as presenciales que faltarÃ¡s:</strong><br> â€¢ ${diasTexto}</p>
             `;
             document.getElementById('rec-resumen-container').innerHTML = html;
         }
@@ -4152,12 +4152,12 @@
             const tipoRec = document.getElementById('rec-tipo') ? document.getElementById('rec-tipo').value : '';
             const inst = document.getElementById('rec-cal-instrucciones');
             if (inst) {
-                if (tipoRec === 'SA') inst.textContent = 'Selecciona los sábados que vas a faltar.';
+                if (tipoRec === 'SA') inst.textContent = 'Selecciona los sÃ¡bados que vas a faltar.';
                 else if (tipoRec === 'DO') inst.textContent = 'Selecciona los domingos que vas a faltar.';
-                else if (tipoRec === 'FF') inst.textContent = 'Selecciona los días entre semana (lunes a jueves) que vas a faltar.';
-                else if (tipoRec === 'S1') inst.textContent = 'Selecciona los lunes o miércoles que vas a faltar.';
+                else if (tipoRec === 'FF') inst.textContent = 'Selecciona los dÃ­as entre semana (lunes a jueves) que vas a faltar.';
+                else if (tipoRec === 'S1') inst.textContent = 'Selecciona los lunes o miÃ©rcoles que vas a faltar.';
                 else if (tipoRec === 'S2') inst.textContent = 'Selecciona los martes o jueves que vas a faltar.';
-                else inst.textContent = 'Selecciona los días que vas a faltar.';
+                else inst.textContent = 'Selecciona los dÃ­as que vas a faltar.';
             }
 
             const HOY = new Date(); HOY.setHours(0,0,0,0);
@@ -4187,11 +4187,11 @@
                 hdr.textContent = `${MESES_ES[mes]} ${anio}`;
                 wrapper.appendChild(hdr);
 
-                // Grid días
+                // Grid dÃ­as
                 const grid = document.createElement('div');
                 grid.className = 'mini-cal-grid';
 
-                // Etiquetas días semana (L M X J V S D)
+                // Etiquetas dÃ­as semana (L M X J V S D)
                 DIAS_HDR.forEach((d, i) => {
                     const lbl = document.createElement('div');
                     lbl.className = 'mini-cal-day-label' + (i === 4 ? ' viernes' : '');
@@ -4199,7 +4199,7 @@
                     grid.appendChild(lbl);
                 });
 
-                // Día 1 del mes → calcular offset (0=Lun,...,6=Dom)
+                // DÃ­a 1 del mes â†’ calcular offset (0=Lun,...,6=Dom)
                 const primerDia = new Date(anio, mes, 1);
                 let offset = primerDia.getDay() - 1; // JS: 0=Dom
                 if (offset < 0) offset = 6;
@@ -4220,16 +4220,16 @@
                     const dentroRango = fecha >= inicioRecuperacion && fecha <= finRecuperacion;
                     const esPasado = fecha < lunesSemanaActual;
                     
-                    // Restricción según el tipo de clase seleccionado en el Paso 1
+                    // RestricciÃ³n segÃºn el tipo de clase seleccionado en el Paso 1
                     let esValido = false;
                     if (tipoRec === 'SA') {
-                        esValido = (dow === 6); // Solo sábados
+                        esValido = (dow === 6); // Solo sÃ¡bados
                     } else if (tipoRec === 'DO') {
                         esValido = (dow === 0); // Solo domingos
                     } else if (tipoRec === 'FF') {
                         esValido = (dow >= 1 && dow <= 4); // Lunes a Jueves
                     } else if (tipoRec === 'S1') {
-                        esValido = (dow === 1 || dow === 3); // Lunes y Miércoles
+                        esValido = (dow === 1 || dow === 3); // Lunes y MiÃ©rcoles
                     } else if (tipoRec === 'S2') {
                         esValido = (dow === 2 || dow === 4); // Martes y Jueves
                     } else {
@@ -4273,7 +4273,7 @@
 
             const correo = document.getElementById('rec-correo').value.trim();
             if (!correo || !correo.includes('@')) {
-                errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                errorDiv.innerText = 'Por favor ingresa un correo vÃ¡lido.';
                 errorDiv.classList.remove('hidden'); return;
             }
             const tipo = document.getElementById('rec-tipo').value;
@@ -4287,11 +4287,11 @@
                 errorDiv.classList.remove('hidden'); return;
             }
             if (diasSeleccionadosRec.size === 0) {
-                errorDiv.innerText = 'Selecciona al menos un día a recuperar.';
+                errorDiv.innerText = 'Selecciona al menos un dÃ­a a recuperar.';
                 errorDiv.classList.remove('hidden'); return;
             }
 
-            // Formatear días seleccionados con rangos inteligentes
+            // Formatear dÃ­as seleccionados con rangos inteligentes
             const diasLabels = formatearTextoDiasRecuperacion(diasSeleccionadosRec);
 
             // Obtener variables de la clase elegida
@@ -4447,21 +4447,21 @@
             const facturaHtml = `
                 <div class="factura-header">
                     <div class="factura-info">
-                        <div class="factura-title">Cotización de Cursos</div>
+                        <div class="factura-title">CotizaciÃ³n de Cursos</div>
                         <p><strong>ID Alumno:</strong> ${alumnoActual.idOriginal}</p>
                         <p><strong>Nombre:</strong> ${alumnoActual.nombre}</p>
                         <p><strong>Programa:</strong> ${alumnoActual.programaTexto}</p>
                         <p><strong>Modalidad:</strong> ${alumnoActual.modalidad}</p>
                         <p><strong>Horario:</strong> ${alumnoActual.horario}</p>
                         <p><strong>Beca Base:</strong> ${Math.round(alumnoActual.beca * 100)}%</p>
-                        <p style="margin-top:8px;"><strong>Próximo curso:</strong></p>
+                        <p style="margin-top:8px;"><strong>PrÃ³ximo curso:</strong></p>
                         <p style="padding-left:15px;">Inicio: ${inicioSiguiente}</p>
                         <p style="padding-left:15px;">Fin: ${finSiguiente}</p>
                     </div>
                     <div class="factura-fecha">
                         <p style="margin-bottom:10px;">Fecha: <br><span style="font-weight:normal;">${hoy}</span></p>
                         <p style="font-size:12px; font-weight:normal; color:#444; max-width: 160px; float: right; border: 1px solid #ccc; padding: 5px; border-radius: 4px; text-align: left;">
-                            Para dudas u otras cotizaciones contáctanos a este WhatsApp:<br>
+                            Para dudas u otras cotizaciones contÃ¡ctanos a este WhatsApp:<br>
                             <strong>220 873 1288</strong>
                         </p>
                     </div>
@@ -4470,7 +4470,7 @@
                 <table class="factura-table">
                     <thead>
                         <tr>
-                            <th>Descripción</th>
+                            <th>DescripciÃ³n</th>
                             <th style="width: 120px; text-align: right;">Importe</th>
                         </tr>
                     </thead>
@@ -4486,9 +4486,9 @@
                 </div>
                 
                 <div class="factura-footer">
-                    ${lblCotizacionFecha ? `<p style="font-size:15px; font-weight:bold; margin-bottom:15px; color:#1e40af;">Si pagas esta cotización, tu próxima fecha de pago será:<br>${lblCotizacionFecha}</p>` : ''}
-                    <p style="font-size: 14px;">Válido hasta: <strong>${vigencia}</strong></p>
-                    <p style="margin-top: 5px;">* Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.</p>
+                    ${lblCotizacionFecha ? `<p style="font-size:15px; font-weight:bold; margin-bottom:15px; color:#1e40af;">Si pagas esta cotizaciÃ³n, tu prÃ³xima fecha de pago serÃ¡:<br>${lblCotizacionFecha}</p>` : ''}
+                    <p style="font-size: 14px;">VÃ¡lido hasta: <strong>${vigencia}</strong></p>
+                    <p style="margin-top: 5px;">* Precios sujetos a cambios sin previo aviso. Esta cotizaciÃ³n no es un comprobante de pago.</p>
                     <p style="font-size: 9px; margin-top: 20px; color: #999;">Contamos con 3 y 6 MSI</p>
                 </div>
             `;
@@ -4524,25 +4524,25 @@
 
             const dirigidaA = document.getElementById('constancia-dirigida').value.trim() || 'A quien corresponda';
 
-            // ── Fecha del día ──────────────────────────────────────────────────────
+            // â”€â”€ Fecha del dÃ­a â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const hoy = new Date();
-            const diasSemana = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+            const diasSemana = ['domingo','lunes','martes','miÃ©rcoles','jueves','viernes','sÃ¡bado'];
             const mesesNombre = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
             const diaNum   = hoy.getDate();
             const mesNombre = mesesNombre[hoy.getMonth()];
             const anio     = hoy.getFullYear();
             const fechaTexto = `${diaNum} de ${mesNombre} de ${anio}`;
 
-            // ── Datos del alumno ───────────────────────────────────────────────────
+            // â”€â”€ Datos del alumno â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const nombre  = alumnoActual.nombre || '';
             const programa = alumnoActual.programaNombre || 'ADULTO'; // KIDS, PTEEN, TEENS, ADULTO
             const nivel   = alumnoActual.nivelActual || 0;
             const horario = alumnoActual.horario || '';
 
-            // ── Modalidad de clase ─────────────────────────────────────────────────
+            // â”€â”€ Modalidad de clase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const tipoClase = alumnoActual.tipoClaseCal || 'entre-semana'; // 'sabado' o 'entre-semana'
 
-            // ── Horario: calcular hora inicio y fin ────────────────────────────────
+            // â”€â”€ Horario: calcular hora inicio y fin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let horaInicioTexto = '';
             let horaFinTexto = '';
             const horarioMatch = horario.match(/(\d{1,2}):(\d{2})/);
@@ -4550,7 +4550,7 @@
                 let h = parseInt(horarioMatch[1]);
                 let m = parseInt(horarioMatch[2]);
                 horaInicioTexto = `${h}:${String(m).padStart(2,'0')} hrs`;
-                // Duración: entre semana 1h30m; sábado/domingo ADULTO 6h, demás 3h
+                // DuraciÃ³n: entre semana 1h30m; sÃ¡bado/domingo ADULTO 6h, demÃ¡s 3h
                 let durHoras = 1, durMins = 30;
                 if (tipoClase === 'sabado') {
                     durHoras = (programa === 'ADULTO') ? 6 : 3;
@@ -4562,12 +4562,12 @@
                 horaFinTexto = `${finH}:${String(finM).padStart(2,'0')} hrs`;
             }
 
-            // ── Nivel máximo y MCER ────────────────────────────────────────────────
+            // â”€â”€ Nivel mÃ¡ximo y MCER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let nivelMax = 24;
             let mostrarMCER = true;
             if (programa === 'KIDS')       { nivelMax = 15; mostrarMCER = false; }
             else if (programa === 'PTEEN') { nivelMax = 12; mostrarMCER = false; }
-            // TEENS y ADULTO: 24 niveles, sí muestran MCER
+            // TEENS y ADULTO: 24 niveles, sÃ­ muestran MCER
 
             function obtenerNivelMCER(niv) {
                 if (niv <= 4)  return 'A1';
@@ -4579,17 +4579,17 @@
             }
             const nivelMCER = mostrarMCER ? obtenerNivelMCER(nivel) : '';
 
-            // ── Fechas del curso actual ────────────────────────────────────────────
+            // â”€â”€ Fechas del curso actual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const inicioActual = document.getElementById('lbl-inicio-actual').innerText || '';
             const finActual    = document.getElementById('lbl-fin-actual').innerText    || '';
 
-            // ── Leer opciones de los checkboxes ────────────────────────────────────
+            // â”€â”€ Leer opciones de los checkboxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             const includeModalidad = document.getElementById('chk-const-modalidad').checked;
             const includeHorario   = document.getElementById('chk-const-horario').checked;
             const includeCefr      = document.getElementById('chk-const-cefr').checked;
             const includeFechas    = document.getElementById('chk-const-fechas').checked;
 
-            // ── Texto de modalidad + horario integrados ────────────────────────────
+            // â”€â”€ Texto de modalidad + horario integrados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let textoModalidad = '';
             let textoHorario = '';
 
@@ -4614,7 +4614,7 @@
                 modYHor = textoHorario;
             }
 
-            // ── Construcción del párrafo central ──────────────────────────────────
+            // â”€â”€ ConstrucciÃ³n del pÃ¡rrafo central â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             let oracion1 = `Se encuentra oficialmente inscrito en nuestro instituto Harmon Hall Puebla`;
             if (modYHor) {
                 oracion1 += `, ${modYHor}. `;
@@ -4624,18 +4624,18 @@
 
             let oracion2 = `Actualmente se encuentra en curso ${nivel} de ${nivelMax} posibles`;
             if (mostrarMCER && nivelMCER && includeCefr) {
-                oracion2 += `, equivalente ante el Marco Común Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
+                oracion2 += `, equivalente ante el Marco ComÃºn Europeo de Referencia para las Lenguas (nivel ${nivelMCER})`;
             }
             oracion2 += `.`;
 
             let oracion3 = '';
             if (includeFechas && inicioActual && inicioActual !== 'No disponible' && finActual && finActual !== 'No disponible') {
-                oracion3 = ` El curso actual tiene fecha de inicio el ${inicioActual} y fecha de finalización el ${finActual}.`;
+                oracion3 = ` El curso actual tiene fecha de inicio el ${inicioActual} y fecha de finalizaciÃ³n el ${finActual}.`;
             }
 
             const textoPrincipal = oracion1 + oracion2 + oracion3;
 
-            // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
+            // â”€â”€ Generar el HTML de la constancia (estructura idÃ©ntica al DOCX) â”€â”€â”€â”€â”€â”€
             const constanciaHtml = `
                 <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
                 <p class="constancia-asunto">Asunto: Constancia de estudios.<br></p>
@@ -4643,21 +4643,21 @@
                 <p class="constancia-destinatario">${dirigidaA}.</p>
                 <p class="constancia-presente">PRESENTE.</p>
                 <p class="constancia-salto">&nbsp;</p>
-                <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la Dirección General de Centros de Formación para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y número de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
+                <p class="constancia-body">El que suscribe, en calidad de responsable del instituto Harmon Hall Puebla con reconocimiento de validez oficial por parte de la DirecciÃ³n General de Centros de FormaciÃ³n para el Trabajo, teniendo como domicilio autorizado en Calle 39 Ote 3540, Residencial Puebla, 72540 Heroica Puebla de Zaragoza, que cuenta con registro de CCT. 29PBT0092Z, y nÃºmero de acuerdo 17FT3334 de fecha 14 de julio del 2017, se hace constar que:</p>
                 <br><br>
                 <p class="constancia-nombre">${alumnoActual.idOriginal} ${nombre.toUpperCase()}</p>
                 <br><br>
                 <p class="constancia-body">${textoPrincipal}</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
-                <p class="constancia-footer-text">La presente constancia se emite a solicitud del interesado para los fines legales que a éste convenga.</p>
+                <p class="constancia-footer-text">La presente constancia se emite a solicitud del interesado para los fines legales que a Ã©ste convenga.</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-atentamente">Atentamente</p>
                 <div style="text-align: center; margin-top: 15px; margin-bottom: 5px;">
                     <img src="data:image/jpeg;base64,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" style="height: 120px; width: auto; display: inline-block; object-fit: contain; mix-blend-mode: multiply; filter: contrast(1.5) brightness(1.1) grayscale(100%);" alt="Firma">
                 </div>
-                <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
+                <p class="constancia-firma">Mtro. Erick Rodrigo GarcÃ­a Villarejo</p>
             `;
 
             document.getElementById('print-factura').innerHTML = '';
@@ -4740,7 +4740,7 @@
             const reciboHtml = `
                 <div style="font-family: Arial, sans-serif; font-size: 11px; max-width: 800px; margin: 0 auto; color: black; padding-top: 20px;">
                     <div style="text-align: right; margin-bottom: 20px;">
-                        Fecha de impresión: ${hoyFormat} Página 1 de 1
+                        Fecha de impresiÃ³n: ${hoyFormat} PÃ¡gina 1 de 1
                     </div>
                     
                     <div style="text-align: center; margin-bottom: 10px;">
@@ -4764,7 +4764,7 @@
                         <tr>
                             <td colspan="2" style="border: 1px solid black; padding: 4px; vertical-align: top;">
                                 <strong>DOMICILIO FISCAL</strong><br>
-                                Avenida Ignacio López Rayón Sur 480 Piso 4<br>
+                                Avenida Ignacio LÃ³pez RayÃ³n Sur 480 Piso 4<br>
                                 Colonia Monterrey Centro<br>
                                 Monterrey, Nuevo Leon, Mex.<br>
                                 C.P. 64000<br>
@@ -4843,9 +4843,9 @@
                     
                     <div style="font-size: 7px; text-align: center; color: #444; line-height: 1.2; margin-top: 40px;">
                         **Este documento no tiene validez para efectos FISCALES** *EN PAGOS CON DESCUENTO NO HAY DEVOLUCIONES*<br>
-                        1. Los términos y condiciones para la prestación del servicio que ofrece Harmon Hall, así como las disposiciones legales aplicables a certificaciones SEP, pagos, devoluciones, horarios y normas internas, están contenidas en el reglamento interno de Harmon Hall, (en lo sucesivo el Reglamento) mismo que se encuentra visible e impreso en la recepción de los Institutos Harmon Hall del País y de forma electrónica y disponible en la página Web www.harmonhall.com.<br>
-                        2. Es obligación de todos los alumnos de Harmon Hall conocer y apegarse estrictamente a las normas y disposiciones del Reglamento, así como solicitar una copia del mismo en el Instituto Harmon Hall que le corresponda o bien leer su contenido. El desconocimiento del mismo no eximirá de su cumplimiento.<br>
-                        3. En cumplimiento a las disposiciones de la Ley de Protección de Datos Personales en posesión de los particulares (la "Ley"), la información personal de los alumnos que es obtenida para la prestación de los servicios que ofrece Harmon Hall es recopilada y almacenada por Harmon Hall Operadora, A.C. con domicilio en Avenida Ignacio López Rayon Sur 480 Piso 4, Col Monterrey Centro. Mty N.L., México y será utilizada para (i) la correcta prestación de los servicios de Harmon Hall, (ii) identificar e individualizar a cada alumno de Harmon Hall, (iii)informarles de desarrollos de nuevos productos y/o servicios, (iv) información estadística, (v) comunicación, (vi)mercadeo y recomendaciones de productos o servicios que ofrece Harmon Hall o cualesquiera otras empresas que pertenezcan al mismo grupo de inversión. Asimismo, le sugerimos consultar el Aviso de Privacidad completo que estará disponible en la recepción de cualesquiera Institutos Harmon Hall del país o bien podrá ser consultado en la página Web www.harmonhall.com.
+                        1. Los tÃ©rminos y condiciones para la prestaciÃ³n del servicio que ofrece Harmon Hall, asÃ­ como las disposiciones legales aplicables a certificaciones SEP, pagos, devoluciones, horarios y normas internas, estÃ¡n contenidas en el reglamento interno de Harmon Hall, (en lo sucesivo el Reglamento) mismo que se encuentra visible e impreso en la recepciÃ³n de los Institutos Harmon Hall del PaÃ­s y de forma electrÃ³nica y disponible en la pÃ¡gina Web www.harmonhall.com.<br>
+                        2. Es obligaciÃ³n de todos los alumnos de Harmon Hall conocer y apegarse estrictamente a las normas y disposiciones del Reglamento, asÃ­ como solicitar una copia del mismo en el Instituto Harmon Hall que le corresponda o bien leer su contenido. El desconocimiento del mismo no eximirÃ¡ de su cumplimiento.<br>
+                        3. En cumplimiento a las disposiciones de la Ley de ProtecciÃ³n de Datos Personales en posesiÃ³n de los particulares (la "Ley"), la informaciÃ³n personal de los alumnos que es obtenida para la prestaciÃ³n de los servicios que ofrece Harmon Hall es recopilada y almacenada por Harmon Hall Operadora, A.C. con domicilio en Avenida Ignacio LÃ³pez Rayon Sur 480 Piso 4, Col Monterrey Centro. Mty N.L., MÃ©xico y serÃ¡ utilizada para (i) la correcta prestaciÃ³n de los servicios de Harmon Hall, (ii) identificar e individualizar a cada alumno de Harmon Hall, (iii)informarles de desarrollos de nuevos productos y/o servicios, (iv) informaciÃ³n estadÃ­stica, (v) comunicaciÃ³n, (vi)mercadeo y recomendaciones de productos o servicios que ofrece Harmon Hall o cualesquiera otras empresas que pertenezcan al mismo grupo de inversiÃ³n. Asimismo, le sugerimos consultar el Aviso de Privacidad completo que estarÃ¡ disponible en la recepciÃ³n de cualesquiera Institutos Harmon Hall del paÃ­s o bien podrÃ¡ ser consultado en la pÃ¡gina Web www.harmonhall.com.
                     </div>
                 </div>
             `;
@@ -4915,7 +4915,7 @@
                 const modal = document.getElementById('modal-materiales');
                 const contenido = document.getElementById('material-contenido');
                 if (!modal || !contenido) {
-                    alert("Error: No se encontró el modal en el código. modal:" + !!modal + " contenido:" + !!contenido);
+                    alert("Error: No se encontrÃ³ el modal en el cÃ³digo. modal:" + !!modal + " contenido:" + !!contenido);
                     return;
                 }
                 modal.classList.remove('hidden');
@@ -4929,7 +4929,7 @@
             document.getElementById('modal-materiales').classList.add('hidden');
         }
 
-        // ==================== BUSCADOR DE CRN (CLASES EN LÍNEA) ====================
+        // ==================== BUSCADOR DE CRN (CLASES EN LÃNEA) ====================
         function abrirModalBuscadorCRN() {
             document.getElementById('modal-buscador-crn').classList.remove('hidden');
             if (!horariosRecuperacion || horariosRecuperacion.length === 0) {
@@ -4954,7 +4954,7 @@
             document.getElementById('bcrn-programa').value = '';
             
             const selFrec = document.getElementById('bcrn-frecuencia');
-            selFrec.innerHTML = '<option value="">-- Selecciona Días / Modalidad --</option>';
+            selFrec.innerHTML = '<option value="">-- Selecciona DÃ­as / Modalidad --</option>';
             selFrec.disabled = true;
 
             const selNiv = document.getElementById('bcrn-nivel');
@@ -4968,8 +4968,8 @@
             document.getElementById('bcrn-conteo-resultados').innerText = '';
             document.getElementById('bcrn-resultados').innerHTML = `
                 <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
-                    <span class="text-2xl block mb-1">🔍</span>
-                    Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
+                    <span class="text-2xl block mb-1">ðŸ”</span>
+                    Escribe un nÃºmero de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
                 </div>
             `;
         }
@@ -4990,15 +4990,15 @@
                     document.getElementById('bcrn-conteo-resultados').innerText = '';
                     document.getElementById('bcrn-resultados').innerHTML = `
                         <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
-                            <span class="text-2xl block mb-1">🔍</span>
-                            Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
+                            <span class="text-2xl block mb-1">ðŸ”</span>
+                            Escribe un nÃºmero de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
                         </div>
                     `;
                 }
                 return;
             }
 
-            // Desactivar temporalmente los selectores para dar prioridad a la búsqueda directa
+            // Desactivar temporalmente los selectores para dar prioridad a la bÃºsqueda directa
             document.getElementById('bcrn-programa').value = '';
             document.getElementById('bcrn-frecuencia').value = '';
             document.getElementById('bcrn-frecuencia').disabled = true;
@@ -5007,7 +5007,7 @@
             document.getElementById('bcrn-horario').value = '';
             document.getElementById('bcrn-horario').disabled = true;
 
-            // Filtrar directamente en horariosRecuperacion por CRN (o teacher/código)
+            // Filtrar directamente en horariosRecuperacion por CRN (o teacher/cÃ³digo)
             const resultados = horariosRecuperacion.filter(h => {
                 const crnStr = String(h.crn || '').toUpperCase();
                 const docStr = String(h.docente || '').toUpperCase();
@@ -5045,7 +5045,7 @@
             const selNiv = document.getElementById('bcrn-nivel');
             const selHor = document.getElementById('bcrn-horario');
 
-            selFrec.innerHTML = '<option value="">-- Selecciona Días / Modalidad --</option>';
+            selFrec.innerHTML = '<option value="">-- Selecciona DÃ­as / Modalidad --</option>';
             selNiv.innerHTML = '<option value="">-- Selecciona Nivel --</option>';
             selHor.innerHTML = '<option value="">-- Todos los horarios / Selecciona Horario --</option>';
             selNiv.disabled = true;
@@ -5209,8 +5209,8 @@
                 conteoEl.innerText = '';
                 contResultados.innerHTML = `
                     <div class="p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 text-xs">
-                        <span class="text-2xl block mb-1">🔍</span>
-                        Escribe un número de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
+                        <span class="text-2xl block mb-1">ðŸ”</span>
+                        Escribe un nÃºmero de CRN arriba o selecciona los filtros para consultar los grupos disponibles.
                     </div>
                 `;
                 return;
@@ -5253,7 +5253,7 @@
             if (resultados.length === 0) {
                 contResultados.innerHTML = `
                     <div class="p-6 text-center bg-orange-50 border border-orange-200 rounded-2xl text-orange-700 text-xs font-semibold">
-                        ⚠️ No se encontraron grupos para la consulta realizada.
+                        âš ï¸ No se encontraron grupos para la consulta realizada.
                     </div>
                 `;
                 return;
@@ -5265,7 +5265,7 @@
                 'PTEE': 'PRETEENS',
                 'TEEN': 'TEENS',
                 'TOEF': 'TOEFL',
-                'ICC': 'ICC / CONVERSACIÓN',
+                'ICC': 'ICC / CONVERSACIÃ“N',
                 'TEAC': 'TEACHERS'
             };
 
@@ -5276,11 +5276,11 @@
                 const cant = g.alumnosInscritos || 0;
                 let badgeAlumnos = '';
                 if (cant <= 7) {
-                    badgeAlumnos = `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-300">🟢 ${cant} alumnos (Pocos)</span>`;
+                    badgeAlumnos = `<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-emerald-300">ðŸŸ¢ ${cant} alumnos (Pocos)</span>`;
                 } else if (cant <= 15) {
-                    badgeAlumnos = `<span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-blue-300">🔵 ${cant} alumnos (Medio)</span>`;
+                    badgeAlumnos = `<span class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-blue-300">ðŸ”µ ${cant} alumnos (Medio)</span>`;
                 } else {
-                    badgeAlumnos = `<span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-300">🟠 ${cant} alumnos (Lleno)</span>`;
+                    badgeAlumnos = `<span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-full border border-amber-300">ðŸŸ  ${cant} alumnos (Lleno)</span>`;
                 }
 
                 let linkBtn = '';
@@ -5288,10 +5288,10 @@
                     linkBtn = `
                         <div class="pt-2 border-t border-gray-100 flex items-center justify-between gap-2 mt-1">
                             <a href="${g.link}" target="_blank" rel="noopener noreferrer" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-xl text-xs transition duration-200 text-center flex items-center justify-center gap-1.5 shadow-sm">
-                                <span>🔗</span> Unirse a Clase Teams
+                                <span>ðŸ”—</span> Unirse a Clase Teams
                             </a>
                             <button onclick="navigator.clipboard.writeText('${g.link}'); alert('Link de clase copiado al portapapeles');" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-3 rounded-xl text-xs transition duration-200 border border-gray-200" title="Copiar enlace">
-                                📋 Copiar
+                                ðŸ“‹ Copiar
                             </button>
                         </div>
                     `;
@@ -5333,7 +5333,7 @@
                                 <span class="font-bold text-indigo-700">${progNombre}</span>
                             </div>
                             <div>
-                                <span class="text-gray-400 font-bold block text-[10px] uppercase">Horario / Días</span>
+                                <span class="text-gray-400 font-bold block text-[10px] uppercase">Horario / DÃ­as</span>
                                 <span class="font-bold text-gray-800">${g.horaFmt} hrs <span class="text-gray-500 font-normal">(${g.diasLabel})</span></span>
                             </div>
                             <div>
@@ -5459,7 +5459,7 @@
                 f.celdas.forEach((c, idx) => {
                     if (idx === 0) {
                         let cellContent = c;
-                        if (f.dias === 'Lunes y Miércoles') {
+                        if (f.dias === 'Lunes y MiÃ©rcoles') {
                             cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Lun y Mie)</span>';
                         } else if (f.dias === 'Martes y Jueves') {
                             cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Ma y Ju)</span>';
@@ -5680,7 +5680,7 @@
 
                     if (idx === 0) {
                         let cellContent = c;
-                        if (f.dias === 'Lunes y Miércoles') {
+                        if (f.dias === 'Lunes y MiÃ©rcoles') {
                             cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Lun y Mie)</span>';
                         } else if (f.dias === 'Martes y Jueves') {
                             cellContent += '<br><span class="text-[10px] font-normal tracking-tighter">(Ma y Ju)</span>';
@@ -5779,11 +5779,11 @@
                 });
             }
 
-            // Buscar en Sábados
+            // Buscar en SÃ¡bados
             if (matrizSalones.filasSabado) {
                 matrizSalones.filasSabado.forEach(f => {
                     const tienePrograma = f.celdas.some((c, i) => i > 0 && verificarCelda(c));
-                    if (tienePrograma) horariosUnicos.add('Sábados|' + f.horaFmt);
+                    if (tienePrograma) horariosUnicos.add('SÃ¡bados|' + f.horaFmt);
                 });
             }
 
@@ -5810,7 +5810,7 @@
             }
 
             const [diasTarget, horaTarget] = horarioVal.split('|');
-            const esSabado = diasTarget === 'Sábados';
+            const esSabado = diasTarget === 'SÃ¡bados';
 
             const nivelesUnicos = new Map();
             const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
@@ -5911,7 +5911,7 @@
             if (progVal === 'ADUL') progAlumnos = 'ADULTO';
             if (progVal === 'TEEN') progAlumnos = 'TEENS';
 
-            const esSabado = diasTarget === 'Sábados';
+            const esSabado = diasTarget === 'SÃ¡bados';
             const esLayPasadoBuscado = esSoloS ? true : (esSoloE ? false : false);
             
             const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
@@ -5937,21 +5937,21 @@
             if (periodosFuturos.length > 0) {
                 const actual = periodosFuturos[0];
 
-                // Determinar los días de clase según diasTarget
-                // JS: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
-                let diasClase = null; // array de días de la semana [primerDia, segundoDia]
-                let diasClaseInicio = null; // días válidos para fecha de inicio
-                let diasClaseFin = null;    // días válidos para fecha de fin
-                if (diasTarget === 'Sábados') {
-                    diasClase = [6]; // Sábado
+                // Determinar los dÃ­as de clase segÃºn diasTarget
+                // JS: 0=Domingo, 1=Lunes, 2=Martes, 3=MiÃ©rcoles, 4=Jueves, 5=Viernes, 6=SÃ¡bado
+                let diasClase = null; // array de dÃ­as de la semana [primerDia, segundoDia]
+                let diasClaseInicio = null; // dÃ­as vÃ¡lidos para fecha de inicio
+                let diasClaseFin = null;    // dÃ­as vÃ¡lidos para fecha de fin
+                if (diasTarget === 'SÃ¡bados') {
+                    diasClase = [6]; // SÃ¡bado
                 } else if (diasTarget === 'Martes y Jueves') {
                     diasClase = [2, 4]; // Martes, Jueves
                     diasClaseInicio = [2]; // Inicio en Martes
                     diasClaseFin = [4];    // Fin en Jueves
-                } else if (diasTarget === 'Lunes y Miércoles') {
-                    diasClase = [1, 3]; // Lunes, Miércoles
+                } else if (diasTarget === 'Lunes y MiÃ©rcoles') {
+                    diasClase = [1, 3]; // Lunes, MiÃ©rcoles
                     diasClaseInicio = [1]; // Inicio en Lunes
-                    diasClaseFin = [3];    // Fin en Miércoles
+                    diasClaseFin = [3];    // Fin en MiÃ©rcoles
                 } else if (diasTarget === 'Lunes - Jueves') {
                     diasClase = [1, 2, 3, 4]; // Lunes a Jueves
                     diasClaseInicio = [1]; // Inicio en Lunes
@@ -5967,10 +5967,10 @@
                     // Para fin, usar diasClaseFin si existe, sino diasClase
                     const diasParaFin = diasClaseFin || diasClase;
 
-                    // Ajustar fecha de inicio: avanzar al primer día de clase >= inicio del periodo
+                    // Ajustar fecha de inicio: avanzar al primer dÃ­a de clase >= inicio del periodo
                     const diaIni = fechaInicioAjustada.getDay();
                     if (!diasParaInicio.includes(diaIni)) {
-                        // Buscar el día de clase más cercano hacia adelante
+                        // Buscar el dÃ­a de clase mÃ¡s cercano hacia adelante
                         let mejorAvance = 7;
                         for (const dc of diasParaInicio) {
                             let avance = (dc - diaIni + 7) % 7;
@@ -5980,10 +5980,10 @@
                         fechaInicioAjustada.setDate(fechaInicioAjustada.getDate() + mejorAvance);
                     }
 
-                    // Ajustar fecha de fin: retroceder al último día de clase <= fin del periodo
+                    // Ajustar fecha de fin: retroceder al Ãºltimo dÃ­a de clase <= fin del periodo
                     const diaFin = fechaFinAjustada.getDay();
                     if (!diasParaFin.includes(diaFin)) {
-                        // Buscar el día de clase más cercano hacia atrás
+                        // Buscar el dÃ­a de clase mÃ¡s cercano hacia atrÃ¡s
                         let mejorRetroceso = 7;
                         for (const dc of diasParaFin) {
                             let retroceso = (diaFin - dc + 7) % 7;
@@ -5993,7 +5993,7 @@
                         fechaFinAjustada.setDate(fechaFinAjustada.getDate() - mejorRetroceso);
                     }
 
-                    // Verificar que las fechas ajustadas son válidas (dentro del periodo)
+                    // Verificar que las fechas ajustadas son vÃ¡lidas (dentro del periodo)
                     if (fechaInicioAjustada > actual.fin) fechaInicioAjustada = new Date(actual.inicio);
                     if (fechaFinAjustada < actual.inicio) fechaFinAjustada = new Date(actual.fin);
                 }
@@ -6040,13 +6040,13 @@
                     const estatusOriginal = a.estatusPago ? a.estatusPago.trim() : '';
 
                     if (estatus === 'R') {
-                        statusStr = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
+                        statusStr = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âœ… PAGADO</span>';
                     } else if (estatus === 'PROMESA') {
-                        statusStr = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
+                        statusStr = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">ðŸ—“ï¸ PROMESA</span>';
                     } else if (estatus.includes('NO CONTINUA')) {
-                        statusStr = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
+                        statusStr = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âŒ NO CONTINUA</span>';
                     } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
-                        statusStr = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
+                        statusStr = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">âš ï¸ PENDIENTE</span>';
                     } else {
                         statusStr = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                     }
@@ -6190,7 +6190,7 @@
                 let texto = String(c || '').trim().toUpperCase();
                 if (!texto) return;
                 
-                // Si la celda es explícitamente de Starting (LAYPASADO), no contarla en Dashboard
+                // Si la celda es explÃ­citamente de Starting (LAYPASADO), no contarla en Dashboard
                 if (texto.includes('(S)')) return;
 
                 const textoLimpio = texto.replace(/\([^)]*\)/g, '').trim();
@@ -6258,7 +6258,7 @@
                 matrizSalones.filas.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let salon = matrizSalones.salones[idx] || 'Sin SalÃ³n';
                             let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, false);
                         }
@@ -6270,7 +6270,7 @@
                 matrizSalones.filasSabado.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let salon = matrizSalones.salones[idx] || 'Sin SalÃ³n';
                             let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, true);
                         }
@@ -6359,9 +6359,9 @@
 
             weightedArr.forEach((t, i) => {
                 let place = i + 1;
-                if (place === 1) place = '🥇';
-                else if (place === 2) place = '🥈';
-                else if (place === 3) place = '🥉';
+                if (place === 1) place = 'ðŸ¥‡';
+                else if (place === 2) place = 'ðŸ¥ˆ';
+                else if (place === 3) place = 'ðŸ¥‰';
 
                 wTbody.innerHTML += `<tr class="border-b hover:bg-purple-50 transition"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td><td class="py-2 text-indigo-500 font-bold">${(t.factorVolumen * 100).toFixed(1)}%</td><td class="py-2 text-purple-700 font-black">${t.scoreFinal.toFixed(1)}%</td></tr>`;
                 
@@ -6429,7 +6429,7 @@
             chartModalidad = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Presencial', 'En Línea'],
+                    labels: ['Presencial', 'En LÃ­nea'],
                     datasets: [{
                         data: [mod.presencialR, mod.lineaR],
                         backgroundColor: ['#3b82f6', '#14b8a6'],
@@ -6475,7 +6475,7 @@
                             stack: 'Stack 0'
                         },
                         {
-                            label: '% No Continúa / Bajas',
+                            label: '% No ContinÃºa / Bajas',
                             data: topT.map(t => t.pctBaj),
                             backgroundColor: '#ef4444',
                             stack: 'Stack 0'
@@ -6546,9 +6546,9 @@
             tbodyT.innerHTML = '';
             arr.forEach((t, i) => {
                 let place = i + 1;
-                if (place === 1) place = '🥇';
-                else if (place === 2) place = '🥈';
-                else if (place === 3) place = '🥉';
+                if (place === 1) place = 'ðŸ¥‡';
+                else if (place === 2) place = 'ðŸ¥ˆ';
+                else if (place === 3) place = 'ðŸ¥‰';
                 
                 tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 text-yellow-600 font-bold">${t.seguimiento}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td></tr>`;
             });
@@ -6632,7 +6632,7 @@
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
 
             let descuentoAplicar = 0;
-            let etiquetaPromo = "Sin promoción";
+            let etiquetaPromo = "Sin promociÃ³n";
 
             if (becaBase > 0) {
                 descuentoAplicar = becaBase;
@@ -6701,11 +6701,11 @@
     <div id="modal-whatsapp-options" class="modal-overlay hidden" style="z-index: 60;" onclick="if(event.target===this) document.getElementById('modal-whatsapp-options').classList.add('hidden')">
         <div class="modal-box" style="max-width: 400px; width: 95%; display: flex; flex-direction: column; padding: 0;">
             <div class="modal-header bg-green-500 text-white p-4 flex justify-between items-center rounded-t-2xl">
-                <p class="font-bold text-lg">📱 Selecciona un número</p>
-                <button class="text-white hover:text-gray-200 text-2xl font-bold" onclick="document.getElementById('modal-whatsapp-options').classList.add('hidden')">✕</button>
+                <p class="font-bold text-lg">ðŸ“± Selecciona un nÃºmero</p>
+                <button class="text-white hover:text-gray-200 text-2xl font-bold" onclick="document.getElementById('modal-whatsapp-options').classList.add('hidden')">âœ•</button>
             </div>
             <div class="p-6 bg-white rounded-b-2xl">
-                <p class="text-gray-600 mb-4 text-sm text-center font-medium">Este alumno tiene registrados varios números. Elige a cuál deseas contactar:</p>
+                <p class="text-gray-600 mb-4 text-sm text-center font-medium">Este alumno tiene registrados varios nÃºmeros. Elige a cuÃ¡l deseas contactar:</p>
                 <div id="whatsapp-options-container" class="flex flex-col gap-3">
                     <!-- JS populate -->
                 </div>
