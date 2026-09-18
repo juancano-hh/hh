@@ -2772,7 +2772,35 @@
             document.getElementById('seccion-calculos').classList.add('hidden');
             document.getElementById('seccion-recuperacion').classList.add('hidden');
             document.getElementById('menu-principal').classList.remove('hidden');
-            sendClientMsg('RESET');
+            sendClientMsg('MENU');
+        }
+
+        function enviarDatosAlumnoACliente() {
+            if (!alumnoActual) return;
+            const contSalon = document.getElementById('contenedor-salon');
+            const contTeacher = document.getElementById('contenedor-teacher');
+            sendClientMsg('STUDENT_DATA', {
+                id: alumnoActual.idOriginal,
+                nombre: alumnoActual.nombre,
+                celular: alumnoActual.celular,
+                correo: alumnoActual.correo,
+                curso: alumnoActual.nivelActual,
+                programa: alumnoActual.programaTexto,
+                modalidad: alumnoActual.modalidad,
+                horario: document.getElementById('lbl-horario') ? document.getElementById('lbl-horario').innerText : '',
+                beca: document.getElementById('lbl-beca') ? document.getElementById('lbl-beca').innerText : '',
+                libro: (document.getElementById('contenedor-libro') && !document.getElementById('contenedor-libro').classList.contains('hidden') ? document.getElementById('lbl-libro').innerText : null),
+                salon: (contSalon && !contSalon.classList.contains('hidden') ? document.getElementById('lbl-salon').innerText : null),
+                teacher: (contTeacher && !contTeacher.classList.contains('hidden') ? document.getElementById('lbl-teacher').innerText : null),
+                periodoActual: {
+                    inicio: document.getElementById('lbl-inicio-actual') ? document.getElementById('lbl-inicio-actual').innerText : '',
+                    fin: document.getElementById('lbl-fin-actual') ? document.getElementById('lbl-fin-actual').innerText : ''
+                },
+                periodoSiguiente: {
+                    inicio: document.getElementById('lbl-inicio-siguiente') ? document.getElementById('lbl-inicio-siguiente').innerText : '',
+                    fin: document.getElementById('lbl-fin-siguiente') ? document.getElementById('lbl-fin-siguiente').innerText : ''
+                }
+            });
         }
 
         // ===== Mostrar sección de pagos (paso 3) =====
@@ -2786,30 +2814,7 @@
             mostrarFechasPeriodo();
             
             // Re-enviar data al cliente ahora con los periodos
-            const contSalon = document.getElementById('contenedor-salon');
-            const contTeacher = document.getElementById('contenedor-teacher');
-            sendClientMsg('STUDENT_DATA', {
-                id: alumnoActual.idOriginal,
-                nombre: alumnoActual.nombre,
-                celular: alumnoActual.celular,
-                correo: alumnoActual.correo,
-                curso: alumnoActual.nivelActual,
-                programa: alumnoActual.programaTexto,
-                modalidad: alumnoActual.modalidad,
-                horario: document.getElementById('lbl-horario').innerText,
-                beca: document.getElementById('lbl-beca').innerText,
-                libro: (document.getElementById('contenedor-libro').classList.contains('hidden') ? null : document.getElementById('lbl-libro').innerText),
-                salon: (contSalon.classList.contains('hidden') ? null : document.getElementById('lbl-salon').innerText),
-                teacher: (contTeacher.classList.contains('hidden') ? null : document.getElementById('lbl-teacher').innerText),
-                periodoActual: {
-                    inicio: document.getElementById('lbl-inicio-actual').innerText,
-                    fin: document.getElementById('lbl-fin-actual').innerText
-                },
-                periodoSiguiente: {
-                    inicio: document.getElementById('lbl-inicio-siguiente').innerText,
-                    fin: document.getElementById('lbl-fin-siguiente').innerText
-                }
-            });
+            enviarDatosAlumnoACliente();
             if (textoPromocionalF1 && textoPromocionalF1 !== "") {
                 document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
                 document.getElementById('info-promo-adicional').classList.remove('hidden');
@@ -3824,7 +3829,8 @@
                 horarioText: horarioText,
                 cantDias: typeof diasSeleccionadosRec !== 'undefined' ? diasSeleccionadosRec.size : 0,
                 maxDias: maxDiasEl ? parseInt(maxDiasEl.value) : 1,
-                calHtml: document.getElementById('rec-mini-cal') ? document.getElementById('rec-mini-cal').innerHTML : ''
+                calHtml: document.getElementById('rec-mini-cal') ? document.getElementById('rec-mini-cal').innerHTML : '',
+                resumenHtml: document.getElementById('rec-resumen-container') ? document.getElementById('rec-resumen-container').innerHTML : ''
             });
         }
 
@@ -3854,8 +3860,6 @@
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar Solicitud';
             }
-            
-            irAPasoRec(1);
 
             // Pre-llenar correo
             document.getElementById('rec-correo').value =
@@ -3892,6 +3896,10 @@
                 inicioRecuperacion = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
                 finRecuperacion   = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
             }
+
+            irAPasoRec(1);
+            enviarDatosAlumnoACliente();
+            syncWizardToClient();
         }
 
         function filtrarHorariosPorTipo() {
