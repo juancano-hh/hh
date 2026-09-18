@@ -602,80 +602,93 @@
         </div>
 
         <!-- ===== FICHA ALUMNO (se muestra al elegir una opción) ===== -->
-        <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+        <div id="ficha-alumno" class="hidden mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
             <!-- Botón regresar al menú -->
-            <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2 mb-2">
+            <button onclick="regresarMenu()" class="w-full text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center justify-center gap-2">
                 ← Cambiar opción
             </button>
-            <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
-            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-            <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
-            <p class="text-sm text-gray-700">
-                <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span>
-                <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
-                    💬 WhatsApp
-                </button>
-            </p>
-            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-            <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
-            <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
-            <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
-            <p id="contenedor-salon" class="hidden text-sm text-gray-700">
-                <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
-                <button onclick="abrirModalMapaSalones()" class="ml-2 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-2 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
-                    🗺️ Ver mapa
-                </button>
-            </p>
-            <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
-            <p class="text-sm text-gray-700">
-                <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-2"></span>
-                <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                    📅 Horarios
-                </button>
-            </p>
-            <p id="contenedor-libro" class="hidden text-sm text-gray-700">
-                <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-2"></span>
-                <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                    📚 Ver más
-                </button>
-            </p>
-            <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
 
-            <!-- ===== FECHAS DE PERIODO (solo en vista pagos) ===== -->
-            <div id="seccion-periodos" class="hidden pt-3 border-t border-gray-200 space-y-2">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
-                <div class="bg-blue-50 rounded-xl p-3 space-y-1 border border-blue-100">
-                    <p class="text-xs font-bold text-blue-700">📚 Curso actual (en curso)</p>
-                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
-                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
-                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
-                </div>
-                <div class="bg-green-50 rounded-xl p-3 space-y-1 border border-green-100 relative">
-                    <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
-                    <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
-                    <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
-                    <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
-                    <div id="seccion-volumen" class="hidden mt-2 pt-2 border-t border-green-200">
-                        <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
-                        <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
-                    </div>
-                </div>
+            <!-- ===== BOTONES ACCIÓN ARRIBA ===== -->
+            <div id="seccion-botones-accion" class="hidden">
                 <div class="flex gap-2">
-                    <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="abrirModalCalendario()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-1 shadow-md hover:shadow-lg">
                         📅 Calendario
                     </button>
-                    <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionFactura()" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-1 shadow-md hover:shadow-lg">
                         🖨️ Cotización
                     </button>
-                    <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="ejecutarImpresionRecibo()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-1 shadow-md hover:shadow-lg">
                         🧾 Recibo
                     </button>
-                    <button onclick="abrirModalConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                    <button onclick="abrirModalConstancia()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-2 rounded-xl transition duration-200 text-sm flex items-center justify-center gap-1 shadow-md hover:shadow-lg">
                         🎓 Constancia
                     </button>
                 </div>
             </div>
+
+            <!-- ===== DOS COLUMNAS: DATOS IZQ | PERIODOS DER ===== -->
+            <div class="flex gap-3 items-start">
+
+                <!-- COLUMNA IZQUIERDA: Datos del Alumno -->
+                <div class="flex-1 min-w-0 space-y-1">
+                    <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
+                    <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                    <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                    <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
+                    <p class="text-sm text-gray-700">
+                        <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-1 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span>
+                        <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
+                            💬 WhatsApp
+                        </button>
+                    </p>
+                    <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                    <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
+                    <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
+                    <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+                    <p id="contenedor-salon" class="hidden text-sm text-gray-700">
+                        <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
+                        <button onclick="abrirModalMapaSalones()" class="ml-1 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-2 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
+                            🗺️ Ver mapa
+                        </button>
+                    </p>
+                    <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
+                    <p class="text-sm text-gray-700">
+                        <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-1"></span>
+                        <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                            📅 Horarios
+                        </button>
+                    </p>
+                    <p id="contenedor-libro" class="hidden text-sm text-gray-700">
+                        <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-1"></span>
+                        <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
+                            📚 Ver más
+                        </button>
+                    </p>
+                    <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
+                </div>
+
+                <!-- COLUMNA DERECHA: Periodos de Curso (solo en vista pagos) -->
+                <div id="seccion-periodos" class="hidden w-44 flex-shrink-0 space-y-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 border-b pb-1">Periodos de Curso</h3>
+                    <div class="bg-blue-50 rounded-xl p-2.5 space-y-1 border border-blue-100">
+                        <p class="text-xs font-bold text-blue-700">📚 Curso actual</p>
+                        <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
+                        <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
+                        <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
+                    </div>
+                    <div class="bg-green-50 rounded-xl p-2.5 space-y-1 border border-green-100">
+                        <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
+                        <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
+                        <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
+                        <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
+                        <div id="seccion-volumen" class="hidden mt-1 pt-1 border-t border-green-200">
+                            <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
+                            <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- fin dos columnas -->
         </div>
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
@@ -2721,6 +2734,7 @@
                 calculos.classList.add('hidden');
                 document.getElementById('menu-principal').classList.add('hidden');
                 document.getElementById('seccion-periodos').classList.add('hidden');
+                document.getElementById('seccion-botones-accion').classList.add('hidden');
                 errorBox.innerText = "ID no encontrado. Verifica tu matrícula (ej. 991122 o 00991122).";
                 errorBox.classList.remove('hidden');
             }
@@ -2733,6 +2747,7 @@
             document.getElementById('seccion-calculos').classList.add('hidden');
             document.getElementById('seccion-recuperacion').classList.add('hidden');
             document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-botones-accion').classList.add('hidden');
             document.getElementById('seccion-busqueda').classList.remove('hidden');
             document.getElementById('botones-extras').classList.remove('hidden');
             document.getElementById('error-box').classList.add('hidden');
@@ -2757,6 +2772,7 @@
             descuentoManualPorcentaje = null;
             // Cargar fechas de periodo
             mostrarFechasPeriodo();
+            document.getElementById('seccion-botones-accion').classList.remove('hidden');
             if (textoPromocionalF1 && textoPromocionalF1 !== "") {
                 document.getElementById('info-promo-adicional').innerText = textoPromocionalF1;
                 document.getElementById('info-promo-adicional').classList.remove('hidden');
@@ -3724,6 +3740,7 @@
             document.getElementById('menu-principal').classList.add('hidden');
             document.getElementById('ficha-alumno').classList.remove('hidden');
             document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-botones-accion').classList.add('hidden');
             document.getElementById('seccion-calculos').classList.add('hidden');
             document.getElementById('seccion-recuperacion').classList.remove('hidden');
 
