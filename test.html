@@ -626,182 +626,191 @@
                 </div>
             </div>
 
-            <!-- ===== DOS COLUMNAS: DATOS IZQ | PERIODOS DER ===== -->
+            <!-- ===== DOS COLUMNAS: IZQ (datos+periodos) | DER (cálculos) ===== -->
             <div class="flex gap-3 items-start">
 
-                <!-- COLUMNA IZQUIERDA: Datos del Alumno -->
-                <div class="flex-1 min-w-0 space-y-1">
-                    <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
-                    <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-                    <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-                    <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
-                    <p class="text-sm text-gray-700">
-                        <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-1 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span>
-                        <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
-                            💬 WhatsApp
-                        </button>
-                    </p>
-                    <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
-                    <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
-                    <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
-                    <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
-                    <p id="contenedor-salon" class="hidden text-sm text-gray-700">
-                        <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
-                        <button onclick="abrirModalMapaSalones()" class="ml-1 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-2 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
-                            🗺️ Ver mapa
-                        </button>
-                    </p>
-                    <p id="contenedor-teacher" class="hidden text-sm text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
-                    <p class="text-sm text-gray-700">
-                        <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-1"></span>
-                        <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-1 px-2 rounded-lg border border-orange-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                            📅 Horarios
-                        </button>
-                    </p>
-                    <p id="contenedor-libro" class="hidden text-sm text-gray-700">
-                        <strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-1"></span>
-                        <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-2 rounded-lg border border-indigo-200 transition duration-200 shadow-sm hover:shadow-md text-xs align-middle">
-                            📚 Ver más
-                        </button>
-                    </p>
-                    <p class="text-sm text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
-                </div>
+                <!-- COLUMNA IZQUIERDA: Datos del Alumno + Periodos apilados -->
+                <div class="w-52 flex-shrink-0 space-y-2">
 
-                <!-- COLUMNA DERECHA: Periodos de Curso (solo en vista pagos) -->
-                <div id="seccion-periodos" class="hidden w-44 flex-shrink-0 space-y-2">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 border-b pb-1">Periodos de Curso</h3>
-                    <div class="bg-blue-50 rounded-xl p-2.5 space-y-1 border border-blue-100">
-                        <p class="text-xs font-bold text-blue-700">📚 Curso actual</p>
-                        <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
-                        <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
-                        <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
+                    <!-- Datos del Alumno -->
+                    <div class="space-y-1">
+                        <h3 class="font-bold border-b pb-1 text-xs uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
+                        <p class="text-xs text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                        <p class="text-xs text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                        <p class="text-xs text-gray-700 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
+                        <p class="text-xs text-gray-700">
+                            <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-1 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span>
+                            <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-0.5 px-1.5 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
+                                💬 WA
+                            </button>
+                        </p>
+                        <p class="text-xs text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+                        <p class="text-xs text-gray-700"><strong>Curso:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
+                        <p class="text-xs text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
+                        <p class="text-xs text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+                        <p id="contenedor-salon" class="hidden text-xs text-gray-700">
+                            <strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span>
+                            <button onclick="abrirModalMapaSalones()" class="ml-1 inline-flex items-center gap-1 bg-violet-50 hover:bg-violet-100 text-violet-700 font-bold py-0.5 px-1.5 rounded-lg border border-violet-200 transition duration-200 shadow-sm text-xs align-middle">
+                                🗺️ Mapa
+                            </button>
+                        </p>
+                        <p id="contenedor-teacher" class="hidden text-xs text-gray-700"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
+                        <p class="text-xs text-gray-700">
+                            <strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 mr-1"></span>
+                            <button onclick="abrirModalHorariosLayout()" class="inline-flex items-center gap-1 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold py-0.5 px-1.5 rounded-lg border border-orange-200 transition duration-200 shadow-sm text-xs align-middle">
+                                📅 Horarios
+                            </button>
+                        </p>
+                        <p id="contenedor-libro" class="hidden text-xs text-gray-700">
+                            <strong>Libro:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold uppercase mr-1"></span>
+                            <button onclick="abrirModalMateriales()" class="inline-flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-0.5 px-1.5 rounded-lg border border-indigo-200 transition duration-200 shadow-sm text-xs align-middle">
+                                📚 Ver más
+                            </button>
+                        </p>
+                        <p class="text-xs text-gray-700"><strong>Beca Base:</strong> <span id="lbl-beca" class="text-blue-600 font-bold"></span></p>
                     </div>
-                    <div class="bg-green-50 rounded-xl p-2.5 space-y-1 border border-green-100">
-                        <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
-                        <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
-                        <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
-                        <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
-                        <div id="seccion-volumen" class="hidden mt-1 pt-1 border-t border-green-200">
-                            <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
-                            <p class="text-xs text-red-600 font-bold mt-1" id="lbl-proxima-fecha-pago"></p>
+
+                    <!-- Periodos de Curso (solo en vista pagos) -->
+                    <div id="seccion-periodos" class="hidden space-y-1.5 pt-2 border-t border-gray-200">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500">Periodos de Curso</h3>
+                        <div class="bg-blue-50 rounded-xl p-2 space-y-0.5 border border-blue-100">
+                            <p class="text-xs font-bold text-blue-700">📚 Curso actual</p>
+                            <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-actual" class="font-mono font-semibold text-gray-800"></span></p>
+                            <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-800"></span></p>
+                            <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-800"></span></p>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-2 space-y-0.5 border border-green-100">
+                            <p class="text-xs font-bold text-green-700">🎯 Próximo curso</p>
+                            <p class="text-xs text-gray-600">Clave: <span id="lbl-periodo-siguiente" class="font-mono font-semibold text-gray-800"></span></p>
+                            <p class="text-xs text-gray-600">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-800"></span></p>
+                            <p class="text-xs text-gray-600">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-800"></span></p>
+                            <div id="seccion-volumen" class="hidden mt-1 pt-1 border-t border-green-200">
+                                <p class="text-xs text-green-800 font-semibold" id="lbl-cursos-pagados"></p>
+                                <p class="text-xs text-red-600 font-bold mt-0.5" id="lbl-proxima-fecha-pago"></p>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                </div><!-- fin columna izquierda -->
+
+                <!-- COLUMNA DERECHA: Cálculos de pago -->
+                <div id="seccion-calculos" class="hidden flex-1 min-w-0 space-y-3">
+
+                    <!-- Slider cursos -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
+                            <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full text-xs">1</span>
+                        </div>
+                        <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
+                    </div>
+
+                    <div id="info-promo-adicional" class="hidden text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-yellow-800 text-center font-medium"></div>
+
+                    <!-- SECCIÓN LIBROS -->
+                    <div id="libro-container" class="hidden bg-blue-50 p-3 rounded-xl border border-blue-200 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-blue-800">📚 ¡Te toca cambio de libro!</p>
+                                <p id="libro-mensaje" class="text-xs text-blue-700"></p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span id="libro-toggle-label" class="text-xs text-gray-600">Incluir todos</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="libro-toggle" class="sr-only peer" checked>
+                                    <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="lista-libros-detalle" class="space-y-2"></div>
+                    </div>
+
+                    <!-- CARGO POR SERVICIO -->
+                    <div id="servicio-container" class="bg-purple-50 p-3 rounded-xl border border-purple-200 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-purple-800">Cargo por Servicio</p>
+                                <p class="text-xs text-purple-700">Aplicar cargo extra de $90 por curso.</p>
+                                <p id="servicio-status" class="text-[10px] font-bold mt-0.5 uppercase"></p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span id="servicio-toggle-label" class="text-xs text-gray-600">Cobrar</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="servicio-toggle" onchange="actualizarCalculos()" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-purple-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RESUMEN DE PAGO -->
+                    <div class="bg-white p-3 rounded-xl border border-gray-200 space-y-1.5 text-xs text-gray-700 shadow-sm">
+                        <p class="font-bold text-gray-800 uppercase tracking-wider mb-1 text-[10px] text-center bg-gray-100 py-1 rounded">Resumen de Pago</p>
+                        <div class="flex justify-between items-center">
+                            <span>Precio de lista unitario:</span>
+                            <span id="uni-lista" class="font-semibold text-gray-800"></span>
+                        </div>
+                        <div class="flex justify-between items-center text-green-700">
+                            <span class="flex items-center gap-1 font-medium">
+                                Precio por curso:
+                                <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
+                                    <input type="number" id="input-descuento-custom" min="0" max="100" step="1"
+                                           oninput="cambiarDescuentoManual(this.value)"
+                                           class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0"
+                                           title="Ingresa un porcentaje de descuento para simular la cotización">
+                                    <span class="text-[11px] font-bold text-green-800 ml-0.5">%</span>
+                                </span>
+                            </span>
+                            <span id="uni-desc" class="font-bold"></span>
+                        </div>
+                        <div class="space-y-1 text-blue-700 hidden" id="fila-beca">
+                            <div class="flex justify-between items-center">
+                                <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
+                                <span id="uni-beca-sin" class="font-bold"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span id="lbl-uni-beca-con">Precio de beca (con servicio):</span>
+                                <span id="uni-beca-con" class="font-bold"></span>
+                            </div>
+                        </div>
+                        <hr class="my-1 border-gray-100">
+                        <div class="flex justify-between items-center">
+                            <span>Total cursos:</span>
+                            <span id="tot-cur-final" class="font-bold text-gray-800"></span>
+                        </div>
+                        <div class="flex justify-between items-center hidden" id="fila-tot-sin-serv">
+                            <span id="lbl-tot-sin-serv">Total sin servicio:</span>
+                            <span id="tot-sin-serv" class="font-bold text-gray-800"></span>
+                        </div>
+                        <div class="flex justify-between items-center hidden" id="fila-cargo-serv">
+                            <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
+                            <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
+                        </div>
+                        <hr class="my-1 border-gray-100">
+                        <div class="flex justify-between items-center text-base">
+                            <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
+                            <span id="res-descuento-total" class="font-black text-green-950"></span>
+                        </div>
+                        <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
+                    </div>
+
+                    <div id="ahorro-container" class="hidden text-right text-sm font-bold text-red-600">
+                        💰 Ahorro total: <span id="lbl-ahorro">$0.00</span>
+                    </div>
+
+                    <!-- COTIZACION FECHA -->
+                    <div id="cotizacion-fecha-container" class="hidden text-center text-xs font-bold text-blue-700 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        📅 Si pagas esta cotización, tu próxima fecha de pago será:<br>
+                        <span id="lbl-cotizacion-fecha"></span>
+                    </div>
+
+                    <div class="pt-1"></div>
+                </div><!-- fin columna derecha (cálculos) -->
 
             </div><!-- fin dos columnas -->
         </div>
 
-        <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
-                    <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
-                </div>
-                <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
-            </div>
-
-            <div id="info-promo-adicional" class="hidden text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-yellow-800 text-center font-medium"></div>
-
-            <!-- SECCIÓN LIBROS CON CHECKBOXES INDIVIDUALES -->
-            <div id="libro-container" class="hidden bg-blue-50 p-4 rounded-xl border border-blue-200 space-y-3">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-bold text-blue-800">📚 ¡Te toca cambio de libro!</p>
-                        <p id="libro-mensaje" class="text-xs text-blue-700"></p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <span id="libro-toggle-label" class="text-xs text-gray-600">Incluir todos</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="libro-toggle" class="sr-only peer" checked>
-                            <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                        </label>
-                    </div>
-                </div>
-                <div id="lista-libros-detalle" class="space-y-2"></div>
-            </div>
-
-            <!-- CARGO POR SERVICIO -->
-            <div id="servicio-container" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-bold text-purple-800">Cargo por Servicio</p>
-                        <p class="text-xs text-purple-700">Aplicar cargo extra de $90 por curso.</p>
-                        <p id="servicio-status" class="text-[10px] font-bold mt-1 uppercase"></p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <span id="servicio-toggle-label" class="text-xs text-gray-600">Cobrar</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="servicio-toggle" onchange="actualizarCalculos()" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-purple-600 peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NUEVO RESUMEN SIMPLIFICADO -->
-            <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-2 text-xs text-gray-700 shadow-sm">
-                <p class="font-bold text-gray-800 uppercase tracking-wider mb-2 text-[10px] text-center bg-gray-100 py-1 rounded">Resumen de Pago</p>
-                <div class="flex justify-between items-center">
-                    <span>Precio de lista unitario:</span>
-                    <span id="uni-lista" class="font-semibold text-gray-800"></span>
-                </div>
-                <div class="flex justify-between items-center text-green-700">
-                    <span class="flex items-center gap-1 font-medium">
-                        Precio por curso:
-                        <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
-                            <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
-                                   oninput="cambiarDescuentoManual(this.value)" 
-                                   class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
-                                   title="Ingresa un porcentaje de descuento para simular la cotización">
-                            <span class="text-[11px] font-bold text-green-800 ml-0.5">%</span>
-                        </span>
-                    </span>
-                    <span id="uni-desc" class="font-bold"></span>
-                </div>
-                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca">
-                    <div class="flex justify-between items-center">
-                        <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
-                        <span id="uni-beca-sin" class="font-bold"></span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span id="lbl-uni-beca-con">Precio de beca (con servicio):</span>
-                        <span id="uni-beca-con" class="font-bold"></span>
-                    </div>
-                </div>
-                <hr class="my-2 border-gray-100">
-                <div class="flex justify-between items-center">
-                    <span>Total cursos:</span>
-                    <span id="tot-cur-final" class="font-bold text-gray-800"></span>
-                </div>
-                <div class="flex justify-between items-center hidden" id="fila-tot-sin-serv">
-                    <span id="lbl-tot-sin-serv">Total sin servicio:</span>
-                    <span id="tot-sin-serv" class="font-bold text-gray-800"></span>
-                </div>
-                <div class="flex justify-between items-center hidden" id="fila-cargo-serv">
-                    <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
-                    <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
-                </div>
-                <hr class="my-2 border-gray-100">
-                <div class="flex justify-between items-center text-lg">
-                    <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
-                    <span id="res-descuento-total" class="font-black text-green-950"></span>
-                </div>
-                <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
-            </div>
-
-            <div id="ahorro-container" class="hidden text-right text-sm font-bold text-red-600 mt-1">
-                💰 Ahorro total: <span id="lbl-ahorro">$0.00</span>
-            </div>
-            <!-- COTIZACION FECHA -->
-            <div id="cotizacion-fecha-container" class="hidden text-center text-sm font-bold text-blue-700 mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                📅 Si pagas esta cotización, tu próxima fecha de pago será:<br>
-                <span id="lbl-cotizacion-fecha"></span>
-            </div>
-
-            <div class="pt-2">
-            </div>
-        </div>
 
         <div id="error-box" class="hidden mt-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl text-center"></div>
 
