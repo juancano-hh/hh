@@ -18,70 +18,73 @@
             backdrop-filter: blur(6px);
             z-index: 1000;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
-            padding: 24px;
-            overflow-y: auto;
+            padding: 8px;
         }
         .modal-box {
-            width: 100%; max-width: 980px;
-            margin: 20px auto;
-            border-radius: 22px;
+            width: 96%; max-width: 1000px;
+            max-height: 96vh;
+            margin: auto;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+            display: flex;
+            flex-direction: column;
         }
         .modal-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 24px; background: rgba(255,255,255,0.7);
+            padding: 8px 16px; background: rgba(255,255,255,0.7);
             border-bottom: 1px solid rgba(200,210,230,0.4);
+            flex-shrink: 0;
         }
-        .modal-body { padding: 24px; }
+        .modal-body { padding: 6px 12px 10px 12px; overflow: hidden; }
         
         /* Calendario general */
-        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .cal-mes { background: rgba(255,255,255,0.4); border-radius: 14px; padding: 10px; border: 1px solid rgba(200,210,230,0.4); }
-        .cal-mes-tit { text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; }
-        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; color: #555; }
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .cal-mes { background: rgba(255,255,255,0.65); border-radius: 8px; padding: 3px 5px; border: 1px solid rgba(200,210,230,0.6); }
+        .cal-mes-tit { text-align: center; font-size: 0.72rem; font-weight: 800; margin-bottom: 1px; color: #1e293b; }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 0.55rem; font-weight: bold; margin-bottom: 1px; color: #64748b; }
         .cal-wday.dom { color: #e11d48; }
-        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
-        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.75rem; background: rgba(255,255,255,0.3); }
-        .cal-d.otro-mes { opacity: 0.2; }
-        .cal-d.cal-clase { background: rgba(100,180,255,0.4) !important; font-weight: bold; }
-        .cal-d.cal-sab { background: rgba(33,150,243,0.4) !important; font-weight: bold; }
-        .cal-d.cal-inicio { background: rgba(76,200,80,0.6) !important; font-weight: bold; color: #000; }
-        .cal-d.cal-fin { background: rgba(186,104,200,0.6) !important; font-weight: bold; color: #000; }
-        .cal-d.cal-pago { background: rgba(255,180,50,0.4) !important; font-weight: bold; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; }
+        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 3px; font-size: 0.6rem; font-weight: 700; background: rgba(255,255,255,0.4); max-height: 20px; }
+        .cal-d.otro-mes { opacity: 0.15; }
+        .cal-d.cal-clase { background: rgba(100,180,255,0.45) !important; font-weight: bold; color: #1e3a8a; }
+        .cal-d.cal-sab { background: rgba(33,150,243,0.45) !important; font-weight: bold; color: #0c4a6e; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.7) !important; font-weight: 900; color: #000; }
+        .cal-d.cal-fin { background: rgba(186,104,200,0.7) !important; font-weight: 900; color: #000; }
+        .cal-d.cal-pago { background: rgba(255,180,50,0.5) !important; font-weight: 900; color: #7c2d12; }
         
         /* Mini calendario (Wizard) */
         .mini-cal-header {
             background: #4f46e5;
             color: #ffffff;
             text-align: center;
-            padding: 6px 10px;
+            padding: 4px 8px;
             font-weight: 800;
-            font-size: 0.8rem;
-            letter-spacing: 0.05em;
-            border-radius: 8px 8px 0 0;
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            border-radius: 6px 6px 0 0;
             text-transform: uppercase;
         }
         .mini-cal-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-            padding: 6px;
+            gap: 1.5px;
+            padding: 4px;
             background: #ffffff;
             border: 1px solid #e0e7ff;
             border-top: none;
-            border-radius: 0 0 8px 8px;
-            margin-bottom: 6px;
+            border-radius: 0 0 6px 6px;
+            margin-bottom: 4px;
         }
         .mini-cal-day-label {
             text-align: center;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             font-weight: 800;
             color: #4b5563;
-            padding: 2px 0;
+            padding: 1px 0;
         }
         .mini-cal-day-label.viernes {
             color: #ef4444;
@@ -91,11 +94,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            border-radius: 5px;
+            font-size: 0.7rem;
             font-weight: 700;
             border: 1px solid transparent;
-            transition: all 0.15s ease-in-out;
+            transition: all 0.1s ease-in-out;
+            max-height: 26px;
         }
         .mini-cal-cell.empty {
             cursor: default;
@@ -121,7 +125,7 @@
             border-color: #312e81 !important;
             font-weight: 900;
             transform: scale(1.08);
-            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
         }
         .mini-cal-cell.hoy-rec {
             border: 2px solid #6366f1;
@@ -224,11 +228,11 @@
                 <span>📅</span> Solicitar Clase
             </h2>
             
-            <div id="wizard-pasos" class="space-y-2.5 flex-1">
+            <div id="wizard-pasos" class="space-y-2 flex-1">
                 <!-- Correo en tiempo real -->
-                <div class="p-2.5 rounded-2xl bg-purple-50 border border-purple-200" id="w-correo-box">
+                <div class="p-2 rounded-2xl bg-purple-50 border border-purple-200" id="w-correo-box">
                     <div class="flex justify-between items-center">
-                        <span class="font-bold text-xs text-purple-700 uppercase tracking-wider">📧 Correo de confirmación</span>
+                        <span class="font-bold text-[11px] text-purple-700 uppercase tracking-wider">📧 Correo de confirmación</span>
                         <span class="text-[10px] text-purple-500 font-medium">Revisa que esté correcto</span>
                     </div>
                     <p class="text-sm font-bold text-purple-900 mt-0.5 break-all font-mono" id="w-correo-val">No registrado</p>
@@ -247,11 +251,14 @@
                 </div>
                 
                 <!-- Paso 3 (Calendario) -->
-                <div class="p-2.5 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
-                    <h3 class="font-bold text-xs text-gray-700 mb-1.5">3. Días Seleccionados (<span id="w-cant-dias" class="text-purple-600 font-bold">0</span>/<span id="w-max-dias">0</span>)</h3>
+                <div class="p-2 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 hidden" id="w-paso-3">
+                    <div class="flex justify-between items-center mb-1 px-1">
+                        <h3 class="font-bold text-xs text-gray-700">Días a recuperar (<span id="w-cant-dias" class="text-purple-600 font-bold">0</span>/<span id="w-max-dias">0</span>)</h3>
+                        <span class="text-[10px] bg-purple-100 text-purple-800 font-semibold px-2 py-0.5 rounded-full" id="w-tag-resumen-clase"></span>
+                    </div>
                     
                     <div class="bg-white p-1 rounded-xl border border-gray-200 shadow-inner">
-                        <div id="w-calendario-grid" class="space-y-2">
+                        <div id="w-calendario-grid" class="space-y-1">
                             <!-- Se llena dinámicamente con los meses y días limpios -->
                         </div>
                     </div>
@@ -302,14 +309,14 @@
     <!-- MODAL CALENDARIO GLOBAL -->
     <div id="modal-calendario" class="modal-overlay hidden">
         <div class="modal-box fade-in">
-            <div class="modal-header">
+            <div class="modal-header py-2 px-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800" id="cal-g-title">Calendario</h2>
-                    <p class="text-sm text-gray-500" id="cal-g-sub"></p>
+                    <h2 class="text-base font-bold text-gray-800 leading-tight" id="cal-g-title">Calendario</h2>
+                    <p class="text-xs text-gray-500 leading-none mt-0.5" id="cal-g-sub"></p>
                 </div>
             </div>
-            <div class="modal-body">
-                <div id="cal-g-leyenda" class="flex flex-wrap gap-4 mb-4 justify-center text-sm"></div>
+            <div class="modal-body py-1.5 px-3">
+                <div id="cal-g-leyenda" class="flex flex-wrap gap-2 mb-1.5 justify-center text-[11px] text-gray-700"></div>
                 <div id="cal-g-grid" class="cal-grid"></div>
             </div>
         </div>
@@ -480,22 +487,40 @@
                     document.getElementById('w-paso-2').style.opacity = w.horarioText ? '1' : '0.5';
                     document.getElementById('w-horario').innerText = w.horarioText || 'Esperando selección...';
                     
-                    // Paso 3: Calendario (paso 2 del wizard en colab)
-                    if (w.paso === 3) {
-                        // En paso 3 (resumen) ocultamos el calendario para que quepa todo el resumen sin scroll
+                    const tagClase = document.getElementById('w-tag-resumen-clase');
+                    if (tagClase) {
+                        const t1 = w.tipoText ? w.tipoText.split('(')[0].trim() : '';
+                        const t2 = w.horarioText ? w.horarioText.split('—')[0].trim() : '';
+                        tagClase.innerText = (t1 && t2) ? `${t1} • ${t2}` : (t1 || t2);
+                    }
+
+                    if (w.paso === 1) {
+                        // Paso 1: Mostrar tipo y horario, ocultar calendario y resumen
+                        document.getElementById('w-paso-1').classList.remove('hidden');
+                        document.getElementById('w-paso-2').classList.remove('hidden');
                         document.getElementById('w-paso-3').classList.add('hidden');
-                        document.getElementById('w-resumen').classList.remove('hidden');
-                        if (w.resumenHtml) {
-                            document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
-                        }
-                    } else {
-                        document.getElementById('w-paso-3').classList.remove('hidden');
-                        document.getElementById('w-paso-3').style.opacity = (w.paso >= 2) ? '1' : '0.5';
                         document.getElementById('w-resumen').classList.add('hidden');
+                    } else if (w.paso === 2) {
+                        // Paso 2 (Calendario): Quitar Tipo y Horario para que el calendario tenga todo el espacio sin scroll!
+                        document.getElementById('w-paso-1').classList.add('hidden');
+                        document.getElementById('w-paso-2').classList.add('hidden');
+                        document.getElementById('w-paso-3').classList.remove('hidden');
+                        document.getElementById('w-paso-3').style.opacity = '1';
+                        document.getElementById('w-resumen').classList.add('hidden');
+                        
                         document.getElementById('w-cant-dias').innerText = w.cantDias || '0';
                         document.getElementById('w-max-dias').innerText = w.maxDias || '0';
                         if (w.calHtml) {
                             document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
+                        }
+                    } else if (w.paso >= 3) {
+                        // Paso 3 (Resumen): Quitar Tipo, Horario y Calendario, mostrar el Resumen
+                        document.getElementById('w-paso-1').classList.add('hidden');
+                        document.getElementById('w-paso-2').classList.add('hidden');
+                        document.getElementById('w-paso-3').classList.add('hidden');
+                        document.getElementById('w-resumen').classList.remove('hidden');
+                        if (w.resumenHtml) {
+                            document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
                         }
                     }
                     break;
