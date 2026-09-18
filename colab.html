@@ -7,6 +7,47 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
+        /* ===== DATOS COPIABLES ===== */
+        .dato-copiable {
+            cursor: pointer;
+            position: relative;
+            border-radius: 4px;
+            padding: 1px 4px;
+            transition: background 0.15s, color 0.15s;
+        }
+        .dato-copiable:hover {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .dato-copiable::after {
+            content: '📋';
+            font-size: 0.65em;
+            margin-left: 4px;
+            opacity: 0;
+            transition: opacity 0.15s;
+            vertical-align: middle;
+        }
+        .dato-copiable:hover::after {
+            opacity: 0.6;
+        }
+        .tooltip-copiado {
+            position: fixed;
+            background: #1e293b;
+            color: #fff;
+            font-size: 0.72rem;
+            padding: 5px 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 99999;
+            white-space: nowrap;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            transform: translateY(-130%);
+            animation: fadeInTooltip 0.15s ease;
+        }
+        @keyframes fadeInTooltip {
+            from { opacity: 0; transform: translateY(-110%); }
+            to   { opacity: 1; transform: translateY(-130%); }
+        }
         /* ===== MODAL CALENDARIO ===== */
         .modal-overlay {
             position: fixed; inset: 0;
@@ -567,16 +608,16 @@
                 ← Cambiar opción
             </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
-            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
-            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900"></span></p>
+            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+            <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
             <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
             <p class="text-sm text-gray-700">
-                <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2"></span>
+                <strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 break-all mr-2 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span>
                 <button id="btn-whatsapp-alumno" onclick="abrirWhatsAppAlumno()" class="hidden inline-flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-2 rounded-lg transition duration-200 shadow-sm text-xs align-middle">
                     💬 WhatsApp
                 </button>
             </p>
-            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all"></span></p>
+            <p class="text-sm text-gray-700"><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 break-all dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
             <p class="text-sm text-gray-700"><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-semibold"></span></p>
             <p class="text-sm text-gray-700"><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
             <p class="text-sm text-gray-700"><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
@@ -1772,6 +1813,31 @@
     </div>
 
     <script>
+        // ===== FUNCIÓN COPIAR DATO AL PORTAPAPELES =====
+        function copiarDato(el) {
+            const texto = el.innerText.trim();
+            if (!texto) return;
+            navigator.clipboard.writeText(texto).then(() => {
+                // Mostrar tooltip de confirmación
+                const tt = document.createElement('div');
+                tt.className = 'tooltip-copiado';
+                tt.textContent = '✅ ¡Copiado!';
+                document.body.appendChild(tt);
+                const rect = el.getBoundingClientRect();
+                tt.style.left = (rect.left + rect.width / 2 - tt.offsetWidth / 2) + 'px';
+                tt.style.top  = (rect.top + window.scrollY) + 'px';
+                setTimeout(() => tt.remove(), 1500);
+            }).catch(() => {
+                // Fallback para navegadores que no soportan clipboard API
+                const sel = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand('copy');
+                sel.removeAllRanges();
+            });
+        }
         // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
         const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
