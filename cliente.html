@@ -54,15 +54,78 @@
         .cal-d.cal-pago { background: rgba(255,180,50,0.4) !important; font-weight: bold; }
         
         /* Mini calendario (Wizard) */
-        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .mini-cal-cell {
-            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            border-radius: 8px; font-size: 1rem; font-weight: 600;
-            background: #f3f4f6; color: #374151;
+        .mini-cal-header {
+            background: #4f46e5;
+            color: #ffffff;
+            text-align: center;
+            padding: 6px 10px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            border-radius: 8px 8px 0 0;
+            text-transform: uppercase;
         }
-        .mini-cal-cell.fuera { background: transparent; color: transparent; }
-        .mini-cal-cell.seleccionado { background: #6366f1; color: #fff; transform: scale(1.05); transition: all 0.2s; box-shadow: 0 4px 10px rgba(99,102,241,0.4); }
-        .mini-cal-day-label { text-align: center; font-size: 0.8rem; font-weight: bold; color: #6b7280; padding: 4px 0; }
+        .mini-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            padding: 6px;
+            background: #ffffff;
+            border: 1px solid #e0e7ff;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 6px;
+        }
+        .mini-cal-day-label {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 800;
+            color: #4b5563;
+            padding: 2px 0;
+        }
+        .mini-cal-day-label.viernes {
+            color: #ef4444;
+        }
+        .mini-cal-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.15s ease-in-out;
+        }
+        .mini-cal-cell.empty {
+            cursor: default;
+            background: transparent;
+        }
+        .mini-cal-cell.fuera {
+            color: #94a3b8;
+            background: #f8fafc;
+        }
+        .mini-cal-cell.viernes {
+            color: #f87171;
+            background: #fef2f2;
+        }
+        .mini-cal-cell.disponible {
+            color: #1e1b4b;
+            background: #eef2ff;
+            border-color: #c7d2fe;
+            font-weight: 800;
+        }
+        .mini-cal-cell.seleccionado {
+            background: #4f46e5 !important;
+            color: #ffffff !important;
+            border-color: #312e81 !important;
+            font-weight: 900;
+            transform: scale(1.08);
+            box-shadow: 0 3px 8px rgba(79, 70, 229, 0.4);
+        }
+        .mini-cal-cell.hoy-rec {
+            border: 2px solid #6366f1;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
@@ -161,40 +224,65 @@
                 <span>📅</span> Solicitar Clase
             </h2>
             
-            <div id="wizard-pasos" class="space-y-3 flex-1">
+            <div id="wizard-pasos" class="space-y-2.5 flex-1">
+                <!-- Correo en tiempo real -->
+                <div class="p-2.5 rounded-2xl bg-purple-50 border border-purple-200" id="w-correo-box">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-purple-700 uppercase tracking-wider">📧 Correo de confirmación</span>
+                        <span class="text-[10px] text-purple-500 font-medium">Revisa que esté correcto</span>
+                    </div>
+                    <p class="text-sm font-bold text-purple-900 mt-0.5 break-all font-mono" id="w-correo-val">No registrado</p>
+                </div>
+
                 <!-- Paso 1 -->
-                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300" id="w-paso-1">
-                    <h3 class="font-bold text-sm text-gray-700">1. Tipo de Clase</h3>
-                    <p class="text-base font-semibold text-purple-600 mt-1" id="w-tipo-clase">Esperando selección...</p>
+                <div class="p-2.5 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300" id="w-paso-1">
+                    <h3 class="font-bold text-xs text-gray-700">1. Tipo de Clase</h3>
+                    <p class="text-sm font-semibold text-purple-600 mt-0.5" id="w-tipo-clase">Esperando selección...</p>
                 </div>
                 
                 <!-- Paso 2 -->
-                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-2">
-                    <h3 class="font-bold text-sm text-gray-700">2. Horario</h3>
-                    <p class="text-base font-semibold text-purple-600 mt-1" id="w-horario">Esperando selección...</p>
+                <div class="p-2.5 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-2">
+                    <h3 class="font-bold text-xs text-gray-700">2. Horario</h3>
+                    <p class="text-sm font-semibold text-purple-600 mt-0.5" id="w-horario">Esperando selección...</p>
                 </div>
                 
                 <!-- Paso 3 (Calendario) -->
-                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
-                    <h3 class="font-bold text-sm text-gray-700 mb-2">3. Días Seleccionados (<span id="w-cant-dias">0</span>/<span id="w-max-dias">0</span>)</h3>
+                <div class="p-2.5 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
+                    <h3 class="font-bold text-xs text-gray-700 mb-1.5">3. Días Seleccionados (<span id="w-cant-dias" class="text-purple-600 font-bold">0</span>/<span id="w-max-dias">0</span>)</h3>
                     
-                    <div class="bg-white p-2 rounded-xl border border-gray-200 shadow-inner">
-                        <div class="mini-cal-grid mb-1">
-                            <div class="mini-cal-day-label">L</div><div class="mini-cal-day-label">M</div>
-                            <div class="mini-cal-day-label">M</div><div class="mini-cal-day-label">J</div>
-                            <div class="mini-cal-day-label">V</div><div class="mini-cal-day-label">S</div>
-                            <div class="mini-cal-day-label">D</div>
-                        </div>
-                        <div id="w-calendario-grid" class="mini-cal-grid">
-                            <!-- Se llena dinámicamente -->
+                    <div class="bg-white p-1 rounded-xl border border-gray-200 shadow-inner">
+                        <div id="w-calendario-grid" class="space-y-2">
+                            <!-- Se llena dinámicamente con los meses y días limpios -->
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div id="w-resumen" class="mt-3 bg-purple-50 p-4 rounded-2xl border border-purple-200 hidden">
-                <h3 class="font-bold text-sm text-purple-800 mb-1">Resumen Final</h3>
-                <div id="w-resumen-content" class="text-xs text-gray-700 space-y-1"></div>
+            <!-- RESUMEN FINAL (PASO 3) -->
+            <div id="w-resumen" class="mt-2.5 bg-gradient-to-br from-purple-50 to-indigo-50 p-4 rounded-2xl border-2 border-purple-300 hidden fade-in shadow-sm">
+                <h3 class="font-bold text-sm text-purple-900 mb-2 border-b border-purple-200 pb-1 flex items-center gap-1.5">
+                    <span>📋</span> Resumen de Solicitud
+                </h3>
+                <div id="w-resumen-content" class="text-xs text-gray-800 space-y-1.5 font-medium"></div>
+            </div>
+
+            <!-- ENVIANDO Y ÉXITO -->
+            <div id="w-enviando" class="mt-2.5 bg-blue-50 p-5 rounded-2xl border border-blue-200 text-center hidden">
+                <div class="inline-block animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-600 mb-1.5"></div>
+                <h3 class="font-bold text-sm text-indigo-900">Enviando solicitud...</h3>
+                <p class="text-[11px] text-gray-500">Por favor espera un momento.</p>
+            </div>
+
+            <div id="w-completado" class="mt-2.5 bg-green-50 p-5 rounded-2xl border-2 border-green-300 text-center hidden fade-in shadow-sm">
+                <div class="text-3xl mb-1">✅</div>
+                <h3 class="font-black text-base text-green-900 uppercase tracking-wide">¡Solicitud Completada con Éxito!</h3>
+                <p class="text-xs text-green-700 mt-0.5 font-medium">Tu clase de recuperación ha sido registrada.</p>
+                <div id="w-completado-link" class="hidden mt-2.5 pt-2 border-t border-green-200">
+                    <p class="text-xs text-gray-600 mb-1">Enlace para tu clase en línea:</p>
+                    <a id="w-completado-link-btn" href="#" target="_blank" class="inline-flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-3 rounded-xl text-xs transition duration-200 shadow">
+                        <span>🔗</span> Unirse a la clase
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -372,8 +460,18 @@
                     document.getElementById('seccion-wizard').classList.remove('hidden');
                     document.getElementById('seccion-periodos').classList.add('hidden');
                     
+                    // Resetear posibles pantallas de envio/éxito si el asesor vuelve a interactuar
+                    document.getElementById('w-enviando').classList.add('hidden');
+                    document.getElementById('w-completado').classList.add('hidden');
+                    document.getElementById('wizard-pasos').classList.remove('hidden');
+                    
                     const w = msg.payload;
                     
+                    // Correo en tiempo real
+                    if (w.correo !== undefined) {
+                        document.getElementById('w-correo-val').innerText = w.correo || '(Escribe tu correo...)';
+                    }
+
                     // Paso 1: Tipo de clase
                     document.getElementById('w-paso-1').style.opacity = w.tipoText ? '1' : '0.8';
                     document.getElementById('w-tipo-clase').innerText = w.tipoText || 'Esperando selección...';
@@ -383,21 +481,47 @@
                     document.getElementById('w-horario').innerText = w.horarioText || 'Esperando selección...';
                     
                     // Paso 3: Calendario (paso 2 del wizard en colab)
-                    document.getElementById('w-paso-3').style.opacity = (w.paso >= 2) ? '1' : '0.5';
-                    document.getElementById('w-cant-dias').innerText = w.cantDias || '0';
-                    document.getElementById('w-max-dias').innerText = w.maxDias || '0';
-                    if (w.calHtml) {
-                        document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
-                    }
-                    
-                    // Resumen (paso 3 del wizard en colab)
-                    if (w.paso >= 3) {
+                    if (w.paso === 3) {
+                        // En paso 3 (resumen) ocultamos el calendario para que quepa todo el resumen sin scroll
+                        document.getElementById('w-paso-3').classList.add('hidden');
                         document.getElementById('w-resumen').classList.remove('hidden');
                         if (w.resumenHtml) {
                             document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
                         }
                     } else {
+                        document.getElementById('w-paso-3').classList.remove('hidden');
+                        document.getElementById('w-paso-3').style.opacity = (w.paso >= 2) ? '1' : '0.5';
                         document.getElementById('w-resumen').classList.add('hidden');
+                        document.getElementById('w-cant-dias').innerText = w.cantDias || '0';
+                        document.getElementById('w-max-dias').innerText = w.maxDias || '0';
+                        if (w.calHtml) {
+                            document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
+                        }
+                    }
+                    break;
+                    
+                case 'WIZARD_STATUS':
+                    const st = msg.payload;
+                    if (st.status === 'ENVIANDO') {
+                        document.getElementById('wizard-pasos').classList.add('hidden');
+                        document.getElementById('w-resumen').classList.add('hidden');
+                        document.getElementById('w-enviando').classList.remove('hidden');
+                        document.getElementById('w-completado').classList.add('hidden');
+                    } else if (st.status === 'EXITO') {
+                        document.getElementById('wizard-pasos').classList.add('hidden');
+                        document.getElementById('w-resumen').classList.add('hidden');
+                        document.getElementById('w-enviando').classList.add('hidden');
+                        document.getElementById('w-completado').classList.remove('hidden');
+                        
+                        if (st.link) {
+                            document.getElementById('w-completado-link-btn').href = st.link;
+                            document.getElementById('w-completado-link').classList.remove('hidden');
+                        } else {
+                            document.getElementById('w-completado-link').classList.add('hidden');
+                        }
+                    } else if (st.status === 'ERROR') {
+                        document.getElementById('w-enviando').classList.add('hidden');
+                        document.getElementById('w-resumen').classList.remove('hidden');
                     }
                     break;
             }
