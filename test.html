@@ -815,7 +815,7 @@
                 <div id="rec-paso-1" class="space-y-4 transition-all">
                     <div class="mb-3">
                         <label class="rec-label">Correo electrónico</label>
-                        <input type="email" id="rec-correo" class="rec-input" placeholder="tu@correo.com">
+                        <input type="email" id="rec-correo" class="rec-input" placeholder="tu@correo.com" oninput="syncWizardToClient()">
                     </div>
 
                     <div class="mb-3">
@@ -3819,12 +3819,15 @@
             const tipoSel = document.getElementById('rec-tipo');
             const horarioSel = document.getElementById('rec-horario');
             const maxDiasEl = document.getElementById('rec-cant-dias');
+            const correoEl = document.getElementById('rec-correo');
             
             let tipoText = tipoSel && tipoSel.selectedIndex > 0 ? tipoSel.options[tipoSel.selectedIndex].text : '';
             let horarioText = horarioSel && horarioSel.selectedIndex > 0 ? horarioSel.options[horarioSel.selectedIndex].text : '';
+            let correoVal = correoEl ? correoEl.value : '';
             
             sendClientMsg('WIZARD_UPDATE', {
                 paso: pasoActual,
+                correo: correoVal,
                 tipoText: tipoText,
                 horarioText: horarioText,
                 cantDias: typeof diasSeleccionadosRec !== 'undefined' ? diasSeleccionadosRec.size : 0,
@@ -4516,6 +4519,7 @@
 
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
+            sendClientMsg('WIZARD_STATUS', { status: 'ENVIANDO' });
             try {
                 if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') throw new Error('URL no configurada.');
                 await fetch(APPS_SCRIPT_URL, {
@@ -4537,12 +4541,13 @@
                     recLinkContainer.classList.add('hidden');
                 }
 
-
+                sendClientMsg('WIZARD_STATUS', { status: 'EXITO', link: linkClase });
             } catch (err) {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar Solicitud';
                 errorDiv.innerText = 'Error al enviar: ' + err.message;
                 errorDiv.classList.remove('hidden');
+                sendClientMsg('WIZARD_STATUS', { status: 'ERROR', message: err.message });
             }
         }
         // ==================== IMPRESION ====================
