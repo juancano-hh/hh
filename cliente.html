@@ -82,6 +82,8 @@
             <div class="space-y-2 text-base">
                 <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
                 <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
+                <p><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900"></span></p>
+                <p><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900"></span></p>
                 <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
                 <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
                 <p><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-bold"></span></p>
@@ -250,6 +252,8 @@
                     const d = msg.payload;
                     document.getElementById('lbl-nombre').innerText = d.nombre;
                     document.getElementById('lbl-id').innerText = d.id;
+                    document.getElementById('lbl-celular').innerText = d.celular || 'N/A';
+                    document.getElementById('lbl-correo').innerText = d.correo || 'N/A';
                     document.getElementById('lbl-programa').innerText = d.programa;
                     document.getElementById('lbl-modalidad').innerText = d.modalidad;
                     document.getElementById('lbl-curso').innerText = d.curso;
