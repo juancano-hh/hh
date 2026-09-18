@@ -65,7 +65,7 @@
         .mini-cal-day-label { text-align: center; font-size: 0.8rem; font-weight: bold; color: #6b7280; padding: 4px 0; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8 font-sans">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 font-sans">
     
     <!-- ESPERA -->
     <div id="pantalla-espera" class="text-center fade-in">
@@ -74,12 +74,12 @@
     </div>
 
     <!-- MAIN VIEW -->
-    <div id="pantalla-info" class="hidden w-full max-w-5xl fade-in grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div id="pantalla-info" class="hidden w-full max-w-6xl fade-in grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <!-- COLUMNA IZQ: INFO ALUMNO -->
-        <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-5 uppercase tracking-wider text-gray-500">Tus Datos</h2>
-            <div class="space-y-4 text-lg">
+        <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3 uppercase tracking-wider text-gray-500">Tus Datos</h2>
+            <div class="space-y-2 text-base">
                 <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
                 <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
                 <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
@@ -92,47 +92,61 @@
                 <p><strong>Beca Base:</strong> <span id="lbl-beca" class="text-green-600 font-bold"></span></p>
             </div>
             
-            <div id="seccion-periodos" class="mt-8 pt-6 border-t border-gray-200 hidden space-y-4">
-                <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-                    <p class="text-sm font-bold text-blue-700 uppercase mb-2">📚 Curso actual</p>
-                    <p class="text-gray-700">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-900"></span></p>
-                    <p class="text-gray-700">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-900"></span></p>
+            <div id="seccion-periodos" class="mt-4 pt-4 border-t border-gray-200 hidden space-y-3">
+                <div class="bg-blue-50 rounded-2xl p-3 border border-blue-100">
+                    <p class="text-xs font-bold text-blue-700 uppercase mb-1">📚 Curso actual</p>
+                    <p class="text-gray-700 text-sm">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-900"></span></p>
+                    <p class="text-gray-700 text-sm">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-900"></span></p>
                 </div>
-                <div class="bg-green-50 rounded-2xl p-4 border border-green-100">
-                    <p class="text-sm font-bold text-green-700 uppercase mb-2">🎯 Próximo curso</p>
-                    <p class="text-gray-700">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-900"></span></p>
-                    <p class="text-gray-700">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-900"></span></p>
+                <div class="bg-green-50 rounded-2xl p-3 border border-green-100">
+                    <p class="text-xs font-bold text-green-700 uppercase mb-1">🎯 Próximo curso</p>
+                    <p class="text-gray-700 text-sm">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-900"></span></p>
+                    <p class="text-gray-700 text-sm">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-900"></span></p>
                 </div>
             </div>
         </div>
 
         <!-- COLUMNA DER: RESUMEN DE PAGOS -->
-        <div id="seccion-pagos" class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
-            <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6 text-center">Resumen de Pago</h2>
+        <div id="seccion-pagos" class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
+            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-4 text-center">Resumen de Pago</h2>
             
-            <div class="space-y-6">
-                <div class="flex justify-between items-center text-xl bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <div id="tabla-resumen-pago" class="mb-4">
+                <table class="w-full text-left text-sm border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100 border-b border-gray-300">
+                            <th class="p-2 font-bold text-gray-800 border-r border-gray-300">Descripción</th>
+                            <th class="p-2 font-bold text-gray-800 text-right w-1/3">Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-resumen-body">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex justify-between items-center text-lg bg-gray-50 p-3 rounded-2xl border border-gray-100">
                     <span class="font-semibold text-gray-700">Precio por curso:</span>
                     <span id="lbl-precio-curso" class="font-mono font-bold text-gray-900"></span>
                 </div>
                 
-                <div class="flex justify-between items-center text-xl p-2">
+                <div class="flex justify-between items-center text-lg p-2 hidden">
                     <span class="font-semibold text-gray-700">Total cursos (<span id="lbl-cant-cursos">1</span>):</span>
                     <span id="lbl-total-cursos" class="font-mono font-bold text-gray-900"></span>
                 </div>
                 
-                <div id="fila-libros" class="flex justify-between items-center text-xl p-2 hidden">
+                <div id="fila-libros" class="flex justify-between items-center text-lg p-2 hidden">
                     <span class="font-semibold text-indigo-700">Total libros (<span id="lbl-cant-libros">0</span>):</span>
                     <span id="lbl-total-libros" class="font-mono font-bold text-indigo-900"></span>
                 </div>
                 
-                <div class="flex justify-between items-center text-3xl bg-green-50 p-6 rounded-2xl mt-4 border border-green-200 shadow-sm">
-                    <span class="font-black text-green-900 uppercase">Total:</span>
-                    <span id="lbl-gran-total" class="font-mono font-black text-green-700"></span>
+                <div class="flex justify-between items-center text-2xl bg-green-50 p-4 rounded-2xl mt-2 border border-green-200 shadow-sm flex-row-reverse">
+                    <span id="lbl-gran-total" class="font-mono font-black text-green-700 ml-4"></span>
+                    <span class="font-black text-green-900 uppercase text-lg border border-gray-800 px-3 py-1 bg-white rounded">Total:</span>
                 </div>
                 
-                <div id="ahorro-container" class="mt-6 text-center hidden">
-                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg font-bold px-6 py-2 rounded-full shadow-sm">
+                <div id="ahorro-container" class="mt-4 text-center hidden">
+                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-base font-bold px-4 py-1.5 rounded-full shadow-sm">
                         💰 Ahorras: <span id="lbl-ahorro"></span>
                     </span>
                 </div>
@@ -272,6 +286,30 @@
                     document.getElementById('lbl-precio-curso').innerText = p.precioCurso;
                     document.getElementById('lbl-cant-cursos').innerText = p.cantCursos;
                     document.getElementById('lbl-total-cursos').innerText = p.totalCursos;
+
+                    // Llenar tabla resumen
+                    const tbody = document.getElementById('tabla-resumen-body');
+                    let htmlTable = '';
+                    // Fila de cursos
+                    let etiqueta = p.etiquetaPromo ? ` (Dto. ${p.etiquetaPromo})` : '';
+                    htmlTable += `
+                        <tr class="border-b border-gray-200">
+                            <td class="p-2">Pago por ${p.cantCursos} curso(s)${etiqueta}</td>
+                            <td class="p-2 text-right font-semibold">${p.totalCursos}</td>
+                        </tr>
+                    `;
+                    // Filas de libros
+                    if (p.libros && p.libros.length > 0) {
+                        p.libros.forEach(libro => {
+                            htmlTable += `
+                                <tr class="border-b border-gray-200">
+                                    <td class="p-2">Libro: ${libro.nombre}</td>
+                                    <td class="p-2 text-right font-semibold">${libro.precio}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    tbody.innerHTML = htmlTable;
                     
                     if (p.cantLibros > 0) {
                         document.getElementById('fila-libros').classList.remove('hidden');
