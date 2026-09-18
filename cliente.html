@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Animaciones y estilos base */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        
+        /* Modal estilos */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        .modal-box {
+            width: 100%; max-width: 980px;
+            margin: 20px auto;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 24px; background: rgba(255,255,255,0.7);
+            border-bottom: 1px solid rgba(200,210,230,0.4);
+        }
+        .modal-body { padding: 24px; }
+        
+        /* Calendario general */
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .cal-mes { background: rgba(255,255,255,0.4); border-radius: 14px; padding: 10px; border: 1px solid rgba(200,210,230,0.4); }
+        .cal-mes-tit { text-align: center; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 0.7rem; font-weight: bold; margin-bottom: 4px; color: #555; }
+        .cal-wday.dom { color: #e11d48; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.75rem; background: rgba(255,255,255,0.3); }
+        .cal-d.otro-mes { opacity: 0.2; }
+        .cal-d.cal-clase { background: rgba(100,180,255,0.4) !important; font-weight: bold; }
+        .cal-d.cal-sab { background: rgba(33,150,243,0.4) !important; font-weight: bold; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.6) !important; font-weight: bold; color: #000; }
+        .cal-d.cal-fin { background: rgba(186,104,200,0.6) !important; font-weight: bold; color: #000; }
+        .cal-d.cal-pago { background: rgba(255,180,50,0.4) !important; font-weight: bold; }
+        
+        /* Mini calendario (Wizard) */
+        .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .mini-cal-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; font-size: 1rem; font-weight: 600;
+            background: #f3f4f6; color: #374151;
+        }
+        .mini-cal-cell.fuera { background: transparent; color: transparent; }
+        .mini-cal-cell.seleccionado { background: #6366f1; color: #fff; transform: scale(1.05); transition: all 0.2s; box-shadow: 0 4px 10px rgba(99,102,241,0.4); }
+        .mini-cal-day-label { text-align: center; font-size: 0.8rem; font-weight: bold; color: #6b7280; padding: 4px 0; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-8 font-sans">
+    
+    <!-- ESPERA -->
+    <div id="pantalla-espera" class="text-center fade-in">
+        <h1 class="text-4xl font-black text-gray-300 mb-4 tracking-wider uppercase">Bienvenido</h1>
+        <p class="text-gray-400">Esperando información de tu asesor...</p>
+    </div>
+
+    <!-- MAIN VIEW -->
+    <div id="pantalla-info" class="hidden w-full max-w-5xl fade-in grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- COLUMNA IZQ: INFO ALUMNO -->
+        <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-5 uppercase tracking-wider text-gray-500">Tus Datos</h2>
+            <div class="space-y-4 text-lg">
+                <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
+                <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
+                <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
+                <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+                <p><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-bold"></span></p>
+                <p id="cont-horario" class="hidden"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+                <p id="cont-salon" class="hidden"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
+                <p id="cont-teacher" class="hidden"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
+                <p id="cont-libro" class="hidden"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold"></span></p>
+                <p><strong>Beca Base:</strong> <span id="lbl-beca" class="text-green-600 font-bold"></span></p>
+            </div>
+            
+            <div id="seccion-periodos" class="mt-8 pt-6 border-t border-gray-200 hidden space-y-4">
+                <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+                    <p class="text-sm font-bold text-blue-700 uppercase mb-2">📚 Curso actual</p>
+                    <p class="text-gray-700">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-900"></span></p>
+                    <p class="text-gray-700">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-900"></span></p>
+                </div>
+                <div class="bg-green-50 rounded-2xl p-4 border border-green-100">
+                    <p class="text-sm font-bold text-green-700 uppercase mb-2">🎯 Próximo curso</p>
+                    <p class="text-gray-700">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-900"></span></p>
+                    <p class="text-gray-700">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-900"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DER: RESUMEN DE PAGOS -->
+        <div id="seccion-pagos" class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-3 mb-6 text-center">Resumen de Pago</h2>
+            
+            <div class="space-y-6">
+                <div class="flex justify-between items-center text-xl bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <span class="font-semibold text-gray-700">Precio por curso:</span>
+                    <span id="lbl-precio-curso" class="font-mono font-bold text-gray-900"></span>
+                </div>
+                
+                <div class="flex justify-between items-center text-xl p-2">
+                    <span class="font-semibold text-gray-700">Total cursos (<span id="lbl-cant-cursos">1</span>):</span>
+                    <span id="lbl-total-cursos" class="font-mono font-bold text-gray-900"></span>
+                </div>
+                
+                <div id="fila-libros" class="flex justify-between items-center text-xl p-2 hidden">
+                    <span class="font-semibold text-indigo-700">Total libros (<span id="lbl-cant-libros">0</span>):</span>
+                    <span id="lbl-total-libros" class="font-mono font-bold text-indigo-900"></span>
+                </div>
+                
+                <div class="flex justify-between items-center text-3xl bg-green-50 p-6 rounded-2xl mt-4 border border-green-200 shadow-sm">
+                    <span class="font-black text-green-900 uppercase">Total:</span>
+                    <span id="lbl-gran-total" class="font-mono font-black text-green-700"></span>
+                </div>
+                
+                <div id="ahorro-container" class="mt-6 text-center hidden">
+                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg font-bold px-6 py-2 rounded-full shadow-sm">
+                        💰 Ahorras: <span id="lbl-ahorro"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- COLUMNA DER: WIZARD DE CLASE -->
+        <div id="seccion-wizard" class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 hidden flex flex-col">
+            <h2 class="text-2xl font-bold text-purple-700 border-b border-purple-100 pb-3 mb-6 flex items-center gap-2">
+                <span>📅</span> Solicitar Clase
+            </h2>
+            
+            <div id="wizard-pasos" class="space-y-6 flex-1">
+                <!-- Paso 1 -->
+                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300" id="w-paso-1">
+                    <h3 class="font-bold text-gray-700">1. Tipo de Clase</h3>
+                    <p class="text-xl font-medium text-purple-600 mt-2" id="w-tipo-clase">Esperando selección...</p>
+                </div>
+                
+                <!-- Paso 2 -->
+                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-2">
+                    <h3 class="font-bold text-gray-700">2. Horario</h3>
+                    <p class="text-xl font-medium text-purple-600 mt-2" id="w-horario">Esperando selección...</p>
+                </div>
+                
+                <!-- Paso 3 (Calendario) -->
+                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
+                    <h3 class="font-bold text-gray-700 mb-3">3. Días Seleccionados (<span id="w-cant-dias">0</span>/<span id="w-max-dias">0</span>)</h3>
+                    
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-inner">
+                        <div class="mini-cal-grid mb-2">
+                            <div class="mini-cal-day-label">L</div><div class="mini-cal-day-label">M</div>
+                            <div class="mini-cal-day-label">M</div><div class="mini-cal-day-label">J</div>
+                            <div class="mini-cal-day-label">V</div><div class="mini-cal-day-label">S</div>
+                            <div class="mini-cal-day-label">D</div>
+                        </div>
+                        <div id="w-calendario-grid" class="mini-cal-grid">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="w-resumen" class="mt-6 bg-purple-50 p-6 rounded-2xl border border-purple-200 hidden">
+                <h3 class="font-bold text-purple-800 mb-2">Resumen Final</h3>
+                <p class="text-gray-700">Revisa que los días en el calendario sean correctos. Tu asesor enviará la solicitud.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MATERIALES -->
+    <div id="modal-materiales" class="modal-overlay hidden">
+        <div class="modal-box max-w-4xl bg-white fade-in">
+            <div class="modal-header bg-indigo-50">
+                <h2 class="text-2xl font-bold text-indigo-900">📚 Consulta de Materiales</h2>
+            </div>
+            <div class="modal-body" id="modal-materiales-content">
+                <!-- Se llena desde Broadcast -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CALENDARIO GLOBAL -->
+    <div id="modal-calendario" class="modal-overlay hidden">
+        <div class="modal-box fade-in">
+            <div class="modal-header">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800" id="cal-g-title">Calendario</h2>
+                    <p class="text-sm text-gray-500" id="cal-g-sub"></p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="cal-g-leyenda" class="flex flex-wrap gap-4 mb-4 justify-center text-sm"></div>
+                <div id="cal-g-grid" class="cal-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bc = new BroadcastChannel('client-sync');
+        
+        bc.onmessage = (event) => {
+            const msg = event.data;
+            if (!msg || !msg.type) return;
+            
+            switch (msg.type) {
+                case 'RESET':
+                    document.getElementById('pantalla-espera').classList.remove('hidden');
+                    document.getElementById('pantalla-info').classList.add('hidden');
+                    document.getElementById('seccion-pagos').classList.add('hidden');
+                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    document.getElementById('modal-materiales').classList.add('hidden');
+                    document.getElementById('modal-calendario').classList.add('hidden');
+                    break;
+                    
+                case 'STUDENT_DATA':
+                    document.getElementById('pantalla-espera').classList.add('hidden');
+                    document.getElementById('pantalla-info').classList.remove('hidden');
+                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    
+                    const d = msg.payload;
+                    document.getElementById('lbl-nombre').innerText = d.nombre;
+                    document.getElementById('lbl-id').innerText = d.id;
+                    document.getElementById('lbl-programa').innerText = d.programa;
+                    document.getElementById('lbl-modalidad').innerText = d.modalidad;
+                    document.getElementById('lbl-curso').innerText = d.curso;
+                    document.getElementById('lbl-beca').innerText = d.beca;
+                    
+                    if (d.horario) { document.getElementById('lbl-horario').innerText = d.horario; document.getElementById('cont-horario').classList.remove('hidden'); }
+                    else document.getElementById('cont-horario').classList.add('hidden');
+                    
+                    if (d.salon) { document.getElementById('lbl-salon').innerText = d.salon; document.getElementById('cont-salon').classList.remove('hidden'); }
+                    else document.getElementById('cont-salon').classList.add('hidden');
+                    
+                    if (d.teacher) { document.getElementById('lbl-teacher').innerText = d.teacher; document.getElementById('cont-teacher').classList.remove('hidden'); }
+                    else document.getElementById('cont-teacher').classList.add('hidden');
+                    
+                    if (d.libro) { document.getElementById('lbl-libro').innerText = d.libro; document.getElementById('cont-libro').classList.remove('hidden'); }
+                    else document.getElementById('cont-libro').classList.add('hidden');
+                    
+                    if (d.periodoActual || d.periodoSiguiente) {
+                        document.getElementById('seccion-periodos').classList.remove('hidden');
+                        document.getElementById('lbl-inicio-actual').innerText = d.periodoActual.inicio || '';
+                        document.getElementById('lbl-fin-actual').innerText = d.periodoActual.fin || '';
+                        document.getElementById('lbl-inicio-siguiente').innerText = d.periodoSiguiente.inicio || '';
+                        document.getElementById('lbl-fin-siguiente').innerText = d.periodoSiguiente.fin || '';
+                    } else {
+                        document.getElementById('seccion-periodos').classList.add('hidden');
+                    }
+                    break;
+                    
+                case 'PRICING_DATA':
+                    document.getElementById('seccion-pagos').classList.remove('hidden');
+                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    
+                    const p = msg.payload;
+                    document.getElementById('lbl-precio-curso').innerText = p.precioCurso;
+                    document.getElementById('lbl-cant-cursos').innerText = p.cantCursos;
+                    document.getElementById('lbl-total-cursos').innerText = p.totalCursos;
+                    
+                    if (p.cantLibros > 0) {
+                        document.getElementById('fila-libros').classList.remove('hidden');
+                        document.getElementById('lbl-cant-libros').innerText = p.cantLibros;
+                        document.getElementById('lbl-total-libros').innerText = p.totalLibros;
+                    } else {
+                        document.getElementById('fila-libros').classList.add('hidden');
+                    }
+                    
+                    document.getElementById('lbl-gran-total').innerText = p.granTotal;
+                    
+                    if (p.ahorro) {
+                        document.getElementById('ahorro-container').classList.remove('hidden');
+                        document.getElementById('lbl-ahorro').innerText = p.ahorro;
+                    } else {
+                        document.getElementById('ahorro-container').classList.add('hidden');
+                    }
+                    break;
+                    
+                case 'MODAL_MATERIALES':
+                    const matModal = document.getElementById('modal-materiales');
+                    if (msg.payload.show) {
+                        document.getElementById('modal-materiales-content').innerHTML = msg.payload.html;
+                        matModal.classList.remove('hidden');
+                    } else {
+                        matModal.classList.add('hidden');
+                    }
+                    break;
+                    
+                case 'MODAL_CALENDARIO':
+                    const calModal = document.getElementById('modal-calendario');
+                    if (msg.payload.show) {
+                        document.getElementById('cal-g-title').innerText = msg.payload.title;
+                        document.getElementById('cal-g-sub').innerText = msg.payload.subtitle;
+                        document.getElementById('cal-g-leyenda').innerHTML = msg.payload.leyendaHtml;
+                        document.getElementById('cal-g-grid').innerHTML = msg.payload.gridHtml;
+                        calModal.classList.remove('hidden');
+                    } else {
+                        calModal.classList.add('hidden');
+                    }
+                    break;
+                    
+                case 'WIZARD_UPDATE':
+                    document.getElementById('seccion-pagos').classList.add('hidden');
+                    document.getElementById('seccion-wizard').classList.remove('hidden');
+                    document.getElementById('seccion-periodos').classList.add('hidden');
+                    
+                    const w = msg.payload;
+                    
+                    // Paso 1
+                    document.getElementById('w-paso-1').style.opacity = w.paso >= 1 ? '1' : '0.5';
+                    document.getElementById('w-tipo-clase').innerText = w.tipoText || 'Esperando selección...';
+                    
+                    // Paso 2
+                    document.getElementById('w-paso-2').style.opacity = w.paso >= 2 ? '1' : '0.5';
+                    document.getElementById('w-horario').innerText = w.horarioText || 'Esperando selección...';
+                    
+                    // Paso 3
+                    document.getElementById('w-paso-3').style.opacity = w.paso >= 3 ? '1' : '0.5';
+                    document.getElementById('w-cant-dias').innerText = w.cantDias || '0';
+                    document.getElementById('w-max-dias').innerText = w.maxDias || '0';
+                    if (w.calHtml) {
+                        document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
+                    }
+                    
+                    // Resumen
+                    if (w.paso >= 4) {
+                        document.getElementById('w-resumen').classList.remove('hidden');
+                    } else {
+                        document.getElementById('w-resumen').classList.add('hidden');
+                    }
+                    break;
+            }
+        };
+    </script>
+</body>
+</html>
