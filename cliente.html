@@ -156,30 +156,30 @@
         </div>
         
         <!-- COLUMNA DER: WIZARD DE CLASE -->
-        <div id="seccion-wizard" class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 hidden flex flex-col">
-            <h2 class="text-2xl font-bold text-purple-700 border-b border-purple-100 pb-3 mb-6 flex items-center gap-2">
+        <div id="seccion-wizard" class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
+            <h2 class="text-xl font-bold text-purple-700 border-b border-purple-100 pb-2 mb-4 flex items-center gap-2">
                 <span>📅</span> Solicitar Clase
             </h2>
             
-            <div id="wizard-pasos" class="space-y-6 flex-1">
+            <div id="wizard-pasos" class="space-y-3 flex-1">
                 <!-- Paso 1 -->
-                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300" id="w-paso-1">
-                    <h3 class="font-bold text-gray-700">1. Tipo de Clase</h3>
-                    <p class="text-xl font-medium text-purple-600 mt-2" id="w-tipo-clase">Esperando selección...</p>
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300" id="w-paso-1">
+                    <h3 class="font-bold text-sm text-gray-700">1. Tipo de Clase</h3>
+                    <p class="text-base font-semibold text-purple-600 mt-1" id="w-tipo-clase">Esperando selección...</p>
                 </div>
                 
                 <!-- Paso 2 -->
-                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-2">
-                    <h3 class="font-bold text-gray-700">2. Horario</h3>
-                    <p class="text-xl font-medium text-purple-600 mt-2" id="w-horario">Esperando selección...</p>
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-2">
+                    <h3 class="font-bold text-sm text-gray-700">2. Horario</h3>
+                    <p class="text-base font-semibold text-purple-600 mt-1" id="w-horario">Esperando selección...</p>
                 </div>
                 
                 <!-- Paso 3 (Calendario) -->
-                <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
-                    <h3 class="font-bold text-gray-700 mb-3">3. Días Seleccionados (<span id="w-cant-dias">0</span>/<span id="w-max-dias">0</span>)</h3>
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200 transition-all duration-300 opacity-50" id="w-paso-3">
+                    <h3 class="font-bold text-sm text-gray-700 mb-2">3. Días Seleccionados (<span id="w-cant-dias">0</span>/<span id="w-max-dias">0</span>)</h3>
                     
-                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-inner">
-                        <div class="mini-cal-grid mb-2">
+                    <div class="bg-white p-2 rounded-xl border border-gray-200 shadow-inner">
+                        <div class="mini-cal-grid mb-1">
                             <div class="mini-cal-day-label">L</div><div class="mini-cal-day-label">M</div>
                             <div class="mini-cal-day-label">M</div><div class="mini-cal-day-label">J</div>
                             <div class="mini-cal-day-label">V</div><div class="mini-cal-day-label">S</div>
@@ -192,9 +192,9 @@
                 </div>
             </div>
             
-            <div id="w-resumen" class="mt-6 bg-purple-50 p-6 rounded-2xl border border-purple-200 hidden">
-                <h3 class="font-bold text-purple-800 mb-2">Resumen Final</h3>
-                <p class="text-gray-700">Revisa que los días en el calendario sean correctos. Tu asesor enviará la solicitud.</p>
+            <div id="w-resumen" class="mt-3 bg-purple-50 p-4 rounded-2xl border border-purple-200 hidden">
+                <h3 class="font-bold text-sm text-purple-800 mb-1">Resumen Final</h3>
+                <div id="w-resumen-content" class="text-xs text-gray-700 space-y-1"></div>
             </div>
         </div>
     </div>
@@ -243,6 +243,13 @@
                     document.getElementById('modal-materiales').classList.add('hidden');
                     document.getElementById('modal-calendario').classList.add('hidden');
                     break;
+
+                case 'MENU':
+                    document.getElementById('pantalla-espera').classList.add('hidden');
+                    document.getElementById('pantalla-info').classList.remove('hidden');
+                    document.getElementById('seccion-pagos').classList.add('hidden');
+                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    break;
                     
                 case 'STUDENT_DATA':
                     document.getElementById('pantalla-espera').classList.add('hidden');
@@ -283,6 +290,8 @@
                     break;
                     
                 case 'PRICING_DATA':
+                    document.getElementById('pantalla-espera').classList.add('hidden');
+                    document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.remove('hidden');
                     document.getElementById('seccion-wizard').classList.add('hidden');
                     
@@ -357,31 +366,36 @@
                     break;
                     
                 case 'WIZARD_UPDATE':
+                    document.getElementById('pantalla-espera').classList.add('hidden');
+                    document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
                     document.getElementById('seccion-wizard').classList.remove('hidden');
                     document.getElementById('seccion-periodos').classList.add('hidden');
                     
                     const w = msg.payload;
                     
-                    // Paso 1
-                    document.getElementById('w-paso-1').style.opacity = w.paso >= 1 ? '1' : '0.5';
+                    // Paso 1: Tipo de clase
+                    document.getElementById('w-paso-1').style.opacity = w.tipoText ? '1' : '0.8';
                     document.getElementById('w-tipo-clase').innerText = w.tipoText || 'Esperando selección...';
                     
-                    // Paso 2
-                    document.getElementById('w-paso-2').style.opacity = w.paso >= 2 ? '1' : '0.5';
+                    // Paso 2: Horario
+                    document.getElementById('w-paso-2').style.opacity = w.horarioText ? '1' : '0.5';
                     document.getElementById('w-horario').innerText = w.horarioText || 'Esperando selección...';
                     
-                    // Paso 3
-                    document.getElementById('w-paso-3').style.opacity = w.paso >= 3 ? '1' : '0.5';
+                    // Paso 3: Calendario (paso 2 del wizard en colab)
+                    document.getElementById('w-paso-3').style.opacity = (w.paso >= 2) ? '1' : '0.5';
                     document.getElementById('w-cant-dias').innerText = w.cantDias || '0';
                     document.getElementById('w-max-dias').innerText = w.maxDias || '0';
                     if (w.calHtml) {
                         document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
                     }
                     
-                    // Resumen
-                    if (w.paso >= 4) {
+                    // Resumen (paso 3 del wizard en colab)
+                    if (w.paso >= 3) {
                         document.getElementById('w-resumen').classList.remove('hidden');
+                        if (w.resumenHtml) {
+                            document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
+                        }
                     } else {
                         document.getElementById('w-resumen').classList.add('hidden');
                     }
