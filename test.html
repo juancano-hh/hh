@@ -3071,6 +3071,22 @@
                 }
             }
 
+            // Preparar array de libros activos para el cliente
+            let listaLibrosCliente = [];
+            if (infoLibros && infoLibros.cantidad > 0) {
+                const resultadoClient = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
+                listaLibrosCliente = resultadoClient.librosConPrecio
+                    .filter(l => l.activo)
+                    .map(l => ({ nombre: l.nombre, precio: fmt.format(l.precioFinal) }));
+            }
+
+            let etiquetaCliente = '';
+            if (descuentoAplicar > 0) {
+                if (etiquetaPromo === "Beca asignada") etiquetaCliente = `${Math.round(descuentoAplicar*100)}% - Beca base`;
+                else if (etiquetaPromo.startsWith("Descuento")) etiquetaCliente = etiquetaPromo;
+                else etiquetaCliente = `${Math.round(descuentoAplicar*100)}% - ${etiquetaPromo}`;
+            }
+
             // Enviar datos calculados al cliente (SIN SERVICIO)
             sendClientMsg('PRICING_DATA', {
                 precioCurso: fmt.format(primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ),
@@ -3079,7 +3095,9 @@
                 cantLibros: librosSeleccionadosIndices.length,
                 totalLibros: fmt.format(librosFinal),
                 granTotal: fmt.format(totLibSin),
-                ahorro: ahorro > 0 ? fmt.format(ahorro) : null
+                ahorro: ahorro > 0 ? fmt.format(ahorro) : null,
+                etiquetaPromo: etiquetaCliente,
+                libros: listaLibrosCliente
             });
         }
 
