@@ -144,33 +144,35 @@
     <div id="pantalla-info" class="hidden w-full max-w-6xl fade-in grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <!-- COLUMNA IZQ: INFO ALUMNO -->
-        <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3 uppercase tracking-wider text-gray-500">Tus Datos</h2>
-            <div class="space-y-2 text-base">
-                <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
-                <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
-                <p><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900"></span></p>
-                <p><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900"></span></p>
-                <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
-                <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
-                <p><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-bold"></span></p>
-                <p id="cont-horario" class="hidden"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
-                <p id="cont-salon" class="hidden"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
-                <p id="cont-teacher" class="hidden"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
-                <p id="cont-libro" class="hidden"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold"></span></p>
-                <p><strong>Beca Base:</strong> <span id="lbl-beca" class="text-green-600 font-bold"></span></p>
+        <div class="bg-white rounded-3xl p-5 shadow-xl border border-gray-200 flex flex-col justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 border-b pb-1.5 mb-2 uppercase tracking-wider text-gray-500">Tus Datos</h2>
+                <div class="space-y-1 text-sm">
+                    <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
+                    <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
+                    <p><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900"></span></p>
+                    <p><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900"></span></p>
+                    <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
+                    <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+                    <p><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-bold"></span></p>
+                    <p id="cont-horario" class="hidden"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+                    <p id="cont-salon" class="hidden"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
+                    <p id="cont-teacher" class="hidden"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
+                    <p id="cont-libro" class="hidden"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold"></span></p>
+                    <p><strong>Beca Base:</strong> <span id="lbl-beca" class="text-green-600 font-bold"></span></p>
+                </div>
             </div>
             
-            <div id="seccion-periodos" class="mt-4 pt-4 border-t border-gray-200 hidden space-y-3">
-                <div class="bg-blue-50 rounded-2xl p-3 border border-blue-100">
-                    <p class="text-xs font-bold text-blue-700 uppercase mb-1">📚 Curso actual</p>
-                    <p class="text-gray-700 text-sm">Inicio: <span id="lbl-inicio-actual" class="font-semibold text-gray-900"></span></p>
-                    <p class="text-gray-700 text-sm">Fin: <span id="lbl-fin-actual" class="font-semibold text-gray-900"></span></p>
+            <div id="seccion-periodos" class="mt-2.5 pt-2 border-t border-gray-200 hidden grid grid-cols-2 gap-2">
+                <div class="bg-blue-50/80 rounded-xl p-2 border border-blue-200">
+                    <p class="text-[11px] font-bold text-blue-700 uppercase mb-0.5">📚 Curso actual</p>
+                    <p class="text-gray-600 text-[11px] leading-tight">Inicio: <span id="lbl-inicio-actual" class="font-bold text-gray-900 block"></span></p>
+                    <p class="text-gray-600 text-[11px] leading-tight mt-0.5">Fin: <span id="lbl-fin-actual" class="font-bold text-gray-900 block"></span></p>
                 </div>
-                <div class="bg-green-50 rounded-2xl p-3 border border-green-100">
-                    <p class="text-xs font-bold text-green-700 uppercase mb-1">🎯 Próximo curso</p>
-                    <p class="text-gray-700 text-sm">Inicio: <span id="lbl-inicio-siguiente" class="font-semibold text-gray-900"></span></p>
-                    <p class="text-gray-700 text-sm">Fin: <span id="lbl-fin-siguiente" class="font-semibold text-gray-900"></span></p>
+                <div class="bg-green-50/80 rounded-xl p-2 border border-green-200">
+                    <p class="text-[11px] font-bold text-green-700 uppercase mb-0.5">🎯 Próximo curso</p>
+                    <p class="text-gray-600 text-[11px] leading-tight">Inicio: <span id="lbl-inicio-siguiente" class="font-bold text-gray-900 block"></span></p>
+                    <p class="text-gray-600 text-[11px] leading-tight mt-0.5">Fin: <span id="lbl-fin-siguiente" class="font-bold text-gray-900 block"></span></p>
                 </div>
             </div>
         </div>
@@ -324,6 +326,39 @@
 
     <script>
         const bc = new BroadcastChannel('client-sync');
+
+        function resetClienteWizard() {
+            const secWiz = document.getElementById('seccion-wizard');
+            if (secWiz) secWiz.classList.add('hidden');
+            const wEnv = document.getElementById('w-enviando');
+            if (wEnv) wEnv.classList.add('hidden');
+            const wComp = document.getElementById('w-completado');
+            if (wComp) wComp.classList.add('hidden');
+            const wRes = document.getElementById('w-resumen');
+            if (wRes) wRes.classList.add('hidden');
+            const wPasos = document.getElementById('wizard-pasos');
+            if (wPasos) wPasos.classList.remove('hidden');
+            const wp1 = document.getElementById('w-paso-1');
+            if (wp1) { wp1.classList.remove('hidden'); wp1.style.opacity = '1'; }
+            const wp2 = document.getElementById('w-paso-2');
+            if (wp2) { wp2.classList.remove('hidden'); wp2.style.opacity = '0.5'; }
+            const wp3 = document.getElementById('w-paso-3');
+            if (wp3) wp3.classList.add('hidden');
+            const wTipo = document.getElementById('w-tipo-clase');
+            if (wTipo) wTipo.innerText = 'Esperando selección...';
+            const wHor = document.getElementById('w-horario');
+            if (wHor) wHor.innerText = 'Esperando selección...';
+            const wCant = document.getElementById('w-cant-dias');
+            if (wCant) wCant.innerText = '0';
+            const wMax = document.getElementById('w-max-dias');
+            if (wMax) wMax.innerText = '0';
+            const wCalGrid = document.getElementById('w-calendario-grid');
+            if (wCalGrid) wCalGrid.innerHTML = '';
+            const wResCont = document.getElementById('w-resumen-content');
+            if (wResCont) wResCont.innerHTML = '';
+            const wCompLink = document.getElementById('w-completado-link');
+            if (wCompLink) wCompLink.classList.add('hidden');
+        }
         
         bc.onmessage = (event) => {
             const msg = event.data;
@@ -334,7 +369,7 @@
                     document.getElementById('pantalla-espera').classList.remove('hidden');
                     document.getElementById('pantalla-info').classList.add('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
-                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    resetClienteWizard();
                     document.getElementById('modal-materiales').classList.add('hidden');
                     document.getElementById('modal-calendario').classList.add('hidden');
                     break;
@@ -343,13 +378,14 @@
                     document.getElementById('pantalla-espera').classList.add('hidden');
                     document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
-                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    resetClienteWizard();
                     break;
                     
                 case 'STUDENT_DATA':
                     document.getElementById('pantalla-espera').classList.add('hidden');
                     document.getElementById('pantalla-info').classList.remove('hidden');
-                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    document.getElementById('seccion-pagos').classList.add('hidden');
+                    resetClienteWizard();
                     
                     const d = msg.payload;
                     document.getElementById('lbl-nombre').innerText = d.nombre;
@@ -388,7 +424,7 @@
                     document.getElementById('pantalla-espera').classList.add('hidden');
                     document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.remove('hidden');
-                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    resetClienteWizard();
                     
                     const p = msg.payload;
                     document.getElementById('lbl-precio-curso').innerText = p.precioCurso;
@@ -494,14 +530,21 @@
                         tagClase.innerText = (t1 && t2) ? `${t1} • ${t2}` : (t1 || t2);
                     }
 
-                    if (w.paso === 1) {
-                        // Paso 1: Mostrar tipo y horario, ocultar calendario y resumen
-                        document.getElementById('w-paso-1').classList.remove('hidden');
-                        document.getElementById('w-paso-2').classList.remove('hidden');
+                    const tieneTipoYHorario = Boolean(w.tipoText && w.horarioText && !w.horarioText.includes('Esperando'));
+                    // Mostrar calendario si estamos en paso 2 O si ya se seleccionó tipo y horario y hay calendario disponible
+                    const mostrarCalendario = (w.paso === 2) || (tieneTipoYHorario && w.calHtml);
+
+                    if (w.paso >= 3) {
+                        // Paso 3 (Resumen): Quitar Tipo, Horario y Calendario, mostrar el Resumen
+                        document.getElementById('w-paso-1').classList.add('hidden');
+                        document.getElementById('w-paso-2').classList.add('hidden');
                         document.getElementById('w-paso-3').classList.add('hidden');
-                        document.getElementById('w-resumen').classList.add('hidden');
-                    } else if (w.paso === 2) {
-                        // Paso 2 (Calendario): Quitar Tipo y Horario para que el calendario tenga todo el espacio sin scroll!
+                        document.getElementById('w-resumen').classList.remove('hidden');
+                        if (w.resumenHtml) {
+                            document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
+                        }
+                    } else if (mostrarCalendario) {
+                        // Calendario activo: Quitar Tipo y Horario para que quepa todo el calendario sin scroll!
                         document.getElementById('w-paso-1').classList.add('hidden');
                         document.getElementById('w-paso-2').classList.add('hidden');
                         document.getElementById('w-paso-3').classList.remove('hidden');
@@ -513,15 +556,12 @@
                         if (w.calHtml) {
                             document.getElementById('w-calendario-grid').innerHTML = w.calHtml;
                         }
-                    } else if (w.paso >= 3) {
-                        // Paso 3 (Resumen): Quitar Tipo, Horario y Calendario, mostrar el Resumen
-                        document.getElementById('w-paso-1').classList.add('hidden');
-                        document.getElementById('w-paso-2').classList.add('hidden');
+                    } else {
+                        // Paso 1 (Selección inicial): Mostrar tipo y horario, ocultar calendario y resumen
+                        document.getElementById('w-paso-1').classList.remove('hidden');
+                        document.getElementById('w-paso-2').classList.remove('hidden');
                         document.getElementById('w-paso-3').classList.add('hidden');
-                        document.getElementById('w-resumen').classList.remove('hidden');
-                        if (w.resumenHtml) {
-                            document.getElementById('w-resumen-content').innerHTML = w.resumenHtml;
-                        }
+                        document.getElementById('w-resumen').classList.add('hidden');
                     }
                     break;
                     
