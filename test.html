@@ -3180,14 +3180,14 @@
                 else etiquetaCliente = `${Math.round(descuentoAplicar*100)}% - ${etiquetaPromo}`;
             }
 
-            // Enviar datos calculados al cliente (SIN SERVICIO)
+            // Enviar datos calculados al cliente (con servicio si aplica)
             sendClientMsg('PRICING_DATA', {
-                precioCurso: fmt.format(primerEsAlto ? unitarioDescAltoSinServ : unitarioDescBajoSinServ),
+                precioCurso: fmt.format(unitarioDesc),
                 cantCursos: cantCursos,
-                totalCursos: fmt.format(totalCursosSinServicio),
+                totalCursos: fmt.format(totalCursosConServicio),
                 cantLibros: librosSeleccionadosIndices.length,
                 totalLibros: fmt.format(librosFinal),
-                granTotal: fmt.format(totLibSin),
+                granTotal: fmt.format(totalConDescuentoGeneral),
                 ahorro: ahorro > 0 ? fmt.format(ahorro) : null,
                 etiquetaPromo: etiquetaCliente,
                 libros: listaLibrosCliente
