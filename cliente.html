@@ -222,7 +222,7 @@
             </div>
 
             <div class="space-y-3.5">
-                <div class="flex justify-between items-center text-xl bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
+                <div id="fila-precio-curso-cliente" class="flex justify-between items-center text-xl bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
                     <span class="font-semibold text-gray-700">Precio por curso:</span>
                     <span id="lbl-precio-curso" class="font-mono font-bold text-gray-900"></span>
                 </div>
@@ -552,17 +552,25 @@
                     document.getElementById('lbl-cant-cursos').innerText = p.cantCursos;
                     document.getElementById('lbl-total-cursos').innerText = p.totalCursos;
 
+                    const filaPrecioCursoCli = document.getElementById('fila-precio-curso-cliente');
+                    if (filaPrecioCursoCli) {
+                        if (p.cantCursos > 0) filaPrecioCursoCli.classList.remove('hidden');
+                        else filaPrecioCursoCli.classList.add('hidden');
+                    }
+
                     // Llenar tabla resumen
                     const tbody = document.getElementById('tabla-resumen-body');
                     let htmlTable = '';
-                    // Fila de cursos
-                    let etiqueta = p.etiquetaPromo ? ` (Dto. ${p.etiquetaPromo})` : '';
-                    htmlTable += `
-                        <tr class="border-b border-gray-200">
-                            <td class="p-3">Pago por ${p.cantCursos} curso(s)${etiqueta}</td>
-                            <td class="p-3 text-right font-semibold">${p.totalCursos}</td>
-                        </tr>
-                    `;
+                    // Fila de cursos (solo si cantCursos > 0)
+                    if (p.cantCursos > 0) {
+                        let etiqueta = p.etiquetaPromo ? ` (Dto. ${p.etiquetaPromo})` : '';
+                        htmlTable += `
+                            <tr class="border-b border-gray-200">
+                                <td class="p-3">Pago por ${p.cantCursos} curso(s)${etiqueta}</td>
+                                <td class="p-3 text-right font-semibold">${p.totalCursos}</td>
+                            </tr>
+                        `;
+                    }
                     // Filas de libros
                     if (p.libros && p.libros.length > 0) {
                         p.libros.forEach(libro => {
