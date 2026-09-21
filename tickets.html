@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Ticket Digital</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center;
+         justify-content: center; min-height: 100vh; margin: 0; background: #0f0f14; color: #fff;
+         text-align: center; padding: 1rem; }
+  .container { max-width: 500px; width: 100%; }
+  h1 { font-size: 1.4rem; font-weight: 500; color: #aaa; margin: 0; letter-spacing: .05em; }
+  .ticket { font-size: 9rem; font-weight: 800; color: #6366f1; line-height: 1; margin: .5rem 0 1rem;
+            text-shadow: 0 0 40px rgba(99,102,241,.5); }
+  .status { font-size: 1.2rem; margin-top: 1rem; color: #888; min-height: 1.5em; }
+  .status.called { color: #22c55e; }
+  .called-title { font-size: 2rem; font-weight: 800; animation: pulse .6s infinite alternate;
+                  line-height: 1.1; }
+  .with { font-size: 1.4rem; font-weight: 600; margin-top: .6rem; color: #fff; }
+  .with span { color: #22c55e; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+  button { font-size: 1.2rem; padding: .8rem 1.4rem; border-radius: 14px; border: none;
+           background: #2a2a36; color: #aaa; cursor: pointer; font-family: inherit; font-weight: 600; }
+  button:active { transform: scale(.96); }
+  .row { display: flex; gap: .8rem; justify-content: center; align-items: center; margin-top: 3rem; flex-wrap: wrap; }
+  .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #333;
+             border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container" id="app">Cargando…</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, remove, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARsfESH7csVIEbjs1dU4IowVM_FxlRDf8",
+  authDomain: "tickets-fila.firebaseapp.com",
+  databaseURL: "https://tickets-fila-default-rtdb.firebaseio.com",
+  projectId: "tickets-fila",
+  storageBucket: "tickets-fila.firebasestorage.app",
+  messagingSenderId: "897309041147",
+  appId: "1:897309041147:web:bee1fc7bf4affd827f6b5e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const appEl = document.getElementById('app');
+
+const KEY = 'ticketNumber';
+let alarmInterval = null;
+let unsubState = null;
+
+/* ---------- Audio para iPhone (no soporta vibrate) ---------- */
+function playAlarm() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const beep = (t, freq=880) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq; o.type = 'sine';
+      g.gain.setValueAtTime(0.001, ctx.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.4, ctx.currentTime + t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.3);
+      o.start(ctx.currentTime + t); o.stop(ctx.currentTime + t + 0.35);
+    };
+    beep(0, 880); beep(0.4, 1046); beep(0.8, 1318);
+  } catch (e) {}
+}
+function startAlarm() {
+  if (alarmInterval) return;
+  const fire = () => {
+    if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400]);
+    playAlarm();
+  };
+  fire();
+  alarmInterval = setInterval(fire, 2500);
+}
+function stopAlarm() {
+  if (alarmInterval) { clearInterval(alarmInterval); alarmInterval = null; }
+  if (navigator.vibrate) navigator.vibrate(0);
+}
+function cleanupListeners() {
+  if (unsubState) { unsubState(); unsubState = null; }
+}
+
+/* ---------- Asignar número automáticamente ---------- */
+async function assignNumber() {
+  appEl.innerHTML = `
+    <div class="spinner"></div>
+    <p style="color:#888;margin-top:1.5rem">Asignando tu turno…</p>
+  `;
+
+  try {
+    const res = await runTransaction(ref(db, 'tickets/lastAssigned'), (v) => {
+      return (v || 0) + 1;
+    });
+    if (!res.committed) throw new Error('No se pudo asignar número');
+    const myNum = res.snapshot.val();
+
+    localStorage.setItem(KEY, myNum);
+    await set(ref(db, 'tickets/queue/' + myNum), Date.now());
+
+    renderTicket(myNum);
+  } catch (e) {
+    console.error(e);
+    appEl.innerHTML = `
+      <h1>⚠️ Error</h1>
+      <p style="color:#888">No se pudo conectar. Revisa tu internet.</p>
+      <div class="row">
+        <button id="retry">Reintentar</button>
+      </div>
+    `;
+    document.getElementById('retry').onclick = assignNumber;
+  }
+}
+
+/* ---------- Vista: mostrar ticket ---------- */
+function renderTicket(n) {
+  stopAlarm();
+  cleanupListeners();
+  appEl.innerHTML = `
+    <h1>TU TICKET</h1>
+    <div class="ticket">${n}</div>
+    <div class="status" id="status">Conectando…</div>
+    <div class="row">
+      <button id="change">Cambiar número</button>
+    </div>
+  `;
+
+  document.getElementById('change').onclick = async () => {
+    if (!confirm('¿Pedir un nuevo turno? Perderás tu número actual.')) return;
+    try { await remove(ref(db, 'tickets/queue/' + n)); } catch(e){}
+    localStorage.removeItem(KEY);
+    assignNumber();
+  };
+
+  const myNum = parseInt(n, 10);
+  const statusEl = document.getElementById('status');
+  let currentCall = 0;
+  let calledWith = '';
+  let alreadyAlerted = false;
+  let cleared = false;
+  let lastReAlert = null;
+  let reAlertInitialized = false;
+
+  const updateStatus = () => {
+    if (cleared || !document.body.contains(statusEl)) return;
+
+    if (currentCall === myNum) {
+      const nombre = calledWith ? calledWith.toUpperCase() : 'LA VENTANILLA';
+      statusEl.className = 'status called';
+      statusEl.innerHTML = `
+        <div class="called-title">¡ES TU TURNO!</div>
+        <div class="with">Pasa con <span>${nombre}</span></div>
+      `;
+      if (!alreadyAlerted) { startAlarm(); alreadyAlerted = true; }
+    } else if (currentCall > myNum) {
+      statusEl.className = 'status';
+      statusEl.textContent = 'Tu turno ya pasó';
+      stopAlarm();
+      cleared = true;
+      (async () => {
+        try { await remove(ref(db, 'tickets/queue/' + myNum)); } catch(e){}
+        localStorage.removeItem(KEY);
+        // Al borrar, ya no le reasignamos número automáticamente; queda en pantalla de "listo"
+        setTimeout(() => {
+          appEl.innerHTML = `
+            <h1>¡Listo!</h1>
+            <p style="color:#888;margin-top:1rem">Ya te atendieron. Que tengas buen día 😊</p>
+            <div class="row">
+              <button id="newTicket">Sacar nuevo turno</button>
+            </div>
+          `;
+          document.getElementById('newTicket').onclick = assignNumber;
+        }, 3000);
+      })();
+    } else {
+      statusEl.className = 'status';
+      statusEl.textContent = `Esperando turno… (actual: ${currentCall})`;
+      alreadyAlerted = false;
+      stopAlarm();
+    }
+  };
+
+  unsubState = onValue(ref(db, 'tickets/state'), snap => {
+    const s = snap.val() || {};
+    currentCall = s.current ?? 0;
+    calledWith  = s.calledWith || '';
+    const ra    = s.reAlert || 0;
+
+    if (!reAlertInitialized) {
+      reAlertInitialized = true;
+      lastReAlert = ra;
+    } else if (ra !== lastReAlert) {
+      lastReAlert = ra;
+      if (currentCall === myNum && !cleared) {
+        stopAlarm();
+        startAlarm();
+      }
+    }
+    updateStatus();
+  });
+}
+
+/* ---------- Init ---------- */
+const stored = localStorage.getItem(KEY);
+if (stored) renderTicket(parseInt(stored, 10));
+else assignNumber();
+
+/* Activar audio en iOS al primer toque */
+document.addEventListener('touchstart', () => {
+  try { new (window.AudioContext || window.webkitAudioContext)().resume(); } catch(e){}
+}, { once: true });
+</script>
+</body>
+</html>

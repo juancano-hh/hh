@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin · Tickets</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; min-height: 100vh; margin: 0;
+         background: #0f0f14; color: #fff; padding: 1.5rem;
+         display: flex; align-items: flex-start; justify-content: center; }
+  .container { max-width: 820px; width: 100%; text-align: center; }
+  .me { display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+        background: #1a1a22; padding: .7rem 1rem; border-radius: 12px; margin-bottom: 1.5rem; }
+  .me-name { font-size: .95rem; color: #aaa; }
+  .me-name b { color: #fff; }
+  .me button { font-size: .8rem; padding: .4rem .8rem; }
+  h1 { font-weight: 500; color: #888; font-size: 1rem; letter-spacing: .15em;
+       text-transform: uppercase; margin: 0; }
+  .current { font-size: 10rem; font-weight: 800; color: #22c55e; line-height: 1; margin: .5rem 0;
+             text-shadow: 0 0 60px rgba(34,197,94,.4); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .8rem; margin-top: 1rem; }
+  .card { background: #1a1a22; padding: 1rem; border-radius: 12px; }
+  .card .label { color: #777; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+  .card .value { font-size: 1.6rem; font-weight: 700; margin-top: .3rem; }
+  .card.next .value { color: #6366f1; }
+  .card.assign .value { color: #a855f7; }
+  .card.pending .value { color: #f59e0b; }
+  .card.caller .value { font-size: 1.15rem; color: #22c55e; }
+  button { font-size: 1.2rem; padding: 1rem 1.8rem; border-radius: 14px; border: none;
+           background: #6366f1; color: white; cursor: pointer; font-family: inherit;
+           font-weight: 600; transition: transform .1s; }
+  button:active { transform: scale(.96); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.secondary { background: #2a2a36; color: #ccc; font-size: .95rem; padding: .8rem 1.2rem; }
+  button.warn { background: #b45309; color: #fff; }
+  button.danger { background: #7f1d1d; color: #fca5a5; }
+  .row { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .big-row { margin-top: 2rem; gap: 1rem; }
+  input { font-size: 1.2rem; padding: .8rem; border-radius: 12px; border: 2px solid #333;
+          background: #1e1e28; color: white; width: 130px; text-align: center; font-family: inherit; }
+  input:focus { outline: none; border-color: #6366f1; }
+  .hint { color: #555; font-size: .8rem; margin-top: 2rem; }
+  .login { max-width: 380px; margin: 4rem auto; background: #1a1a22; padding: 2rem;
+           border-radius: 16px; }
+  .login h2 { margin: 0 0 1rem; font-weight: 600; }
+  .login p { color: #888; font-size: .9rem; margin: 0 0 1rem; }
+  .login input { width: 100%; font-size: 1.2rem; padding: 1rem; }
+  .login button { width: 100%; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="container" id="root">Cargando…</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, remove, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARsfESH7csVIEbjs1dU4IowVM_FxlRDf8",
+  authDomain: "tickets-fila.firebaseapp.com",
+  databaseURL: "https://tickets-fila-default-rtdb.firebaseio.com",
+  projectId: "tickets-fila",
+  storageBucket: "tickets-fila.firebasestorage.app",
+  messagingSenderId: "897309041147",
+  appId: "1:897309041147:web:bee1fc7bf4affd827f6b5e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const root = document.getElementById('root');
+const NAME_KEY = 'adminName';
+
+let myName = localStorage.getItem(NAME_KEY) || '';
+let state = { current: 0, calledWith: '', calledAt: 0, reAlert: 0 };
+let queue = {};
+let lastAssigned = 0;
+
+/* ---------- Toast ---------- */
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:#b45309;color:#fff;padding:12px 20px;border-radius:12px;
+    font-size:1rem;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:9999;
+    opacity:0;transition:opacity .2s;`;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.style.opacity = '1');
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 250); }, 2200);
+}
+
+/* ---------- Login ---------- */
+function renderLogin() {
+  root.innerHTML = `
+    <div class="login">
+      <h2>👋 Identifícate</h2>
+      <p>Tu nombre se mostrará en la pantalla del cliente cuando llames su turno.</p>
+      <input id="name" placeholder="Tu nombre" autofocus maxlength="20">
+      <button id="ok">Entrar</button>
+    </div>
+  `;
+  const inp = document.getElementById('name');
+  const go = () => {
+    const v = inp.value.trim();
+    if (!v) return inp.focus();
+    myName = v;
+    localStorage.setItem(NAME_KEY, v);
+    renderPanel();
+  };
+  document.getElementById('ok').onclick = go;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  inp.focus();
+}
+
+/* ---------- Panel ---------- */
+function renderPanel() {
+  root.innerHTML = `
+    <div class="me">
+      <div class="me-name">Operador: <b id="meName">${myName}</b></div>
+      <button class="secondary" id="changeName">Cambiar nombre</button>
+    </div>
+
+    <h1>Llamando turno</h1>
+    <div class="current" id="cur">—</div>
+
+    <div class="grid">
+      <div class="card next">
+        <div class="label">Siguiente</div>
+        <div class="value" id="nextVal">—</div>
+      </div>
+      <div class="card assign">
+        <div class="label">Próximo a asignar</div>
+        <div class="value" id="assignVal">1</div>
+      </div>
+      <div class="card pending">
+        <div class="label">En cola</div>
+        <div class="value" id="pendingVal">0</div>
+      </div>
+      <div class="card caller">
+        <div class="label">Atendido por</div>
+        <div class="value" id="callerVal">—</div>
+      </div>
+    </div>
+
+    <div class="row big-row">
+      <button id="prev" class="secondary">◀ Anterior</button>
+      <button id="next" style="font-size:1.8rem; padding:1.2rem 3rem;">▶ Siguiente</button>
+      <button id="reAlert" class="warn" disabled>🔔 Volver a avisar</button>
+    </div>
+
+    <div class="row">
+      <input type="number" id="jump" placeholder="0" min="0">
+      <button id="go" class="secondary">Ir a número</button>
+      <button id="clean" class="danger secondary">Limpiar cola</button>
+      <button id="reset" class="danger secondary">Reiniciar todo</button>
+    </div>
+
+    <p class="hint">Todo se sincroniza en tiempo real con los móviles de los clientes.</p>
+  `;
+
+  document.getElementById('changeName').onclick = () => {
+    const v = prompt('Nuevo nombre:', myName);
+    if (v && v.trim()) {
+      myName = v.trim().slice(0, 20);
+      localStorage.setItem(NAME_KEY, myName);
+      document.getElementById('meName').textContent = myName;
+    }
+  };
+
+  document.getElementById('next').onclick    = callNext;
+  document.getElementById('prev').onclick    = callPrev;
+  document.getElementById('reAlert').onclick = reAlert;
+  document.getElementById('go').onclick = () => {
+    const v = parseInt(document.getElementById('jump').value, 10);
+    if (!isNaN(v) && v >= 0) callGo(v);
+  };
+  document.getElementById('reset').onclick = async () => {
+    if (!confirm('¿Reiniciar TODO? (contador actual + numeración asignada + cola). Esto dejará a los clientes actuales sin ticket.')) return;
+    await resetAll();
+  };
+  document.getElementById('clean').onclick = async () => {
+    if (!confirm('¿Eliminar de la cola todos los números ya atendidos?')) return;
+    const now = Date.now();
+    const toRemove = [];
+    for (const [k, ts] of Object.entries(queue)) {
+      const num = parseInt(k, 10);
+      if (num <= (state.current ?? 0)) toRemove.push(k);
+      else if (now - ts > 12 * 3600 * 1000) toRemove.push(k);
+    }
+    await Promise.all(toRemove.map(k => remove(ref(db, 'tickets/queue/' + k))));
+  };
+
+  attachListeners();
+}
+
+/* ---------- Transacciones ---------- */
+const LOCK_MS = 1500;
+function emptyState() {
+  return { current: 0, calledWith: '', calledAt: 0, reAlert: 0 };
+}
+
+async function callNext() {
+  const res = await runTransaction(ref(db, 'tickets/state'), (s) => {
+    if (!s) s = emptyState();
+    const now = Date.now();
+    if (s.calledAt && (now - s.calledAt) < LOCK_MS &&
+        s.calledWith && s.calledWith !== myName) {
+      return;
+    }
+    s.current = (s.current ?? 0) + 1;
+    s.calledWith = myName;
+    s.calledAt = now;
+    s.reAlert = now;
+    return s;
+  });
+  if (!res.committed) toast('⏱ Otro operador llamó hace un instante');
+}
+
+async function callPrev() {
+  await runTransaction(ref(db, 'tickets/state'), (s) => {
+    if (!s) s = emptyState();
+    if ((s.current ?? 0) <= 0) return;
+    s.current = s.current - 1;
+    s.calledWith = myName;
+    s.calledAt = Date.now();
+    s.reAlert = Date.now();
+    return s;
+  });
+}
+
+async function callGo(n) {
+  await runTransaction(ref(db, 'tickets/state'), (s) => {
+    if (!s) s = emptyState();
+    s.current = n;
+    s.calledWith = myName;
+    s.calledAt = Date.now();
+    s.reAlert = Date.now();
+    return s;
+  });
+}
+
+async function reAlert() {
+  await runTransaction(ref(db, 'tickets/state'), (s) => {
+    if (!s || !s.current) return;
+    s.reAlert = Date.now();
+    return s;
+  });
+}
+
+async function resetAll() {
+  await set(ref(db, 'tickets/state'), emptyState());
+  await set(ref(db, 'tickets/lastAssigned'), 0);
+  await remove(ref(db, 'tickets/queue'));
+}
+
+/* ---------- Listeners ---------- */
+let listenersAttached = false;
+function attachListeners() {
+  if (listenersAttached) return;
+  listenersAttached = true;
+
+  onValue(ref(db, 'tickets/state'), snap => {
+    state = snap.val() || emptyState();
+    paint();
+  });
+  onValue(ref(db, 'tickets/queue'), snap => {
+    queue = snap.val() || {};
+    paint();
+  });
+  onValue(ref(db, 'tickets/lastAssigned'), snap => {
+    lastAssigned = snap.val() || 0;
+    paint();
+  });
+}
+
+/* ---------- Pintar ---------- */
+function paint() {
+  const curEl = document.getElementById('cur');
+  if (!curEl) return;
+  const nextEl   = document.getElementById('nextVal');
+  const assignEl = document.getElementById('assignVal');
+  const pendEl   = document.getElementById('pendingVal');
+  const callerEl = document.getElementById('callerVal');
+  const reBtn    = document.getElementById('reAlert');
+
+  const cur = state.current ?? 0;
+  curEl.textContent    = cur === 0 ? '—' : cur;
+  nextEl.textContent   = cur + 1;
+  assignEl.textContent = lastAssigned + 1;
+  callerEl.textContent = state.calledWith || '—';
+
+  const now = Date.now();
+  let pending = 0;
+  for (const [k, ts] of Object.entries(queue)) {
+    const num = parseInt(k, 10);
+    if (num > cur && (now - ts) < 12 * 3600 * 1000) pending++;
+  }
+  pendEl.textContent = pending;
+
+  reBtn.disabled = cur === 0;
+}
+
+/* ---------- Init ---------- */
+if (!myName) renderLogin();
+else renderPanel();
+</script>
+</body>
+</html>
