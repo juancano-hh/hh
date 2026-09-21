@@ -299,11 +299,12 @@
         .cal-d.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,180,50,0.30) !important; border-color: rgba(255,180,50,0.32) !important; }
         .cal-d.cal-dom.cal-pago:not(.cal-inicio):not(.cal-fin) { background: rgba(255,255,255,0.04) !important; color: #b0a8c0 !important; opacity: 0.38; }
         .cal-d.cal-hoy {
-            border: 2px solid #2d2a3b !important; font-weight: 800 !important;
-            transform: scale(1.1); z-index: 5;
-            box-shadow: 0 0 0 1px rgba(45,42,59,0.12);
+            border: 2.5px solid #ef4444 !important; font-weight: 900 !important;
+            transform: scale(1.15); z-index: 5;
+            box-shadow: 0 0 0 2px rgba(239,68,68,0.35);
+            color: #b91c1c !important;
         }
-        .cal-d.cal-hoy.cal-dom { border-color: #2d2a3b !important; opacity: 1 !important; color: #2d2a3b !important; background: rgba(255,255,255,0.2) !important; }
+        .cal-d.cal-hoy.cal-dom { border-color: #ef4444 !important; opacity: 1 !important; color: #b91c1c !important; background: #fee2e2 !important; }
         .cal-leyenda {
             margin-top: 12px; display: flex; flex-wrap: wrap;
             justify-content: center; gap: 5px 12px;
@@ -318,7 +319,7 @@
         .cal-cuadro.naranja{ background: rgba(255,180,50,0.30); }
         .cal-cuadro.azul-l { background: rgba(100,180,255,0.28); }
         .cal-cuadro.azul   { background: rgba(33,150,243,0.35); }
-        .cal-cuadro.hoy    { background: transparent; border: 2px solid #2d2a3b; }
+        .cal-cuadro.hoy    { background: #fee2e2; border: 2px solid #ef4444; }
         @media (max-width: 720px) { .cal-grid { grid-template-columns: repeat(3,1fr); gap: 6px; } }
         @media(max-width:520px){
             .cal-grid { grid-template-columns: repeat(2,1fr); gap: 4px; }
@@ -611,7 +612,7 @@
                 ← Cambiar opción
             </button>
             <h3 class="font-bold text-gray-800 border-b pb-1 text-sm uppercase tracking-wider text-gray-500">Datos del Alumno</h3>
-            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
+            <p class="text-sm text-gray-700"><strong>Matrícula (ID):</strong> <span id="lbl-id" class="text-gray-900 font-mono dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span><span id="lbl-id-tag"></span></p>
             <p class="text-sm text-gray-700"><strong>Nombre:</strong> <span id="lbl-nombre" class="text-gray-900 dato-copiable" onclick="copiarDato(this)" title="Click para copiar"></span></p>
             <p class="text-sm text-gray-700 items-center gap-2 mt-1 mb-1 hidden" id="contenedor-estatus-pago"><strong>Estatus:</strong> <span id="lbl-estatus-pago"></span></p>
             <p class="text-sm text-gray-700">
@@ -1734,7 +1735,7 @@
                 <p class="font-bold text-lg">📚 Consulta de Materiales</p>
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalMateriales()">✕</button>
             </div>
-            <div class="p-4 bg-white rounded-b-2xl">
+            <div class="modal-body p-4 bg-white rounded-b-2xl">
                 <p class="text-center text-sm text-gray-600 mb-4 font-semibold">Selecciona el programa para ver los materiales y precios</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                     <button onclick="mostrarMaterial('kids')" class="py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors flex flex-col items-center">
@@ -1829,10 +1830,11 @@
         
         // ===== FUNCIÓN COPIAR DATO AL PORTAPAPELES =====
         function copiarDato(el) {
-            const texto = el.innerText.trim();
+            let texto = (el.dataset.copiar || el.innerText || '').trim();
+            texto = texto.replace(/\bNUEVO\b/gi, '').trim();
             if (!texto) return;
-            navigator.clipboard.writeText(texto).then(() => {
-                // Mostrar tooltip de confirmación
+
+            const mostrarTooltip = () => {
                 const tt = document.createElement('div');
                 tt.className = 'tooltip-copiado';
                 tt.textContent = '✅ ¡Copiado!';
@@ -1841,16 +1843,34 @@
                 tt.style.left = (rect.left + rect.width / 2 - tt.offsetWidth / 2) + 'px';
                 tt.style.top  = (rect.top + window.scrollY) + 'px';
                 setTimeout(() => tt.remove(), 1500);
-            }).catch(() => {
-                // Fallback para navegadores que no soportan clipboard API
-                const sel = window.getSelection();
-                const range = document.createRange();
-                range.selectNodeContents(el);
-                sel.removeAllRanges();
-                sel.addRange(range);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(texto).then(mostrarTooltip).catch(() => {
+                    copiarFallback(texto, mostrarTooltip);
+                });
+            } else {
+                copiarFallback(texto, mostrarTooltip);
+            }
+        }
+
+        function copiarFallback(texto, callback) {
+            const ta = document.createElement('textarea');
+            ta.value = texto;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '0';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
                 document.execCommand('copy');
-                sel.removeAllRanges();
-            });
+                if (callback) callback();
+            } catch (e) {
+                console.error('Error al copiar:', e);
+            }
+            document.body.removeChild(ta);
         }
         // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
@@ -2718,7 +2738,11 @@
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
                 let tagNuevo = alumnoActual.esNuevoLayout ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-3 py-[1px] rounded-full inline-block align-baseline relative -top-[1px] ml-1 tracking-wider border border-blue-200">NUEVO</span>' : '';
-                document.getElementById('lbl-id').innerHTML       = alumnoActual.idOriginal + tagNuevo;
+                const lblIdEl = document.getElementById('lbl-id');
+                lblIdEl.innerText = alumnoActual.idOriginal;
+                lblIdEl.dataset.copiar = alumnoActual.idOriginal;
+                const tagEl = document.getElementById('lbl-id-tag');
+                if (tagEl) tagEl.innerHTML = tagNuevo;
                 document.getElementById('lbl-nombre').innerText   = alumnoActual.nombre;
                 
                 // Actualizar estatus
@@ -2849,6 +2873,8 @@
             document.getElementById('botones-extras').classList.remove('hidden');
             document.getElementById('error-box').classList.add('hidden');
             document.getElementById('alumno-id').value = '';
+            const tagEl = document.getElementById('lbl-id-tag');
+            if (tagEl) tagEl.innerHTML = '';
             alumnoActual = null;
             sendClientMsg('RESET');
         }
@@ -4739,6 +4765,7 @@
                         <div class="factura-title">Cotización de Cursos</div>
                         <p><strong>ID Alumno:</strong> ${alumnoActual.idOriginal}</p>
                         <p><strong>Nombre:</strong> ${alumnoActual.nombre}</p>
+                        <p><strong>Curso / Nivel Actual:</strong> ${alumnoActual.nivelActual}</p>
                         <p><strong>Programa:</strong> ${alumnoActual.programaTexto}</p>
                         <p><strong>Modalidad:</strong> ${alumnoActual.modalidad}</p>
                         <p><strong>Horario:</strong> ${alumnoActual.horario}</p>
@@ -5204,13 +5231,25 @@
                 const modal = document.getElementById('modal-materiales');
                 const contenido = document.getElementById('material-contenido');
                 if (!modal || !contenido) {
-                    alert("Error: No se encontró el modal en el código. modal:" + !!modal + " contenido:" + !!contenido);
+                    alert("Error: No se encontró el modal de materiales en el código.");
                     return;
                 }
                 modal.classList.remove('hidden');
-                contenido.classList.add('hidden');
-                sendClientMsg('MODAL_MATERIALES', { show: true, html: modal.querySelector('.modal-body').innerHTML });
+                
+                // Auto-mostrar el programa del alumno si está seleccionado
+                if (alumnoActual && alumnoActual.programaNombre) {
+                    const p = (alumnoActual.programaNombre || '').toLowerCase();
+                    if (materialesInfo[p]) mostrarMaterial(p);
+                    else if (p.includes('adult')) mostrarMaterial('adultos');
+                    else if (p.includes('teen') && !p.includes('pre') && !p.includes('pteen')) mostrarMaterial('teens');
+                    else if (p.includes('pre') || p.includes('pteen')) mostrarMaterial('preteens');
+                    else if (p.includes('kid')) mostrarMaterial('kids');
+                    else mostrarMaterial('adultos');
+                } else {
+                    mostrarMaterial('adultos');
+                }
             } catch (err) {
+                console.error("Error JS:", err);
                 alert("Error JS: " + err.message);
             }
         }
