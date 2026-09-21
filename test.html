@@ -400,7 +400,18 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="print-factura" class="hidden"></div>
-    <div id="print-constancia" class="hidden"></div>
+    <!-- VENTANA FLOTANTE DE NOTAS (Columna H) -->
+    <div id="floating-nota" class="hidden fixed top-6 right-6 z-40 max-w-xs md:max-w-sm w-full bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 shadow-xl text-gray-800 transition-all duration-200">
+        <div class="flex items-center justify-between border-b border-amber-200 pb-2 mb-2">
+            <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                <span class="text-base">📝</span>
+                <span>Nota:</span>
+            </div>
+            <button onclick="document.getElementById('floating-nota').classList.add('hidden')" class="text-amber-700 hover:text-amber-950 font-bold text-sm px-2 py-0.5 rounded hover:bg-amber-100 transition" title="Cerrar">✕</button>
+        </div>
+        <div id="lbl-nota-texto" class="text-xs md:text-sm text-amber-950 whitespace-pre-wrap leading-relaxed font-medium max-h-60 overflow-y-auto"></div>
+    </div>
+
     <div id="main-container" class="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-gray-100">
 
         <!-- PASO 1: BÚSQUEDA -->
@@ -712,6 +723,21 @@
                 <div id="lista-libros-detalle" class="space-y-2"></div>
             </div>
 
+            <!-- BOTÓN Y CONTENEDOR DE PRODUCTOS EXTRAS -->
+            <div class="space-y-2">
+                <button type="button" onclick="abrirModalAgregarProducto()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition duration-200 shadow-sm">
+                    <span class="text-sm">➕</span> Agregar producto o libro extra
+                </button>
+
+                <div id="contenedor-productos-extra" class="hidden bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 space-y-2">
+                    <div class="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
+                        <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">📦 Extras incluidos</span>
+                        <span id="badge-cant-extras" class="bg-indigo-200 text-indigo-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full"></span>
+                    </div>
+                    <div id="lista-productos-extra" class="space-y-1.5"></div>
+                </div>
+            </div>
+
             <!-- CARGO POR SERVICIO -->
             <div id="servicio-container" class="bg-purple-50 p-4 rounded-xl border border-purple-200 space-y-2">
                 <div class="flex items-center justify-between">
@@ -772,6 +798,10 @@
                 <div class="flex justify-between items-center hidden" id="fila-cargo-serv">
                     <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
                     <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
+                </div>
+                <div class="flex justify-between items-center hidden" id="fila-prod-extras">
+                    <span id="lbl-prod-extras">Productos / Libros extras:</span>
+                    <span id="desglose-prod-extras" class="font-bold text-indigo-700"></span>
                 </div>
                 <hr class="my-2 border-gray-100">
                 <div class="flex justify-between items-center text-lg">
@@ -1738,21 +1768,17 @@
             <div class="modal-body p-4 bg-white rounded-b-2xl">
                 <p class="text-center text-sm text-gray-600 mb-4 font-semibold">Selecciona el programa para ver los materiales y precios</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                    <button onclick="mostrarMaterial('kids')" class="py-2 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors flex flex-col items-center">
-                        <span class="font-bold text-sm">KIDS</span>
-                        <span class="text-[10px] opacity-90 font-medium">7 a 9 años</span>
+                    <button onclick="mostrarMaterial('kids')" class="py-2.5 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors flex items-center justify-center font-bold text-sm">
+                        KIDS
                     </button>
-                    <button onclick="mostrarMaterial('preteens')" class="py-2 px-3 rounded-xl border border-green-200 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white transition-colors flex flex-col items-center">
-                        <span class="font-bold text-sm">PRETEENS</span>
-                        <span class="text-[10px] opacity-90 font-medium">10 a 12 años</span>
+                    <button onclick="mostrarMaterial('preteens')" class="py-2.5 px-3 rounded-xl border border-green-200 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white transition-colors flex items-center justify-center font-bold text-sm">
+                        PRETEENS
                     </button>
-                    <button onclick="mostrarMaterial('teens')" class="py-2 px-3 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white transition-colors flex flex-col items-center">
-                        <span class="font-bold text-sm">TEENS</span>
-                        <span class="text-[10px] opacity-90 font-medium">13 a 16 años</span>
+                    <button onclick="mostrarMaterial('teens')" class="py-2.5 px-3 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white transition-colors flex items-center justify-center font-bold text-sm">
+                        TEENS
                     </button>
-                    <button onclick="mostrarMaterial('adultos')" class="py-2 px-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white transition-colors flex flex-col items-center">
-                        <span class="font-bold text-sm">ADULTOS</span>
-                        <span class="text-[10px] opacity-90 font-medium">17 o m&aacute;s</span>
+                    <button onclick="mostrarMaterial('adultos')" class="py-2.5 px-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white transition-colors flex items-center justify-center font-bold text-sm">
+                        ADULTOS
                     </button>
                 </div>
                 <div id="material-contenido" class="hidden border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -1774,6 +1800,67 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL AGREGAR PRODUCTO / LIBRO EXTRA ===== -->
+    <div id="modal-agregar-producto" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalAgregarProducto()">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="modal-header bg-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
+                <p class="font-bold text-base flex items-center gap-2">
+                    <span>➕</span> Agregar Producto o Libro Extra
+                </p>
+                <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalAgregarProducto()">✕</button>
+            </div>
+            <div class="modal-body p-5 bg-white rounded-b-2xl space-y-4 text-left">
+                <!-- Selector de Modo: Libro del catálogo o Producto libre -->
+                <div class="flex rounded-xl bg-gray-100 p-1 border border-gray-200">
+                    <button type="button" id="tab-tipo-libro" onclick="cambiarTabProducto('libro')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white text-indigo-700 shadow-sm">
+                        📚 Libro del Catálogo
+                    </button>
+                    <button type="button" id="tab-tipo-libre" onclick="cambiarTabProducto('libre')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900">
+                        📦 Producto Nuevo
+                    </button>
+                </div>
+
+                <!-- Panel 1: Libro del catálogo -->
+                <div id="panel-prod-libro" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Selecciona el Libro:</label>
+                        <select id="modal-prod-sel-libro" onchange="seleccionarLibroModal()" class="w-full p-2.5 border border-gray-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="">-- Elige un libro --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Producto libre -->
+                <div id="panel-prod-libre" class="space-y-3 hidden">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Descripción del Producto:</label>
+                        <input type="text" id="modal-prod-nombre-libre" placeholder="Ej. Cuaderno, Mochila, Reposición..." class="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Campo Precio (compartido, auto-llenado y editable) -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Precio a cobrar ($ MXN):</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-gray-500 font-bold text-sm">$</span>
+                        <input type="number" id="modal-prod-precio" min="0" step="1" placeholder="0" class="w-full p-2.5 pl-7 border border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">Puedes ajustar el precio si se requiere.</p>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="cerrarModalAgregarProducto()" class="flex-1 py-2 px-4 rounded-xl border border-gray-300 text-gray-700 font-bold text-xs hover:bg-gray-50 transition">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="confirmarAgregarProducto()" class="flex-1 py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-sm">
+                        ➕ Agregar al cálculo
+                    </button>
                 </div>
             </div>
         </div>
@@ -1971,6 +2058,7 @@
                     const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
                     if (condicionTexto === "SERVICIO") tieneServicio = true;
                     const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
+                    const notaAlumno = fila[7] ? String(fila[7]).trim() : '';
                     let correoAlumno = 'No registrado';
                     if (fila[8]) correoAlumno = String(fila[8]).trim();
                     let celularAlumno = 'No registrado';
@@ -2019,7 +2107,7 @@
                     const esNuevoLayout = fila[0] ? String(fila[0]).trim().toUpperCase() === 'N' : false;
 
                     const alumno = {
-                        idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
+                        idOriginal: id, nombre: nombreAlumno, nota: notaAlumno, correo: correoAlumno, celular: celularAlumno,
                         modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
                         prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                         cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
@@ -2076,6 +2164,7 @@
                         if (condicionTexto === "SERVICIO") tieneServicio = true;
 
                         const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
+                        const notaAlumno = fila[7] ? String(fila[7]).trim() : '';
                         let correoAlumno = 'No registrado';
                         if (fila[8]) correoAlumno = String(fila[8]).trim();
                         let celularAlumno = 'No registrado';
@@ -2124,7 +2213,7 @@
                         const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
 
                         const alumno = {
-                            idOriginal: id, nombre: nombreAlumno, correo: correoAlumno, celular: celularAlumno,
+                            idOriginal: id, nombre: nombreAlumno, nota: notaAlumno, correo: correoAlumno, celular: celularAlumno,
                             modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
                             prefijoMod: modalidadCalculada, programa: "08", nivelActual: nivelActual,
                             cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
@@ -2737,6 +2826,20 @@
             if (alumnoEncontrado) {
                 alumnoActual = alumnoEncontrado;
                 errorBox.classList.add('hidden');
+
+                // Resetear productos extra al cambiar de alumno
+                productosExtra = [];
+
+                // Mostrar nota flotante si existe
+                const notaEl = document.getElementById('floating-nota');
+                const notaTextoEl = document.getElementById('lbl-nota-texto');
+                if (alumnoActual.nota && alumnoActual.nota.trim() !== '' && alumnoActual.nota.trim() !== '-' && alumnoActual.nota.trim().toUpperCase() !== 'N/A') {
+                    if (notaTextoEl) notaTextoEl.innerText = alumnoActual.nota;
+                    if (notaEl) notaEl.classList.remove('hidden');
+                } else {
+                    if (notaEl) notaEl.classList.add('hidden');
+                }
+
                 let tagNuevo = alumnoActual.esNuevoLayout ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-3 py-[1px] rounded-full inline-block align-baseline relative -top-[1px] ml-1 tracking-wider border border-blue-200">NUEVO</span>' : '';
                 const lblIdEl = document.getElementById('lbl-id');
                 lblIdEl.innerText = alumnoActual.idOriginal;
@@ -2852,6 +2955,9 @@
                 resetearFormRecuperacion();
             } else {
                 alumnoActual = null;
+                productosExtra = [];
+                const notaEl = document.getElementById('floating-nota');
+                if (notaEl) notaEl.classList.add('hidden');
                 ficha.classList.add('hidden');
                 calculos.classList.add('hidden');
                 document.getElementById('menu-principal').classList.add('hidden');
@@ -2875,6 +2981,9 @@
             document.getElementById('alumno-id').value = '';
             const tagEl = document.getElementById('lbl-id-tag');
             if (tagEl) tagEl.innerHTML = '';
+            const notaEl = document.getElementById('floating-nota');
+            if (notaEl) notaEl.classList.add('hidden');
+            productosExtra = [];
             alumnoActual = null;
             sendClientMsg('RESET');
         }
@@ -2915,6 +3024,162 @@
                     fin: document.getElementById('lbl-fin-siguiente') ? document.getElementById('lbl-fin-siguiente').innerText : ''
                 }
             });
+        }
+
+        // ===== PRODUCTOS EXTRAS Y CATÁLOGO DE LIBROS =====
+        let productosExtra = [];
+
+        const CATALOGO_LIBROS_COMPLETO = [
+            // KIDS
+            { programa: 'KIDS', nombre: 'KID BOX 1', precio: 994 },
+            { programa: 'KIDS', nombre: 'KID BOX 2', precio: 994 },
+            { programa: 'KIDS', nombre: 'KID BOX 3', precio: 994 },
+            { programa: 'KIDS', nombre: 'KID BOX 4', precio: 994 },
+            { programa: 'KIDS', nombre: 'KID BOX 5', precio: 994 },
+            // PRETEENS
+            { programa: 'PRETEENS', nombre: 'GAME CHANGER STARTER', precio: 700 },
+            { programa: 'PRETEENS', nombre: 'GAME CHANGER LEVEL 1', precio: 700 },
+            { programa: 'PRETEENS', nombre: 'GAME CHANGER LEVEL 2', precio: 700 },
+            { programa: 'PRETEENS', nombre: 'GAME CHANGER LEVEL 3', precio: 700 },
+            // TEENS & ADULTOS
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 1', precio: 777 },
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 2', precio: 777 },
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 3', precio: 777 },
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 4', precio: 777 },
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 5', precio: 777 },
+            { programa: 'TEENS / ADULTOS', nombre: 'EVOLVE 6', precio: 777 }
+        ];
+
+        let modoProductoActual = 'libro';
+
+        function abrirModalAgregarProducto() {
+            const modal = document.getElementById('modal-agregar-producto');
+            if (!modal) return;
+            cambiarTabProducto('libro');
+            poblarSelectLibrosModal();
+            document.getElementById('modal-prod-nombre-libre').value = '';
+            document.getElementById('modal-prod-precio').value = '';
+            modal.classList.remove('hidden');
+        }
+
+        function cerrarModalAgregarProducto() {
+            const modal = document.getElementById('modal-agregar-producto');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function cambiarTabProducto(tipo) {
+            modoProductoActual = tipo;
+            const tabLibro = document.getElementById('tab-tipo-libro');
+            const tabLibre = document.getElementById('tab-tipo-libre');
+            const panelLibro = document.getElementById('panel-prod-libro');
+            const panelLibre = document.getElementById('panel-prod-libre');
+            const precioInput = document.getElementById('modal-prod-precio');
+
+            if (tipo === 'libro') {
+                tabLibro.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white text-indigo-700 shadow-sm';
+                tabLibre.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900';
+                panelLibro.classList.remove('hidden');
+                panelLibre.classList.add('hidden');
+                seleccionarLibroModal();
+            } else {
+                tabLibre.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white text-indigo-700 shadow-sm';
+                tabLibre.className = 'flex-1 py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900';
+                panelLibre.classList.remove('hidden');
+                panelLibro.classList.add('hidden');
+                precioInput.value = '';
+            }
+        }
+
+        function poblarSelectLibrosModal() {
+            const sel = document.getElementById('modal-prod-sel-libro');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Elige un libro del catálogo --</option>';
+
+            const grupos = {};
+            CATALOGO_LIBROS_COMPLETO.forEach(item => {
+                if (!grupos[item.programa]) grupos[item.programa] = [];
+                grupos[item.programa].push({ ...item });
+            });
+
+            if (typeof librosMap !== 'undefined' && librosMap.size > 0) {
+                librosMap.forEach((val, key) => {
+                    const yaExiste = CATALOGO_LIBROS_COMPLETO.some(c => c.nombre.trim().toUpperCase() === val.nombre.trim().toUpperCase());
+                    if (!yaExiste) {
+                        const prog = key.split('_')[0] || 'OTROS';
+                        if (!grupos[prog]) grupos[prog] = [];
+                        grupos[prog].push({ programa: prog, nombre: val.nombre, precio: val.precio });
+                    }
+                });
+            }
+
+            for (const [prog, items] of Object.entries(grupos)) {
+                const optGroup = document.createElement('optgroup');
+                optGroup.label = prog;
+                items.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.nombre;
+                    opt.dataset.precio = item.precio;
+                    opt.textContent = `${item.nombre} - $${item.precio.toLocaleString('es-MX')}`;
+                    optGroup.appendChild(opt);
+                });
+                sel.appendChild(optGroup);
+            }
+        }
+
+        function seleccionarLibroModal() {
+            const sel = document.getElementById('modal-prod-sel-libro');
+            const precioInput = document.getElementById('modal-prod-precio');
+            if (!sel || !precioInput) return;
+            const selectedOpt = sel.options[sel.selectedIndex];
+            if (selectedOpt && selectedOpt.dataset.precio) {
+                precioInput.value = selectedOpt.dataset.precio;
+            } else {
+                precioInput.value = '';
+            }
+        }
+
+        function confirmarAgregarProducto() {
+            const precioVal = parseFloat(document.getElementById('modal-prod-precio').value);
+            if (isNaN(precioVal) || precioVal < 0) {
+                alert("Por favor ingresa un precio válido.");
+                return;
+            }
+
+            let nombreFinal = '';
+            let esLibro = false;
+
+            if (modoProductoActual === 'libro') {
+                const sel = document.getElementById('modal-prod-sel-libro');
+                if (!sel || !sel.value) {
+                    alert("Por favor selecciona un libro de la lista.");
+                    return;
+                }
+                nombreFinal = `Libro: ${sel.value}`;
+                esLibro = true;
+            } else {
+                const descVal = document.getElementById('modal-prod-nombre-libre').value.trim();
+                if (!descVal) {
+                    alert("Por favor escribe una descripción para el producto.");
+                    return;
+                }
+                nombreFinal = descVal;
+                esLibro = false;
+            }
+
+            productosExtra.push({
+                id: Date.now() + Math.random(),
+                nombre: nombreFinal,
+                precio: precioVal,
+                esLibro: esLibro
+            });
+
+            cerrarModalAgregarProducto();
+            actualizarCalculos();
+        }
+
+        function eliminarProductoExtra(id) {
+            productosExtra = productosExtra.filter(p => p.id !== id);
+            actualizarCalculos();
         }
 
         // ===== Mostrar sección de pagos (paso 3) =====
@@ -3060,11 +3325,57 @@
                 });
                 document.getElementById('libro-mensaje').innerHTML = `Selecciona los libros que deseas incluir:`;
             } else { libroContainer.classList.add('hidden'); }
+
+            // Total productos extras
+            const totalExtras = productosExtra.reduce((sum, p) => sum + (parseFloat(p.precio) || 0), 0);
+
+            // Renderizar contenedor y lista de extras
+            const contExtras = document.getElementById('contenedor-productos-extra');
+            const listaExtrasDiv = document.getElementById('lista-productos-extra');
+            const badgeCantExtras = document.getElementById('badge-cant-extras');
+            if (contExtras && listaExtrasDiv) {
+                if (productosExtra.length > 0) {
+                    contExtras.classList.remove('hidden');
+                    if (badgeCantExtras) badgeCantExtras.innerText = `${productosExtra.length} ${productosExtra.length === 1 ? 'item' : 'items'}`;
+                    listaExtrasDiv.innerHTML = '';
+                    productosExtra.forEach(p => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'flex items-center justify-between bg-white p-2 rounded-lg border border-indigo-100 text-xs shadow-2xs';
+                        itemDiv.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="text-indigo-600 font-bold">${p.esLibro ? '📚' : '📦'}</span>
+                                <span class="font-medium text-gray-800">${p.nombre}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-900">$${parseFloat(p.precio).toLocaleString('es-MX')}</span>
+                                <button type="button" onclick="eliminarProductoExtra(${p.id})" class="text-red-500 hover:text-red-700 font-bold hover:bg-red-50 p-1 rounded transition" title="Quitar este producto">✕</button>
+                            </div>
+                        `;
+                        listaExtrasDiv.appendChild(itemDiv);
+                    });
+                } else {
+                    contExtras.classList.add('hidden');
+                    listaExtrasDiv.innerHTML = '';
+                }
+            }
+
+            // Fila extras en resumen de pago
+            const filaProdExtras = document.getElementById('fila-prod-extras');
+            const desgloseProdExtras = document.getElementById('desglose-prod-extras');
+            if (filaProdExtras && desgloseProdExtras) {
+                if (totalExtras > 0) {
+                    filaProdExtras.classList.remove('hidden');
+                    desgloseProdExtras.innerText = fmt.format(totalExtras);
+                } else {
+                    filaProdExtras.classList.add('hidden');
+                }
+            }
+
             totalConDescuentoSinServicio = totalCursosSinServicio;
             totalListaLibrosFinal = librosFinal;
             const totalCursosConServicio  = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
-            const totalConDescuentoGeneral = totalCursosConServicio + librosFinal;
-            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + librosOriginales;
+            const totalConDescuentoGeneral = totalCursosConServicio + librosFinal + totalExtras;
+            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + librosOriginales + totalExtras;
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const primerEsAlto = primerNivel >= 21;
             const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
@@ -3101,11 +3412,15 @@
             const filaCargoServ = document.getElementById('fila-cargo-serv');
             const lblTotalFinal = document.getElementById('lbl-total-final');
 
-            const totLibSin = totalCursosSinServicio + librosFinal;
+            const totLibSin = totalCursosSinServicio + librosFinal + totalExtras;
             
-            if (extraServicio > 0 || librosFinal > 0) {
+            if (extraServicio > 0 || librosFinal > 0 || totalExtras > 0) {
                 filaTotSinServ.classList.remove('hidden');
-                lblTotSinServ.innerText = librosFinal > 0 ? "Total con libro sin servicio:" : "Total sin servicio:";
+                let sufijoSin = "Total sin servicio:";
+                if (librosFinal > 0 && totalExtras > 0) sufijoSin = "Total con libros/extras sin servicio:";
+                else if (librosFinal > 0) sufijoSin = "Total con libro sin servicio:";
+                else if (totalExtras > 0) sufijoSin = "Total con extras sin servicio:";
+                lblTotSinServ.innerText = sufijoSin;
                 totSinServEl.innerText = fmt.format(totLibSin);
             } else {
                 filaTotSinServ.classList.add('hidden');
@@ -3119,7 +3434,11 @@
                 filaCargoServ.classList.add('hidden');
             }
 
-            lblTotalFinal.innerText = librosFinal > 0 ? (extraServicio > 0 ? "Total con libro CON servicio:" : "Total con libro:") : "Total:";
+            if (librosFinal > 0 || totalExtras > 0) {
+                lblTotalFinal.innerText = extraServicio > 0 ? "Total con extras CON servicio:" : "Total con extras:";
+            } else {
+                lblTotalFinal.innerText = "Total:";
+            }
             document.getElementById('res-descuento-total').innerHTML = fmt.format(totalConDescuentoGeneral);
 
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
@@ -3216,7 +3535,9 @@
                 granTotal: fmt.format(totalConDescuentoGeneral),
                 ahorro: ahorro > 0 ? fmt.format(ahorro) : null,
                 etiquetaPromo: etiquetaCliente,
-                libros: listaLibrosCliente
+                libros: listaLibrosCliente,
+                productosExtra: productosExtra.map(p => ({ nombre: p.nombre, precio: fmt.format(p.precio) })),
+                totalExtras: fmt.format(totalExtras)
             });
         }
 
@@ -3353,7 +3674,8 @@
             const cantCursos = parseInt(document.getElementById('cursos-slider').value);
             const toggleServicio = document.getElementById('servicio-toggle');
             const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
-            const subtotal = totalConDescuentoSinServicio + totalListaLibrosFinal;
+            const totalExtras = (typeof productosExtra !== 'undefined') ? productosExtra.reduce((sum, p) => sum + (parseFloat(p.precio) || 0), 0) : 0;
+            const subtotal = totalConDescuentoSinServicio + totalListaLibrosFinal + totalExtras;
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             let promo = obtenerMejorPromoVigente(cantCursos);
@@ -3365,6 +3687,10 @@
                 const librosActivos = infoLibros.libros.filter((_,idx)=>librosSeleccionadosIndices.includes(idx));
                 librosTexto = `\n• *Libros incluidos:* ${librosActivos.map(l=>l.nombre).join(", ")} ($${totalListaLibrosFinal.toLocaleString('es-MX')})`;
             } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
+            let extrasTexto = "";
+            if (typeof productosExtra !== 'undefined' && productosExtra.length > 0) {
+                extrasTexto = `\n• *Extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
+            }
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             const mensaje = `Hola, solicito mis fichas de pago por favor.
       
@@ -3379,7 +3705,7 @@
 *Detalle de la Solicitud:*
 • *Niveles a pagar:* ${cantCursos} curso(s)
 • *Descuento:* ${stringDescuento}
-• *Subtotal:* ${fmt.format(subtotal)}${librosTexto}
+• *Subtotal:* ${fmt.format(subtotal)}${librosTexto}${extrasTexto}
 • *Total a pagar:* ${fmt.format(totalFinal)}`;
             window.open(`https://wa.me/${numeroDestino}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
@@ -4749,6 +5075,20 @@
                             </tr>
                         `;
                     }
+                });
+            }
+
+            // Productos extras
+            if (productosExtra && productosExtra.length > 0) {
+                productosExtra.forEach(p => {
+                    const precioExtra = parseFloat(p.precio) || 0;
+                    totalGeneral += precioExtra;
+                    tbodyHtml += `
+                        <tr>
+                            <td>${p.nombre}</td>
+                            <td class="monto">$${precioExtra.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        </tr>
+                    `;
                 });
             }
             
