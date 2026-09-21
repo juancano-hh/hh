@@ -54,6 +54,7 @@ const appEl = document.getElementById('app');
 const KEY = 'ticketNumber';
 let alarmInterval = null;
 let unsubState = null;
+let unsubLastAssigned = null;
 
 /* ---------- Audio para iPhone (no soporta vibrate) ---------- */
 function playAlarm() {
@@ -87,6 +88,7 @@ function stopAlarm() {
 }
 function cleanupListeners() {
   if (unsubState) { unsubState(); unsubState = null; }
+  if (unsubLastAssigned) { unsubLastAssigned(); unsubLastAssigned = null; }
 }
 
 /* ---------- Asignar número automáticamente ---------- */
@@ -205,6 +207,25 @@ function renderTicket(n) {
       }
     }
     updateStatus();
+  });
+
+  unsubLastAssigned = onValue(ref(db, 'tickets/lastAssigned'), snap => {
+    const la = snap.val() !== null ? snap.val() : 0;
+    // Si nuestro número es mayor al último asignado en el sistema,
+    // significa que el administrador reinició la cola.
+    if (myNum > la && la !== null && !cleared) {
+      cleared = true;
+      localStorage.removeItem(KEY);
+      stopAlarm();
+      cleanupListeners();
+      
+      appEl.innerHTML = `
+        <h1>Sistema Reiniciado</h1>
+        <p style="color:#888;margin-top:1rem;margin-bottom:2rem;">El administrador ha reiniciado los turnos. Tu ticket anterior ya no es válido.</p>
+        <button id="newTicketBtn" style="font-size: 1.5rem; padding: 1rem 2rem; background: #6366f1; color: white; border-radius: 14px; border: none; font-weight: 600; cursor: pointer;">Sacar nuevo turno</button>
+      `;
+      document.getElementById('newTicketBtn').onclick = () => { unlockFeatures(); assignNumber(); };
+    }
   });
 }
 
