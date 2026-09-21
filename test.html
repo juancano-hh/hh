@@ -699,7 +699,7 @@
                     <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
                     <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
                 </div>
-                <input type="range" id="cursos-slider" min="1" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <input type="range" id="cursos-slider" min="0" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                 <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
             </div>
 
@@ -3200,7 +3200,9 @@
             } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
             const slider = document.getElementById('cursos-slider');
             const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
-            slider.max = maxCursos; slider.value = 1;
+            slider.min = 0;
+            slider.max = maxCursos;
+            slider.value = 1;
             document.getElementById('lbl-max-permitido').innerText = `*Máximo disponible: ${maxCursos} niveles.`;
             document.getElementById('libro-toggle').checked = true;
             librosSeleccionadosIndices = []; ultimosLibrosClave = "";
@@ -3231,7 +3233,9 @@
 
         function actualizarCalculos() {
             if (!alumnoActual) return;
-            const cantCursos = parseInt(document.getElementById('cursos-slider').value);
+            const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
+            const valSlider = parseInt(document.getElementById('cursos-slider').value);
+            const cantCursos = isNaN(valSlider) ? 0 : Math.max(0, valSlider);
             document.getElementById('cursos-val').innerText = cantCursos;
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
@@ -3239,7 +3243,9 @@
             const nivelActual = alumnoActual.nivelActual;
             const primerNivel = nivelActual + 1, ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
-            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) (nivel >= 21) ? cursosAltos++ : cursosBajos++;
+            if (cantCursos > 0) {
+                for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) (nivel >= 21) ? cursosAltos++ : cursosBajos++;
+            }
             const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
             const llaveAlta = `${alumnoActual.prefijoMod}${alumnoActual.programa}21`;
             let precioBaseBajo = tablaPrecios[llaveBaja] || 0;
@@ -3289,8 +3295,9 @@
             else { fechaVigenciaSpan.classList.add('hidden'); }
             const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - descuentoAplicar));
             const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - descuentoAplicar));
-            const totalCursosSinServicio  = (unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos);
-            const librosData = calcularLibrosNecesarios(nivelActual, alumnoActual.programaNombre, cantCursos);
+            const totalCursosSinServicio  = cantCursos > 0 ? ((unitarioDescBajoSinServ * cursosBajos) + (unitarioDescAltoSinServ * cursosAltos)) : 0;
+            const cursosParaLibro = Math.max(1, cantCursos);
+            const librosData = calcularLibrosNecesarios(nivelActual, alumnoActual.programaNombre, cursosParaLibro);
             infoLibros = librosData;
             const claveActual = infoLibros.libros.map(l => l.nombre).join('|');
             if (claveActual !== ultimosLibrosClave) {
@@ -3373,10 +3380,9 @@
 
             totalConDescuentoSinServicio = totalCursosSinServicio;
             totalListaLibrosFinal = librosFinal;
-            const totalCursosConServicio  = ((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos);
+            const totalCursosConServicio  = cantCursos > 0 ? (((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos)) : 0;
             const totalConDescuentoGeneral = totalCursosConServicio + librosFinal + totalExtras;
-            const totalListaGeneral = ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) + librosOriginales + totalExtras;
-            const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+            const totalListaGeneral = (cantCursos > 0 ? ((precioBaseBajo+extraServicio)*cursosBajos+(precioBaseAlto+extraServicio)*cursosAltos) : 0) + librosOriginales + totalExtras;
             const primerEsAlto = primerNivel >= 21;
             const precioBaseEjemplo = primerEsAlto ? precioBaseAlto : precioBaseBajo;
             const unitarioLista = precioBaseEjemplo + extraServicio;
@@ -3414,7 +3420,7 @@
 
             const totLibSin = totalCursosSinServicio + librosFinal + totalExtras;
             
-            if (extraServicio > 0 || librosFinal > 0 || totalExtras > 0) {
+            if (cantCursos > 0 && extraServicio > 0) {
                 filaTotSinServ.classList.remove('hidden');
                 let sufijoSin = "Total sin servicio:";
                 if (librosFinal > 0 && totalExtras > 0) sufijoSin = "Total con libros/extras sin servicio:";
@@ -3426,7 +3432,7 @@
                 filaTotSinServ.classList.add('hidden');
             }
 
-            if (extraServicio > 0) {
+            if (extraServicio > 0 && cantCursos > 0) {
                 filaCargoServ.classList.remove('hidden');
                 document.getElementById('desglose-cargo-multi').innerText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
                 document.getElementById('desglose-cargo-tot').innerText = fmt.format(90 * cantCursos);
@@ -3434,7 +3440,12 @@
                 filaCargoServ.classList.add('hidden');
             }
 
-            if (librosFinal > 0 || totalExtras > 0) {
+            if (cantCursos === 0) {
+                if (librosFinal > 0 && totalExtras > 0) lblTotalFinal.innerText = "Total libros y extras:";
+                else if (librosFinal > 0) lblTotalFinal.innerText = "Total libro:";
+                else if (totalExtras > 0) lblTotalFinal.innerText = "Total extras:";
+                else lblTotalFinal.innerText = "Total a pagar:";
+            } else if (librosFinal > 0 || totalExtras > 0) {
                 lblTotalFinal.innerText = extraServicio > 0 ? "Total con extras CON servicio:" : "Total con extras:";
             } else {
                 lblTotalFinal.innerText = "Total:";
@@ -3448,7 +3459,7 @@
             // ===== ACTUALIZAR FECHA DE COTIZACIÓN =====
             const lblCotizacionFecha = document.getElementById('lbl-cotizacion-fecha');
             const contCotizacion = document.getElementById('cotizacion-fecha-container');
-            if (lblCotizacionFecha && contCotizacion && alumnoActual) {
+            if (cantCursos > 0 && lblCotizacionFecha && contCotizacion && alumnoActual) {
                 let targetPeriod = alumnoActual.periodoSiguiente;
                 let modStr = alumnoActual.programa || '04';
                 if (targetPeriod && targetPeriod.length >= 4) {
@@ -3507,6 +3518,8 @@
                 } else {
                     contCotizacion.classList.add('hidden');
                 }
+            } else if (contCotizacion) {
+                contCotizacion.classList.add('hidden');
             }
 
             // Preparar array de libros activos para el cliente
@@ -3519,7 +3532,7 @@
             }
 
             let etiquetaCliente = '';
-            if (descuentoAplicar > 0) {
+            if (descuentoAplicar > 0 && cantCursos > 0) {
                 if (etiquetaPromo === "Beca asignada") etiquetaCliente = `${Math.round(descuentoAplicar*100)}% - Beca base`;
                 else if (etiquetaPromo.startsWith("Descuento")) etiquetaCliente = etiquetaPromo;
                 else etiquetaCliente = `${Math.round(descuentoAplicar*100)}% - ${etiquetaPromo}`;
@@ -3692,6 +3705,7 @@
                 extrasTexto = `\n• *Extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
             }
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+            let nivelesTexto = cantCursos > 0 ? `${cantCursos} curso(s)` : 'Solo material / extras (0 cursos)';
             const mensaje = `Hola, solicito mis fichas de pago por favor.
       
 *Mis Datos:*
@@ -3703,7 +3717,7 @@
 • *Horario:* ${alumnoActual.horario}
 
 *Detalle de la Solicitud:*
-• *Niveles a pagar:* ${cantCursos} curso(s)
+• *Niveles a pagar:* ${nivelesTexto}
 • *Descuento:* ${stringDescuento}
 • *Subtotal:* ${fmt.format(subtotal)}${librosTexto}${extrasTexto}
 • *Total a pagar:* ${fmt.format(totalFinal)}`;
@@ -5005,7 +5019,8 @@
             }
             
             // Recopilar datos
-            const cantCursos = parseInt(document.getElementById('cursos-slider').value) || 1;
+            const valSlider = parseInt(document.getElementById('cursos-slider').value);
+            const cantCursos = isNaN(valSlider) ? 0 : Math.max(0, valSlider);
             const toggleServicio = document.getElementById('servicio-toggle');
             const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             
@@ -5013,9 +5028,11 @@
             const primerNivel = nivelActual + 1;
             const ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
-            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
-                if (nivel >= 21) cursosAltos++;
-                else cursosBajos++;
+            if (cantCursos > 0) {
+                for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
+                    if (nivel >= 21) cursosAltos++;
+                    else cursosBajos++;
+                }
             }
             
             const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
@@ -5331,7 +5348,8 @@
             let rfcVal = document.getElementById('recibo-rfc').value.trim().toUpperCase();
             if (!rfcVal) rfcVal = 'N/A';
             
-            const cantCursos = parseInt(document.getElementById('cursos-slider').value) || 1;
+            const valSlider = parseInt(document.getElementById('cursos-slider').value);
+            const cantCursos = isNaN(valSlider) ? 0 : Math.max(0, valSlider);
             const toggleServicio = document.getElementById('servicio-toggle');
             const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             
@@ -5339,9 +5357,11 @@
             const primerNivel = nivelActual + 1;
             const ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
-            for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
-                if (nivel >= 21) cursosAltos++;
-                else cursosBajos++;
+            if (cantCursos > 0) {
+                for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
+                    if (nivel >= 21) cursosAltos++;
+                    else cursosBajos++;
+                }
             }
             
             const llaveBaja = `${alumnoActual.prefijoMod}${alumnoActual.programa}BAJO`;
@@ -5349,7 +5369,7 @@
             const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
             
-            const montoCursosOriginal = (precioBaseBajo * cursosBajos) + (precioBaseAlto * cursosAltos) + extraServicio;
+            const montoCursosOriginal = cantCursos > 0 ? ((precioBaseBajo * cursosBajos) + (precioBaseAlto * cursosAltos) + (extraServicio * cantCursos)) : 0;
             const montoDescuento = montoCursosOriginal * (porcentajeDescuentoActual / 100);
             const montoCursosFinal = montoCursosOriginal - montoDescuento;
             
@@ -5382,6 +5402,21 @@
                             </tr>
                         `;
                     }
+                });
+            }
+
+            if (productosExtra && productosExtra.length > 0) {
+                productosExtra.forEach(p => {
+                    const precioExtra = parseFloat(p.precio) || 0;
+                    montoMateriales += precioExtra;
+                    conceptosHtml += `
+                        <tr>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;">1.00</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: center;">${p.nombre.toUpperCase()}</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: center;">1</td>
+                            <td style="border: 1px solid black; padding: 2px; text-align: right;"></td>
+                        </tr>
+                    `;
                 });
             }
             
