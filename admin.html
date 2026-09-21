@@ -291,6 +291,7 @@ function paint() {
   const pendEl   = document.getElementById('pendingVal');
   const callerEl = document.getElementById('callerVal');
   const reBtn    = document.getElementById('reAlert');
+  const nextBtn  = document.getElementById('next');
 
   const cur = state.current ?? 0;
   curEl.textContent    = cur === 0 ? '—' : cur;
@@ -307,6 +308,14 @@ function paint() {
   pendEl.textContent = pending;
 
   reBtn.disabled = cur === 0;
+
+  if (cur >= lastAssigned) {
+    nextBtn.disabled = true;
+    nextBtn.textContent = 'No hay turnos';
+  } else {
+    nextBtn.disabled = false;
+    nextBtn.textContent = '▶ Siguiente';
+  }
 }
 
 /* ---------- Init ---------- */
