@@ -143,17 +143,25 @@ function renderPanel() {
       </div>
     </div>
 
-    <div class="row big-row">
-      <button id="prev" class="secondary">◀ Anterior</button>
-      <button id="next" style="font-size:1.8rem; padding:1.2rem 3rem;">▶ Siguiente</button>
-      <button id="reAlert" class="warn" disabled>🔔 Volver a avisar</button>
+    <div class="row big-row" style="align-items: center;">
+      <button id="prev" class="secondary" style="flex:1; max-width:150px;">◀ Anterior</button>
+      <button id="next" style="font-size:1.8rem; padding:1.2rem 2rem; flex:2; max-width:300px; box-shadow: 0 4px 20px rgba(99,102,241,0.4);">▶ Siguiente</button>
+      <button id="reAlert" class="warn" disabled style="flex:1; max-width:150px;">🔔 Re-avisar</button>
     </div>
 
-    <div class="row">
-      <input type="number" id="jump" placeholder="0" min="0">
-      <button id="go" class="secondary">Ir a número</button>
-      <button id="clean" class="danger secondary">Limpiar cola</button>
-      <button id="reset" class="danger secondary">Reiniciar todo</button>
+    <div style="background: #1a1a22; padding: 1.5rem; border-radius: 12px; margin-top: 2rem; text-align: left;">
+      <h2 style="font-size: .9rem; color: #888; margin: 0 0 1rem 0; text-transform: uppercase; letter-spacing: .05em;">⚙️ Opciones Avanzadas</h2>
+      
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: stretch;">
+        <div style="display: flex; gap: .5rem; align-items: center; background: #2a2a36; padding: .5rem; border-radius: 12px; flex: 1; min-width: 220px;">
+          <input type="number" id="jump" placeholder="Nº" min="0" style="width: 70px; padding: .6rem; font-size: 1rem;">
+          <button id="go" class="secondary" style="flex: 1; padding: .6rem; font-size: 1rem; background: #3f3f4e;">Ir a número</button>
+        </div>
+
+        <button id="clean" class="secondary" style="flex: 1; min-width: 180px; padding: .8rem; font-size: .95rem; border: 1px solid #444;" title="Borra de la base de datos los tickets que ya pasaron para liberar espacio (no afecta los números actuales).">🧹 Borrar atendidos</button>
+        
+        <button id="reset" class="danger secondary" style="flex: 1; min-width: 180px; padding: .8rem; font-size: .95rem;">⚠️ Reiniciar todo</button>
+      </div>
     </div>
 
     <p class="hint">Todo se sincroniza en tiempo real con los móviles de los clientes.</p>
@@ -180,7 +188,7 @@ function renderPanel() {
     await resetAll();
   };
   document.getElementById('clean').onclick = async () => {
-    if (!confirm('¿Eliminar de la cola todos los números ya atendidos?')) return;
+    if (!confirm('¿Eliminar de la base de datos todos los números ya atendidos? Esto no afecta a la cola actual, solo libera espacio.')) return;
     const now = Date.now();
     const toRemove = [];
     for (const [k, ts] of Object.entries(queue)) {
