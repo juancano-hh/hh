@@ -39,22 +39,48 @@
             border-bottom: 1px solid rgba(200,210,230,0.4);
             flex-shrink: 0;
         }
-        .modal-body { padding: 6px 12px 10px 12px; overflow: hidden; }
+        .modal-body { padding: 8px 16px 14px 16px; overflow: hidden; }
         
         /* Calendario general */
-        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-        .cal-mes { background: rgba(255,255,255,0.65); border-radius: 8px; padding: 3px 5px; border: 1px solid rgba(200,210,230,0.6); }
-        .cal-mes-tit { text-align: center; font-size: 0.72rem; font-weight: 800; margin-bottom: 1px; color: #1e293b; }
-        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 0.55rem; font-weight: bold; margin-bottom: 1px; color: #64748b; }
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .cal-mes { background: rgba(255,255,255,0.75); border-radius: 10px; padding: 5px 6px 6px; border: 1px solid rgba(200,210,230,0.65); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .cal-mes-tit { text-align: center; font-size: 0.8rem; font-weight: 800; margin-bottom: 2px; color: #1e293b; }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: 0.6rem; font-weight: bold; margin-bottom: 2px; color: #64748b; }
         .cal-wday.dom { color: #e11d48; }
-        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; }
-        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 3px; font-size: 0.6rem; font-weight: 700; background: rgba(255,255,255,0.4); max-height: 20px; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 0.72rem; font-weight: 700; background: rgba(255,255,255,0.45); max-height: 25px; transition: transform 0.1s; }
         .cal-d.otro-mes { opacity: 0.15; }
         .cal-d.cal-clase { background: rgba(100,180,255,0.45) !important; font-weight: bold; color: #1e3a8a; }
         .cal-d.cal-sab { background: rgba(33,150,243,0.45) !important; font-weight: bold; color: #0c4a6e; }
-        .cal-d.cal-inicio { background: rgba(76,200,80,0.7) !important; font-weight: 900; color: #000; }
-        .cal-d.cal-fin { background: rgba(186,104,200,0.7) !important; font-weight: 900; color: #000; }
-        .cal-d.cal-pago { background: rgba(255,180,50,0.5) !important; font-weight: 900; color: #7c2d12; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.75) !important; font-weight: 900; color: #052e16; }
+        .cal-d.cal-fin { background: rgba(186,104,200,0.75) !important; font-weight: 900; color: #3b0764; }
+        .cal-d.cal-pago { background: rgba(255,180,50,0.55) !important; font-weight: 900; color: #7c2d12; }
+        .cal-d.cal-dom { background: rgba(0,0,0,0.03) !important; color: #94a3b8; }
+        
+        .cal-d.cal-hoy {
+            border: 2.5px solid #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4) !important;
+            font-weight: 900 !important;
+            color: #b91c1c !important;
+            transform: scale(1.15);
+            z-index: 10;
+            position: relative;
+        }
+        .cal-d.cal-hoy.cal-clase  { border-color: #ef4444 !important; }
+        .cal-d.cal-hoy.cal-sab    { border-color: #ef4444 !important; }
+        .cal-d.cal-hoy.cal-inicio { border-color: #ef4444 !important; }
+        .cal-d.cal-hoy.cal-fin    { border-color: #ef4444 !important; }
+        .cal-d.cal-hoy.cal-pago   { border-color: #ef4444 !important; }
+
+        .cal-leyenda { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 0.72rem; font-weight: 700; color: #334155; }
+        .cal-ley-item { display: flex; align-items: center; gap: 4px; }
+        .cal-cuadro { display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); }
+        .cal-cuadro.verde   { background: rgba(76,200,80,0.75); }
+        .cal-cuadro.morado  { background: rgba(186,104,200,0.75); }
+        .cal-cuadro.naranja { background: rgba(255,180,50,0.55); }
+        .cal-cuadro.azul-l  { background: rgba(100,180,255,0.45); }
+        .cal-cuadro.azul    { background: rgba(33,150,243,0.45); }
+        .cal-cuadro.hoy     { background: #fee2e2; border: 2px solid #ef4444; }
         
         /* Mini calendario (Wizard) */
         .mini-cal-header {
@@ -141,21 +167,21 @@
     </div>
 
     <!-- MAIN VIEW -->
-    <div id="pantalla-info" class="hidden w-full max-w-6xl fade-in grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div id="pantalla-info" class="hidden w-full max-w-6xl fade-in grid grid-cols-1 md:grid-cols-2 gap-5">
         
         <!-- COLUMNA IZQ: INFO ALUMNO -->
-        <div class="bg-white rounded-3xl p-5 shadow-xl border border-gray-200 flex flex-col justify-between">
+        <div class="bg-white rounded-3xl p-6 md:p-7 shadow-xl border border-gray-200 flex flex-col justify-between">
             <div>
-                <h2 class="text-lg font-bold text-gray-800 border-b pb-1.5 mb-2 uppercase tracking-wider text-gray-500">Tus Datos</h2>
-                <div class="space-y-1 text-sm">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-3 uppercase tracking-wider text-gray-500">Tus Datos</h2>
+                <div class="space-y-2 text-base">
                     <p><strong>Nombre:</strong> <span id="lbl-nombre" class="text-blue-700 font-bold"></span></p>
-                    <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono"></span></p>
-                    <p><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900"></span></p>
-                    <p><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900"></span></p>
-                    <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900"></span></p>
-                    <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900"></span></p>
+                    <p><strong>Matrícula:</strong> <span id="lbl-id" class="text-gray-900 font-mono font-semibold"></span></p>
+                    <p><strong>Celular:</strong> <span id="lbl-celular" class="text-gray-900 font-medium"></span></p>
+                    <p><strong>Correo:</strong> <span id="lbl-correo" class="text-gray-900 font-medium"></span></p>
+                    <p><strong>Programa:</strong> <span id="lbl-programa" class="text-gray-900 font-medium"></span></p>
+                    <p><strong>Modalidad:</strong> <span id="lbl-modalidad" class="text-gray-900 font-medium"></span></p>
                     <p><strong>Curso Registrado:</strong> <span id="lbl-curso" class="text-gray-900 font-bold"></span></p>
-                    <p id="cont-horario" class="hidden"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900"></span></p>
+                    <p id="cont-horario" class="hidden"><strong>Horario:</strong> <span id="lbl-horario" class="text-gray-900 font-medium"></span></p>
                     <p id="cont-salon" class="hidden"><strong>Salón:</strong> <span id="lbl-salon" class="text-purple-700 font-bold"></span></p>
                     <p id="cont-teacher" class="hidden"><strong>Teacher:</strong> <span id="lbl-teacher" class="text-purple-700 font-bold"></span></p>
                     <p id="cont-libro" class="hidden"><strong>Libro Actual:</strong> <span id="lbl-libro" class="text-indigo-700 font-bold"></span></p>
@@ -163,30 +189,30 @@
                 </div>
             </div>
             
-            <div id="seccion-periodos" class="mt-2.5 pt-2 border-t border-gray-200 hidden grid grid-cols-2 gap-2">
-                <div class="bg-blue-50/80 rounded-xl p-2 border border-blue-200">
-                    <p class="text-[11px] font-bold text-blue-700 uppercase mb-0.5">📚 Curso actual</p>
-                    <p class="text-gray-600 text-[11px] leading-tight">Inicio: <span id="lbl-inicio-actual" class="font-bold text-gray-900 block"></span></p>
-                    <p class="text-gray-600 text-[11px] leading-tight mt-0.5">Fin: <span id="lbl-fin-actual" class="font-bold text-gray-900 block"></span></p>
+            <div id="seccion-periodos" class="mt-4 pt-3 border-t border-gray-200 hidden grid grid-cols-2 gap-3">
+                <div class="bg-blue-50/80 rounded-2xl p-3 border border-blue-200">
+                    <p class="text-xs font-bold text-blue-700 uppercase mb-1">📚 Curso actual</p>
+                    <p class="text-gray-600 text-xs leading-tight">Inicio: <span id="lbl-inicio-actual" class="font-bold text-gray-900 block mt-0.5"></span></p>
+                    <p class="text-gray-600 text-xs leading-tight mt-1">Fin: <span id="lbl-fin-actual" class="font-bold text-gray-900 block mt-0.5"></span></p>
                 </div>
-                <div class="bg-green-50/80 rounded-xl p-2 border border-green-200">
-                    <p class="text-[11px] font-bold text-green-700 uppercase mb-0.5">🎯 Próximo curso</p>
-                    <p class="text-gray-600 text-[11px] leading-tight">Inicio: <span id="lbl-inicio-siguiente" class="font-bold text-gray-900 block"></span></p>
-                    <p class="text-gray-600 text-[11px] leading-tight mt-0.5">Fin: <span id="lbl-fin-siguiente" class="font-bold text-gray-900 block"></span></p>
+                <div class="bg-green-50/80 rounded-2xl p-3 border border-green-200">
+                    <p class="text-xs font-bold text-green-700 uppercase mb-1">🎯 Próximo curso</p>
+                    <p class="text-gray-600 text-xs leading-tight">Inicio: <span id="lbl-inicio-siguiente" class="font-bold text-gray-900 block mt-0.5"></span></p>
+                    <p class="text-gray-600 text-xs leading-tight mt-1">Fin: <span id="lbl-fin-siguiente" class="font-bold text-gray-900 block mt-0.5"></span></p>
                 </div>
             </div>
         </div>
 
         <!-- COLUMNA DER: RESUMEN DE PAGOS -->
-        <div id="seccion-pagos" class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-2 mb-4 text-center">Resumen de Pago</h2>
+        <div id="seccion-pagos" class="bg-white rounded-3xl p-6 md:p-7 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
+            <h2 class="text-2xl font-bold text-gray-800 border-b pb-2 mb-4 text-center">Resumen de Pago</h2>
             
             <div id="tabla-resumen-pago" class="mb-4">
-                <table class="w-full text-left text-sm border-collapse border border-gray-300">
+                <table class="w-full text-left text-base border-collapse border border-gray-300">
                     <thead>
                         <tr class="bg-gray-100 border-b border-gray-300">
-                            <th class="p-2 font-bold text-gray-800 border-r border-gray-300">Descripción</th>
-                            <th class="p-2 font-bold text-gray-800 text-right w-1/3">Importe</th>
+                            <th class="p-3 font-bold text-gray-800 border-r border-gray-300">Descripción</th>
+                            <th class="p-3 font-bold text-gray-800 text-right w-1/3">Importe</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-resumen-body">
@@ -195,29 +221,34 @@
                 </table>
             </div>
 
-            <div class="space-y-3">
-                <div class="flex justify-between items-center text-lg bg-gray-50 p-3 rounded-2xl border border-gray-100">
+            <div class="space-y-3.5">
+                <div class="flex justify-between items-center text-xl bg-gray-50 p-3.5 rounded-2xl border border-gray-100">
                     <span class="font-semibold text-gray-700">Precio por curso:</span>
                     <span id="lbl-precio-curso" class="font-mono font-bold text-gray-900"></span>
                 </div>
                 
-                <div class="flex justify-between items-center text-lg p-2 hidden">
+                <div class="flex justify-between items-center text-xl p-2 hidden">
                     <span class="font-semibold text-gray-700">Total cursos (<span id="lbl-cant-cursos">1</span>):</span>
                     <span id="lbl-total-cursos" class="font-mono font-bold text-gray-900"></span>
                 </div>
                 
-                <div id="fila-libros" class="flex justify-between items-center text-lg p-2 hidden">
+                <div id="fila-libros" class="flex justify-between items-center text-xl p-2 hidden">
                     <span class="font-semibold text-indigo-700">Total libros (<span id="lbl-cant-libros">0</span>):</span>
                     <span id="lbl-total-libros" class="font-mono font-bold text-indigo-900"></span>
                 </div>
+
+                <div id="fila-extras-cliente" class="flex justify-between items-center text-xl p-2 hidden">
+                    <span class="font-semibold text-indigo-700">Productos / Libros extras (<span id="lbl-cant-extras-cliente">0</span>):</span>
+                    <span id="lbl-total-extras-cliente" class="font-mono font-bold text-indigo-900"></span>
+                </div>
                 
-                <div class="flex justify-between items-center text-2xl bg-green-50 p-4 rounded-2xl mt-2 border border-green-200 shadow-sm flex-row-reverse">
+                <div class="flex justify-between items-center text-3xl bg-green-50 p-5 rounded-2xl mt-3 border border-green-200 shadow-sm flex-row-reverse">
                     <span id="lbl-gran-total" class="font-mono font-black text-green-700 ml-4"></span>
-                    <span class="font-black text-green-900 uppercase text-lg border border-gray-800 px-3 py-1 bg-white rounded">Total:</span>
+                    <span class="font-black text-green-900 uppercase text-xl border border-gray-800 px-3.5 py-1 bg-white rounded">Total:</span>
                 </div>
                 
                 <div id="ahorro-container" class="mt-4 text-center hidden">
-                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-base font-bold px-4 py-1.5 rounded-full shadow-sm">
+                    <span class="inline-block bg-yellow-100 border border-yellow-300 text-yellow-800 text-lg font-bold px-5 py-2 rounded-full shadow-sm">
                         💰 Ahorras: <span id="lbl-ahorro"></span>
                     </span>
                 </div>
@@ -298,11 +329,12 @@
 
     <!-- MODAL MATERIALES -->
     <div id="modal-materiales" class="modal-overlay hidden">
-        <div class="modal-box max-w-4xl bg-white fade-in">
-            <div class="modal-header bg-indigo-50">
-                <h2 class="text-2xl font-bold text-indigo-900">📚 Consulta de Materiales</h2>
+        <div class="modal-box max-w-2xl bg-white fade-in" style="border-radius: 20px;">
+            <div class="modal-header bg-indigo-600 text-white px-5 py-3 flex justify-between items-center rounded-t-2xl">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2"><span>📚</span> Consulta de Materiales</h2>
+                <button onclick="document.getElementById('modal-materiales').classList.add('hidden')" class="text-white hover:text-gray-200 text-xl font-bold">✕</button>
             </div>
-            <div class="modal-body" id="modal-materiales-content">
+            <div class="modal-body p-5 bg-white rounded-b-2xl overflow-y-auto max-h-[80vh]" id="modal-materiales-content">
                 <!-- Se llena desde Broadcast -->
             </div>
         </div>
@@ -310,15 +342,16 @@
 
     <!-- MODAL CALENDARIO GLOBAL -->
     <div id="modal-calendario" class="modal-overlay hidden">
-        <div class="modal-box fade-in">
-            <div class="modal-header py-2 px-4">
+        <div class="modal-box fade-in" style="border-radius: 20px;">
+            <div class="modal-header py-2.5 px-5">
                 <div>
-                    <h2 class="text-base font-bold text-gray-800 leading-tight" id="cal-g-title">Calendario</h2>
+                    <h2 class="text-lg font-bold text-gray-800 leading-tight" id="cal-g-title">Calendario</h2>
                     <p class="text-xs text-gray-500 leading-none mt-0.5" id="cal-g-sub"></p>
                 </div>
+                <button onclick="document.getElementById('modal-calendario').classList.add('hidden')" class="text-gray-500 hover:text-gray-700 text-xl font-bold">✕</button>
             </div>
-            <div class="modal-body py-1.5 px-3">
-                <div id="cal-g-leyenda" class="flex flex-wrap gap-2 mb-1.5 justify-center text-[11px] text-gray-700"></div>
+            <div class="modal-body py-2 px-4">
+                <div id="cal-g-leyenda" class="cal-leyenda mb-2"></div>
                 <div id="cal-g-grid" class="cal-grid"></div>
             </div>
         </div>
@@ -358,6 +391,94 @@
             if (wResCont) wResCont.innerHTML = '';
             const wCompLink = document.getElementById('w-completado-link');
             if (wCompLink) wCompLink.classList.add('hidden');
+        }
+
+        const materialesInfo = {
+            kids: {
+                precio: "$994",
+                programa: "KIDS",
+                mostrarCefr: false,
+                filas: [
+                    { nivel: "1 al 3", libro: "KID BOX 1", bg: "#ff0000", text: "white" },
+                    { nivel: "4 al 6", libro: "KID BOX 2", bg: "#0070c0", text: "white" },
+                    { nivel: "7 al 9", libro: "KID BOX 3", bg: "#ffc000", text: "black" },
+                    { nivel: "10 al 12", libro: "KID BOX 4", bg: "#d9d9d9", text: "black" },
+                    { nivel: "13 al 15", libro: "KID BOX 5", bg: "#92d050", text: "black" }
+                ]
+            },
+            preteens: {
+                precio: "$700",
+                programa: "PTEEN",
+                mostrarCefr: false,
+                filas: [
+                    { nivel: "1 al 3", libro: "GAME CHANGER STARTER", bg: "#ff0000", text: "white" },
+                    { nivel: "4 al 6", libro: "GAME CHANGER LEVEL 1", bg: "#5b9bd5", text: "black" },
+                    { nivel: "7 al 9", libro: "GAME CHANGER LEVEL 2", bg: "#00b050", text: "white" },
+                    { nivel: "10 al 12", libro: "GAME CHANGER LEVEL 3", bg: "#d272d6", text: "black" }
+                ]
+            },
+            teens: {
+                precio: "$777",
+                programa: "TEENS",
+                mostrarCefr: true,
+                filas: [
+                    { nivel: "1 al 4", libro: "EVOLVE 1", bg: "#a61c70", text: "white", cefr: "A1" },
+                    { nivel: "5 al 8", libro: "EVOLVE 2", bg: "#4cae4c", text: "white", cefr: "A2" },
+                    { nivel: "9 al 12", libro: "EVOLVE 3", bg: "#f04b4b", text: "white", cefr: "B1" },
+                    { nivel: "13 al 16", libro: "EVOLVE 4", bg: "#36abc8", text: "black", cefr: "B1+" },
+                    { nivel: "17 al 20", libro: "EVOLVE 5", bg: "#f78a22", text: "white", cefr: "B2" },
+                    { nivel: "21 al 24", libro: "EVOLVE 6", bg: "#7d5ba6", text: "white", cefr: "C1" }
+                ]
+            },
+            adultos: {
+                precio: "$777",
+                programa: "ADULTO",
+                mostrarCefr: true,
+                filas: [
+                    { nivel: "1 al 4", libro: "EVOLVE 1", bg: "#a61c70", text: "white", cefr: "A1" },
+                    { nivel: "5 al 8", libro: "EVOLVE 2", bg: "#4cae4c", text: "white", cefr: "A2" },
+                    { nivel: "9 al 12", libro: "EVOLVE 3", bg: "#f04b4b", text: "white", cefr: "B1" },
+                    { nivel: "13 al 16", libro: "EVOLVE 4", bg: "#36abc8", text: "black", cefr: "B1+" },
+                    { nivel: "17 al 20", libro: "EVOLVE 5", bg: "#f78a22", text: "white", cefr: "B2" },
+                    { nivel: "21 al 24", libro: "EVOLVE 6", bg: "#7d5ba6", text: "white", cefr: "C1" }
+                ]
+            }
+        };
+
+        function mostrarMaterial(tipo) {
+            const data = materialesInfo[tipo];
+            if (!data) return;
+            const precioEl = document.getElementById('material-precio');
+            if (precioEl) precioEl.textContent = data.precio;
+            
+            const thCefr = document.getElementById('th-cefr');
+            if (thCefr) {
+                if (data.mostrarCefr) thCefr.classList.remove('hidden');
+                else thCefr.classList.add('hidden');
+            }
+
+            const tbody = document.getElementById('material-tabla-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            data.filas.forEach(f => {
+                let html = `<tr class="hover:bg-gray-50">
+                        <td class="px-4 py-2 font-semibold">${f.nivel}</td>
+                        <td class="px-4 py-2">${data.programa}</td>
+                        <td class="px-4 py-2">
+                            <span style="background-color: ${f.bg}; color: ${f.text};" class="px-2 py-1 rounded text-xs font-bold whitespace-nowrap">${f.libro}</span>
+                        </td>`;
+                if (data.mostrarCefr) {
+                    html += `<td class="px-4 py-2 font-bold">${f.cefr}</td>`;
+                } else if (thCefr && !thCefr.classList.contains('hidden')) {
+                    html += `<td class="px-4 py-2"></td>`;
+                }
+                html += `</tr>`;
+                tbody.insertAdjacentHTML('beforeend', html);
+            });
+            
+            const cont = document.getElementById('material-contenido');
+            if (cont) cont.classList.remove('hidden');
         }
         
         bc.onmessage = (event) => {
@@ -438,8 +559,8 @@
                     let etiqueta = p.etiquetaPromo ? ` (Dto. ${p.etiquetaPromo})` : '';
                     htmlTable += `
                         <tr class="border-b border-gray-200">
-                            <td class="p-2">Pago por ${p.cantCursos} curso(s)${etiqueta}</td>
-                            <td class="p-2 text-right font-semibold">${p.totalCursos}</td>
+                            <td class="p-3">Pago por ${p.cantCursos} curso(s)${etiqueta}</td>
+                            <td class="p-3 text-right font-semibold">${p.totalCursos}</td>
                         </tr>
                     `;
                     // Filas de libros
@@ -447,8 +568,19 @@
                         p.libros.forEach(libro => {
                             htmlTable += `
                                 <tr class="border-b border-gray-200">
-                                    <td class="p-2">Libro: ${libro.nombre}</td>
-                                    <td class="p-2 text-right font-semibold">${libro.precio}</td>
+                                    <td class="p-3">Libro: ${libro.nombre}</td>
+                                    <td class="p-3 text-right font-semibold">${libro.precio}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    // Filas de productos o libros extras
+                    if (p.productosExtra && p.productosExtra.length > 0) {
+                        p.productosExtra.forEach(prod => {
+                            htmlTable += `
+                                <tr class="border-b border-gray-200 bg-indigo-50/40">
+                                    <td class="p-3 font-medium text-indigo-950">📦 ${prod.nombre}</td>
+                                    <td class="p-3 text-right font-bold text-indigo-800">${prod.precio}</td>
                                 </tr>
                             `;
                         });
@@ -461,6 +593,14 @@
                         document.getElementById('lbl-total-libros').innerText = p.totalLibros;
                     } else {
                         document.getElementById('fila-libros').classList.add('hidden');
+                    }
+
+                    if (p.productosExtra && p.productosExtra.length > 0) {
+                        document.getElementById('fila-extras-cliente').classList.remove('hidden');
+                        document.getElementById('lbl-cant-extras-cliente').innerText = p.productosExtra.length;
+                        document.getElementById('lbl-total-extras-cliente').innerText = p.totalExtras;
+                    } else {
+                        document.getElementById('fila-extras-cliente').classList.add('hidden');
                     }
                     
                     document.getElementById('lbl-gran-total').innerText = p.granTotal;
