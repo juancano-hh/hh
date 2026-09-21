@@ -210,13 +210,29 @@ function renderTicket(n) {
 
 /* ---------- Init ---------- */
 const stored = localStorage.getItem(KEY);
-if (stored) renderTicket(parseInt(stored, 10));
-else assignNumber();
 
-/* Activar audio en iOS al primer toque */
-document.addEventListener('touchstart', () => {
+function unlockFeatures() {
+  if (navigator.vibrate) navigator.vibrate(1);
   try { new (window.AudioContext || window.webkitAudioContext)().resume(); } catch(e){}
-}, { once: true });
+}
+
+if (stored) {
+  renderTicket(parseInt(stored, 10));
+} else {
+  appEl.innerHTML = `
+    <h1>Bienvenido</h1>
+    <p style="color:#888;margin-top:1rem;margin-bottom:2rem;">Presiona el botón para tomar tu turno.</p>
+    <button id="getTicketBtn" style="font-size: 1.5rem; padding: 1rem 2rem; background: #6366f1; color: white;">Obtener Turno</button>
+  `;
+  document.getElementById('getTicketBtn').onclick = () => {
+    unlockFeatures();
+    assignNumber();
+  };
+}
+
+/* Activar audio y vibración al primer toque en cualquier lugar por si recargan la página */
+document.addEventListener('touchstart', unlockFeatures, { once: true });
+document.addEventListener('click', unlockFeatures, { once: true });
 </script>
 </body>
 </html>
