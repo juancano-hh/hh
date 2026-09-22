@@ -143,7 +143,11 @@
             body > *:not(#print-factura):not(#print-constancia) {
                 display: none !important;
             }
-            #print-constancia {
+            #print-constancia:empty, #print-factura:empty,
+            #print-constancia.hidden, #print-factura.hidden {
+                display: none !important;
+            }
+            #print-constancia:not(.hidden):not(:empty) {
                 display: block !important;
                 /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
                    top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
@@ -209,7 +213,7 @@
                 line-height: 2;
             }
             
-            #print-factura {
+            #print-factura:not(.hidden):not(:empty) {
                 display: block !important;
                 width: 100%;
                 font-family: sans-serif;
@@ -400,6 +404,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="print-factura" class="hidden"></div>
+    <div id="print-constancia" class="hidden"></div>
     <!-- VENTANA FLOTANTE DE NOTAS (Columna H) -->
     <div id="floating-nota" class="hidden fixed top-6 right-6 z-40 max-w-xs md:max-w-sm w-full bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 shadow-xl text-gray-800 transition-all duration-200">
         <div class="flex items-center justify-between border-b border-amber-200 pb-2 mb-2">
@@ -5194,8 +5199,16 @@
                 </div>
             `;
             
-            document.getElementById('print-constancia').innerHTML = '';
-            document.getElementById('print-factura').innerHTML = facturaHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printConst) {
+                printConst.innerHTML = '';
+                printConst.classList.add('hidden');
+            }
+            if (printFact) {
+                printFact.innerHTML = facturaHtml;
+                printFact.classList.remove('hidden');
+            }
             
             setTimeout(() => {
                 window.print();
@@ -5361,8 +5374,16 @@
                 <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
             `;
 
-            document.getElementById('print-factura').innerHTML = '';
-            document.getElementById('print-constancia').innerHTML = constanciaHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printFact) {
+                printFact.innerHTML = '';
+                printFact.classList.add('hidden');
+            }
+            if (printConst) {
+                printConst.innerHTML = constanciaHtml;
+                printConst.classList.remove('hidden');
+            }
 
             setTimeout(() => {
                 window.print();
@@ -5568,8 +5589,16 @@
                     </div>
                 </div>
             `;
-            document.getElementById('print-constancia').innerHTML = '';
-            document.getElementById('print-factura').innerHTML = reciboHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printConst) {
+                printConst.innerHTML = '';
+                printConst.classList.add('hidden');
+            }
+            if (printFact) {
+                printFact.innerHTML = reciboHtml;
+                printFact.classList.remove('hidden');
+            }
             
             setTimeout(() => {
                 window.print();
