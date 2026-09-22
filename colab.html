@@ -124,6 +124,11 @@
         .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
         .cal-wday.dom { color: #e11d48; }
 
+        /* Ocultar SIEMPRE en pantalla */
+        #print-factura, #print-constancia {
+            display: none !important;
+        }
+
         @page {
             size: letter;
             margin: 0;
@@ -143,11 +148,10 @@
             body > *:not(#print-factura):not(#print-constancia) {
                 display: none !important;
             }
-            #print-constancia:empty, #print-factura:empty,
-            #print-constancia.hidden, #print-factura.hidden {
+            #print-constancia:empty, #print-factura:empty {
                 display: none !important;
             }
-            #print-constancia:not(.hidden):not(:empty) {
+            #print-constancia:not(:empty) {
                 display: block !important;
                 /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
                    top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
@@ -213,7 +217,7 @@
                 line-height: 2;
             }
             
-            #print-factura:not(.hidden):not(:empty) {
+            #print-factura:not(:empty) {
                 display: block !important;
                 width: 100%;
                 font-family: sans-serif;
@@ -5201,14 +5205,8 @@
             
             const printConst = document.getElementById('print-constancia');
             const printFact = document.getElementById('print-factura');
-            if (printConst) {
-                printConst.innerHTML = '';
-                printConst.classList.add('hidden');
-            }
-            if (printFact) {
-                printFact.innerHTML = facturaHtml;
-                printFact.classList.remove('hidden');
-            }
+            if (printConst) printConst.innerHTML = '';
+            if (printFact) printFact.innerHTML = facturaHtml;
             
             setTimeout(() => {
                 window.print();
@@ -5376,14 +5374,8 @@
 
             const printConst = document.getElementById('print-constancia');
             const printFact = document.getElementById('print-factura');
-            if (printFact) {
-                printFact.innerHTML = '';
-                printFact.classList.add('hidden');
-            }
-            if (printConst) {
-                printConst.innerHTML = constanciaHtml;
-                printConst.classList.remove('hidden');
-            }
+            if (printFact) printFact.innerHTML = '';
+            if (printConst) printConst.innerHTML = constanciaHtml;
 
             setTimeout(() => {
                 window.print();
@@ -5591,14 +5583,8 @@
             `;
             const printConst = document.getElementById('print-constancia');
             const printFact = document.getElementById('print-factura');
-            if (printConst) {
-                printConst.innerHTML = '';
-                printConst.classList.add('hidden');
-            }
-            if (printFact) {
-                printFact.innerHTML = reciboHtml;
-                printFact.classList.remove('hidden');
-            }
+            if (printConst) printConst.innerHTML = '';
+            if (printFact) printFact.innerHTML = reciboHtml;
             
             setTimeout(() => {
                 window.print();
@@ -6886,6 +6872,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", inicializarTodo);
+        window.addEventListener('afterprint', function() {
+            const pc = document.getElementById('print-constancia');
+            const pf = document.getElementById('print-factura');
+            if (pc) pc.innerHTML = '';
+            if (pf) pf.innerHTML = '';
+        });
             // ==========================================
         // DASHBOARD LOGIC
         // ==========================================
