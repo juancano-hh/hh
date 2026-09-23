@@ -4126,6 +4126,7 @@
                 cargarAlumnos(),
                 cargarPeriodosCalendario(),
                 cargarHorariosRecuperacion(),
+                cargarExtrahelp(),
                 cargarSalones()
             ]).then(() => {
                 clearTimeout(timeoutSeguridad);
@@ -7580,6 +7581,219 @@
             const txtVigencia = document.getElementById('calc-fecha-vigencia');
             txtVigencia.classList.add('hidden');
             txtVigencia.classList.remove('block');
+        }
+
+        // ==================== EXTRA HELP ====================
+        async function cargarExtrahelp() {
+            try {
+                if (!EXTRAHELP_CSV_URL || EXTRAHELP_CSV_URL === 'PEGAR_URL_EXTRAHELP_CSV_AQUI') return;
+                const response = await fetch(EXTRAHELP_CSV_URL);
+                const csvText = await response.text();
+                const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+                const filas = result.data;
+                horariosExtrahelpBase = [];
+                for (let i = 2; i < filas.length; i++) {
+                    const fila = filas[i];
+                    if (fila.length < 6) continue;
+                    const programa = String(fila[0] || '').trim().toUpperCase();
+                    const tipo = String(fila[1] || '').trim().toUpperCase();
+                    const nivelRaw = String(fila[2] || '').trim();
+                    const fecha = String(fila[3] || '').trim();
+                    const horario = String(fila[4] || '').trim();
+                    
+                    let lugaresOcupados = 0;
+                    for (let c = 6; c < 12; c++) {
+                        if (fila[c] && String(fila[c]).trim() !== '') lugaresOcupados++;
+                    }
+
+                    if (tipo === 'EXTRA HELP' || tipo === 'EXTRAHELP') {
+                        horariosExtrahelpBase.push({
+                            programa, nivelRaw, fecha, horario, lugaresOcupados, cupoMax: 6
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando Extrahelp:', error);
+            }
+        }
+
+        function getNivelExtrahelp(programa, curso) {
+            if (!curso) return 1;
+            let numCurso = parseInt(String(curso).replace(/\D/g, '')) || 1;
+            let progUpper = String(programa).toUpperCase();
+            
+            if (progUpper.includes('KIDS') || progUpper.includes('PRETEENS') || progUpper.includes('PRE TEENS')) {
+                if (numCurso <= 4) return 1;
+                if (numCurso <= 8) return 2;
+                return 3;
+            } else {
+                if (numCurso <= 4) return 1;
+                if (numCurso <= 8) return 2;
+                if (numCurso <= 12) return 3;
+                if (numCurso <= 16) return 4;
+                if (numCurso <= 20) return 5;
+                return 6;
+            }
+        }
+
+        function mostrarFormExtrahelp() {
+            document.getElementById('seccion-pagos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            document.getElementById('seccion-extrahelp').classList.remove('hidden');
+            document.getElementById('ext-paso-1').classList.remove('hidden');
+            document.getElementById('ext-paso-2').classList.add('hidden');
+            document.getElementById('ext-exito').classList.add('hidden');
+            document.getElementById('ext-error').classList.add('hidden');
+
+            let prog = (alumnoActual.programa || 'Adult').toUpperCase();
+            if (prog.includes('TEEN') && !prog.includes('PRE')) prog = 'Adult';
+            else if (prog.includes('PRE')) prog = 'PRETEENS';
+            else if (prog.includes('KID')) prog = 'KIDS';
+            else prog = 'Adult';
+
+            document.getElementById('ext-programa').value = prog;
+            
+            let nivelCalc = getNivelExtrahelp(alumnoActual.programa, alumnoActual.curso);
+            document.getElementById('ext-nivel-select').value = nivelCalc;
+            
+            document.getElementById('ext-nivel-texto').innerText = 'Programa: ' + (alumnoActual.programa || 'No especificado') + ' | Curso: ' + (alumnoActual.curso || 'No especificado') + ' -> Nivel Calculado: ' + nivelCalc;
+            
+            actualizarNivelesExtrahelp();
+        }
+
+        function actualizarNivelesExtrahelp() {
+            const prog = document.getElementById('ext-programa').value;
+            const selNivel = document.getElementById('ext-nivel-select');
+            
+            const maxNivel = (prog === 'KIDS' || prog === 'PRETEENS') ? 3 : 6;
+            let actual = parseInt(selNivel.value) || 1;
+            if (actual > maxNivel) actual = maxNivel;
+            
+            let html = '';
+            for(let i = 1; i <= maxNivel; i++) {
+                html += '<option value=\"' + i + '\">Nivel ' + i + '</option>';
+            }
+            selNivel.innerHTML = html;
+            selNivel.value = actual;
+
+            cargarTemasYHorariosExtrahelp();
+        }
+
+        function cargarTemasYHorariosExtrahelp() {
+            const prog = document.getElementById('ext-programa').value;
+            const nivel = document.getElementById('ext-nivel-select').value;
+            
+            const container = document.getElementById('ext-temas-container');
+            container.innerHTML = '';
+            
+            let temas = [];
+            if (prog === 'Adult') {
+                temas = TEMAS_EVOLVE[nivel] || [];
+            }
+            
+            if (temas.length === 0) {
+                container.innerHTML = '<p class=\"text-gray-500 italic p-2\">No hay temas específicos cargados para este programa/nivel aún.</p>';
+            } else {
+                temas.forEach((tema, index) => {
+                    let regex = /^(\d+\.\d+)\s+(.*)/;
+                    let match = tema.match(regex);
+                    let formattedTema = match ? '(' + match[1] + ') ' + match[2] : tema;
+
+                    container.innerHTML += `
+                        <label class=\"flex items-center p-1.5 hover:bg-gray-50 rounded cursor-pointer\">
+                            <input type=\"checkbox\" name=\"ext-tema\" value=\"` + formattedTema + `\" class=\"ext-tema-cb form-checkbox h-4 w-4 text-orange-600 rounded border-gray-300\" onchange=\"validarTemasExtrahelp(this)\">
+                            <span class=\"ml-2\">` + tema + `</span>
+                        </label>
+                    `;
+                });
+            }
+
+            const selHorario = document.getElementById('ext-horario');
+            selHorario.innerHTML = '<option value=\"\">-- Selecciona un horario --</option>';
+            
+            let progFiltro = prog;
+            
+            let disponibles = horariosExtrahelpBase.filter(h => {
+                let p = h.programa;
+                let n = String(h.nivelRaw).replace(/\D/g, '');
+                
+                if (progFiltro === 'Adult') {
+                    return p === 'ADULT' && n === String(nivel);
+                } else if (progFiltro === 'KIDS') {
+                    return p === 'KIDS' && n === String(nivel);
+                } else if (progFiltro === 'PRETEENS') {
+                    return (p === 'PRETEENS' || p === 'PRE TEENS') && n === String(nivel);
+                }
+                return false;
+            });
+
+            if (disponibles.length === 0) {
+                selHorario.innerHTML += '<option disabled>No hay horarios programados</option>';
+            } else {
+                disponibles.forEach(h => {
+                    let lugaresLibres = h.cupoMax - h.lugaresOcupados;
+                    let disabledStr = lugaresLibres <= 0 ? 'disabled' : '';
+                    let text = 'Fecha: ' + h.fecha + ' | Horario: ' + h.horario + ' (' + lugaresLibres + ' lugares disponibles)';
+                    let val = h.fecha + '|' + h.horario;
+                    selHorario.innerHTML += '<option value=\"' + val + '\" ' + disabledStr + '>' + text + '</option>';
+                });
+            }
+        }
+
+        function validarTemasExtrahelp(cb) {
+            const checks = document.querySelectorAll('.ext-tema-cb:checked');
+            if (checks.length > 2) {
+                cb.checked = false;
+                alert('Solo puedes seleccionar un máximo de 2 temas por sesión.');
+            }
+        }
+
+        function generarCopiaExtrahelp() {
+            const errorDiv = document.getElementById('ext-error');
+            errorDiv.classList.add('hidden');
+
+            const correo = document.getElementById('ext-correo').value.trim();
+            if (!correo || !correo.includes('@')) {
+                errorDiv.innerText = 'Por favor ingresa un correo válido.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+
+            const checks = document.querySelectorAll('.ext-tema-cb:checked');
+            let temasElegidos = [];
+            checks.forEach(c => temasElegidos.push(c.value));
+            
+            const prog = document.getElementById('ext-programa').value;
+            if (prog === 'Adult' && TEMAS_EVOLVE[document.getElementById('ext-nivel-select').value]) {
+                if (temasElegidos.length === 0) {
+                    errorDiv.innerText = 'Por favor selecciona 1 o 2 temas de gramática.';
+                    errorDiv.classList.remove('hidden'); return;
+                }
+            }
+
+            const horarioSel = document.getElementById('ext-horario').value;
+            if (!horarioSel) {
+                errorDiv.innerText = 'Por favor selecciona un horario.';
+                errorDiv.classList.remove('hidden'); return;
+            }
+
+            const strTemas = temasElegidos.length > 0 ? temasElegidos.join(' / ') : 'Temas pendientes';
+            let id = alumnoActual.idOriginal || '';
+
+            const strCopia = 'PUEBLA ANZURES\t' + id + '\t' + alumnoActual.nombre + '\t' + correo + '\t' + (alumnoActual.curso || 'No especificado') + '\t' + strTemas;
+
+            const inputCopia = document.getElementById('ext-datos-copia');
+            inputCopia.value = strCopia;
+            
+            document.getElementById('ext-paso-2').classList.add('hidden');
+            document.getElementById('ext-exito').classList.remove('hidden');
+        }
+
+        function copiarDatosExtrahelpExcel() {
+            const inputCopia = document.getElementById('ext-datos-copia');
+            inputCopia.select();
+            inputCopia.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(inputCopia.value);
+            alert('¡Datos copiados! Ya puedes pegarlos en Excel.');
         }
 </script>
     <!-- ===== MODAL WHATSAPP OPCIONES ===== -->
