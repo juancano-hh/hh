@@ -2138,7 +2138,9 @@
         const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
         // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
         const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
-        const EXTRAHELP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1211610333&single=true&output=csv';
+        // URLs de Extra Help: Semana actual (gid=0) y Siguiente semana (gid=1791174714)
+        const EXTRAHELP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTENdP0NAiKz_h0fYi-A1wzPIGBHcvWlsnfPl-tRSViJj19JAEZ7j_gccYPfmg0NuLldvhuQXvqlKv/pub?gid=0&single=true&output=csv';
+        const EXTRAHELP_SIG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTENdP0NAiKz_h0fYi-A1wzPIGBHcvWlsnfPl-tRSViJj19JAEZ7j_gccYPfmg0NuLldvhuQXvqlKv/pub?gid=1791174714&single=true&output=csv';
 
         // Variables globales existentes
         let baseAlumnos = {};
@@ -5438,65 +5440,83 @@
             ]
         };
 
-        // Carga y parseo del CSV de Extra Help
+        // Carga y parseo del CSV de Extra Help (Semana actual y Siguiente semana)
         async function cargarSesionesExtraHelp() {
             try {
-                const res = await fetch(EXTRAHELP_CSV_URL + '&_t=' + Date.now());
-                const txt = await res.text();
-                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
-                const filas = parsed.data;
-                if (!filas || filas.length < 3) return;
+                const urls = [
+                    (typeof EXTRAHELP_CSV_URL !== 'undefined') ? EXTRAHELP_CSV_URL : '',
+                    (typeof EXTRAHELP_SIG_CSV_URL !== 'undefined') ? EXTRAHELP_SIG_CSV_URL : ''
+                ].filter(Boolean);
 
-                // Agrupamos filas en grupos únicos
+                const fetchPromises = urls.map(url => 
+                    fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now())
+                        .then(r => r.text())
+                        .catch(e => {
+                            console.warn('Error cargando Extra Help CSV:', url, e);
+                            return '';
+                        })
+                );
+
+                const resultados = await Promise.all(fetchPromises);
                 const gruposMap = new Map();
-                for (let i = 2; i < filas.length; i++) {
-                    const f = filas[i];
-                    if (!f || f.length < 5) continue;
 
-                    const progRaw = String(f[0] || '').trim();
-                    const nivelRaw = String(f[2] || '').trim();
-                    const fechaRaw = String(f[3] || '').trim();
-                    const horarioRaw = String(f[4] || '').trim();
+                resultados.forEach(txt => {
+                    if (!txt || !txt.trim()) return;
+                    const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                    const filas = parsed.data;
+                    if (!filas || filas.length < 2) return;
 
-                    if (!progRaw || !nivelRaw || !fechaRaw || !horarioRaw) continue;
+                    // El encabezado solo es la fila 1 (índice 0); la fila 2 (índice 1) ya tiene datos
+                    for (let i = 1; i < filas.length; i++) {
+                        const f = filas[i];
+                        if (!f || f.length < 5) continue;
 
-                    let progNorm = 'Adult';
-                    const pUpper = progRaw.toUpperCase();
-                    if (pUpper.includes('KID')) progNorm = 'KIDS';
-                    else if (pUpper.includes('PRE') || pUpper.includes('TEEN')) progNorm = 'PRETEENS';
-                    else progNorm = 'Adult';
+                        const progRaw = String(f[0] || '').trim();
+                        const nivelRaw = String(f[2] || '').trim();
+                        const fechaRaw = String(f[3] || '').trim();
+                        const horarioRaw = String(f[4] || '').trim();
 
-                    // Normalizar nivel (quitar espacios redundantes)
-                    const nivelNorm = nivelRaw.replace(/\s+/g, ' ').trim();
+                        if (!progRaw || !nivelRaw || !fechaRaw || !horarioRaw) continue;
+                        if (progRaw.toLowerCase() === 'programa' || fechaRaw.toLowerCase().includes('fecha')) continue;
 
-                    // Detectar si el lugar está ocupado (columnas G a L)
-                    // Fila G=6 (Instituto), H=7 (ID), I=8 (Nombre), J=9 (Correo), K=10 (Curso), L=11 (Tema)
-                    const inst = f[6] ? String(f[6]).trim() : '';
-                    const idAl = f[7] ? String(f[7]).trim() : '';
-                    const nomAl = f[8] ? String(f[8]).trim() : '';
-                    const corAl = f[9] ? String(f[9]).trim() : '';
-                    const estaOcupado = !!(idAl || nomAl || inst || corAl);
+                        let progNorm = 'Adult';
+                        const pUpper = progRaw.toUpperCase();
+                        if (pUpper.includes('KID')) progNorm = 'KIDS';
+                        else if (pUpper.includes('PRE') || pUpper.includes('TEEN')) progNorm = 'PRETEENS';
+                        else progNorm = 'Adult';
 
-                    const docNombre = f[16] ? String(f[16]).trim() : (f[15] ? String(f[15]).trim() : '');
+                        // Normalizar nivel (quitar espacios redundantes)
+                        const nivelNorm = nivelRaw.replace(/\s+/g, ' ').trim();
 
-                    const key = `${progNorm}__${nivelNorm.toLowerCase()}__${fechaRaw.toLowerCase()}__${horarioRaw.toLowerCase()}`;
-                    if (!gruposMap.has(key)) {
-                        gruposMap.set(key, {
-                            programa: progNorm,
-                            nivel: nivelNorm,
-                            fecha: fechaRaw,
-                            horario: horarioRaw,
-                            docente: docNombre,
-                            totalLugares: 0,
-                            ocupados: 0
-                        });
+                        // Detectar si el lugar está ocupado (columnas G a L)
+                        // Fila G=6 (Instituto), H=7 (ID), I=8 (Nombre), J=9 (Correo), K=10 (Curso), L=11 (Tema)
+                        const inst = f[6] ? String(f[6]).trim() : '';
+                        const idAl = f[7] ? String(f[7]).trim() : '';
+                        const nomAl = f[8] ? String(f[8]).trim() : '';
+                        const corAl = f[9] ? String(f[9]).trim() : '';
+                        const estaOcupado = !!(idAl || nomAl || inst || corAl);
+
+                        const docNombre = f[16] ? String(f[16]).trim() : (f[15] ? String(f[15]).trim() : '');
+
+                        const key = `${progNorm}__${nivelNorm.toLowerCase()}__${fechaRaw.toLowerCase()}__${horarioRaw.toLowerCase()}`;
+                        if (!gruposMap.has(key)) {
+                            gruposMap.set(key, {
+                                programa: progNorm,
+                                nivel: nivelNorm,
+                                fecha: fechaRaw,
+                                horario: horarioRaw,
+                                docente: docNombre,
+                                totalLugares: 0,
+                                ocupados: 0
+                            });
+                        }
+
+                        const g = gruposMap.get(key);
+                        g.totalLugares++;
+                        if (estaOcupado) g.ocupados++;
+                        if (!g.docente && docNombre) g.docente = docNombre;
                     }
-
-                    const g = gruposMap.get(key);
-                    g.totalLugares++;
-                    if (estaOcupado) g.ocupados++;
-                    if (!g.docente && docNombre) g.docente = docNombre;
-                }
+                });
 
                 sesionesExtraHelp = Array.from(gruposMap.values()).map(g => {
                     const cupoBase = g.totalLugares > 0 ? g.totalLugares : 6;
@@ -5509,7 +5529,7 @@
                     };
                 });
 
-                console.log('✅ Sesiones de Extra Help cargadas:', sesionesExtraHelp.length);
+                console.log('✅ Sesiones de Extra Help cargadas (ambas semanas):', sesionesExtraHelp.length);
             } catch (err) {
                 console.error('Error cargando Extra Help CSV:', err);
             }
@@ -5535,6 +5555,19 @@
             }
             const d = new Date(str);
             return isNaN(d.getTime()) ? null : d;
+        }
+
+        // Parseo de horas (ej. 10:00 AM, 5:00 PM) para ordenamiento cronológico
+        function parseHoraMinutosEH(hStr) {
+            if (!hStr) return 0;
+            const m = String(hStr).trim().match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!m) return 0;
+            let hrs = parseInt(m[1], 10);
+            const mins = parseInt(m[2], 10);
+            const ampm = (m[3] || '').toUpperCase();
+            if (ampm === 'PM' && hrs < 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            return hrs * 60 + mins;
         }
 
         // Cálculo del nivel inicial por curso (cada 4 cursos = 1 nivel)
@@ -5636,6 +5669,16 @@
                     return false; // Bloqueado: hoy o pasado
                 }
                 return true;
+            });
+
+            // Ordenar cronológicamente por fecha y hora (semana actual primero, luego siguiente semana)
+            filtradas.sort((a, b) => {
+                const fa = parseFechaSesionEH(a.fecha);
+                const fb = parseFechaSesionEH(b.fecha);
+                const ta = fa ? fa.getTime() : 0;
+                const tb = fb ? fb.getTime() : 0;
+                if (ta !== tb) return ta - tb;
+                return parseHoraMinutosEH(a.horario) - parseHoraMinutosEH(b.horario);
             });
 
             if (filtradas.length === 0) {
@@ -5994,6 +6037,12 @@
             // 6. Actualizar bloque para Excel
             actualizarResumenExtraHelp();
             enviarDatosAlumnoACliente();
+
+            // Recargar en segundo plano para actualizar cupos en tiempo real
+            cargarSesionesExtraHelp().then(() => {
+                filtrarSesionesExtraHelp();
+                actualizarResumenExtraHelp();
+            }).catch(() => {});
         }
 
         function resetearFormExtraHelp() {
