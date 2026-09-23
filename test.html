@@ -124,6 +124,11 @@
         .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
         .cal-wday.dom { color: #e11d48; }
 
+        /* Ocultar SIEMPRE en pantalla */
+        #print-factura, #print-constancia {
+            display: none !important;
+        }
+
         @page {
             size: letter;
             margin: 0;
@@ -143,7 +148,10 @@
             body > *:not(#print-factura):not(#print-constancia) {
                 display: none !important;
             }
-            #print-constancia {
+            #print-constancia:empty, #print-factura:empty {
+                display: none !important;
+            }
+            #print-constancia:not(:empty) {
                 display: block !important;
                 /* Carta: 8.5" x 11" — márgenes exactos del DOCX:
                    top/bottom = 1417 twips ≈ 2.49cm, left/right = 1701 twips ≈ 3.0cm */
@@ -209,7 +217,7 @@
                 line-height: 2;
             }
             
-            #print-factura {
+            #print-factura:not(:empty) {
                 display: block !important;
                 width: 100%;
                 font-family: sans-serif;
@@ -400,6 +408,7 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center min-h-screen p-4">
     <div id="print-factura" class="hidden"></div>
+    <div id="print-constancia" class="hidden"></div>
     <!-- VENTANA FLOTANTE DE NOTAS (Columna H) -->
     <div id="floating-nota" class="hidden fixed top-6 right-6 z-40 max-w-xs md:max-w-sm w-full bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 shadow-xl text-gray-800 transition-all duration-200">
         <div class="flex items-center justify-between border-b border-amber-200 pb-2 mb-2">
@@ -599,14 +608,18 @@
                 <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
             </div>
             <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-3 gap-3">
                 <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
                     <span class="text-3xl">💳</span>
                     <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
                 </button>
                 <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
-                    <span class="text-3xl">🔁</span>
+                    <span class="text-3xl">🔄</span>
                     <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                </button>
+                <button onclick="mostrarFormExtrahelp()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-orange-200 bg-orange-50 hover:bg-orange-100 hover:border-orange-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">🆘</span>
+                    <span class="text-xs font-bold text-orange-700 leading-tight">Solicitar<br>Extrahelp</span>
                 </button>
             </div>
             <p class="text-center mt-4">
@@ -945,7 +958,75 @@
 
 
 
-    <!-- ===== MODAL MAPA DE SALONES ===== -->
+    
+
+        <!-- ===== FORMULARIO INLINE DE EXTRAHELP ===== -->
+        <div id="seccion-extrahelp" class="hidden mt-4 space-y-4">
+            <div class="border-t border-orange-100 pt-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-orange-600 mb-4">?? Solicitar Extra Help</p>
+                
+                <div id="ext-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded-xl text-xs font-medium mb-3"></div>
+                
+                <div id="ext-paso-1">
+                    <p class="text-xs text-gray-500 font-bold mb-1">Nivel Detectado:</p>
+                    <p class="text-sm font-semibold mb-3 text-orange-700" id="ext-nivel-texto"></p>
+                    
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Modificar Programa (si requiere ayuda de otro nivel):</label>
+                    <select id="ext-programa" class="w-full p-2.5 mb-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 text-sm outline-none transition" onchange="actualizarNivelesExtrahelp()">
+                        <option value="Adult">Adultos / Teens</option>
+                        <option value="KIDS">KIDS</option>
+                        <option value="PRETEENS">PRETEENS</option>
+                    </select>
+
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Nivel a Consultar:</label>
+                    <select id="ext-nivel-select" class="w-full p-2.5 mb-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 text-sm outline-none transition" onchange="cargarTemasYHorariosExtrahelp()">
+                        <option value="1">Nivel 1</option>
+                        <option value="2">Nivel 2</option>
+                        <option value="3">Nivel 3</option>
+                        <option value="4">Nivel 4</option>
+                        <option value="5">Nivel 5</option>
+                        <option value="6">Nivel 6</option>
+                    </select>
+
+                    <button onclick="document.getElementById('ext-paso-1').classList.add('hidden'); document.getElementById('ext-paso-2').classList.remove('hidden');" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">Siguiente</button>
+                </div>
+
+                <div id="ext-paso-2" class="hidden">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Temas de Gram tica (Selecciona 1 o 2 m ximo):</label>
+                    <div id="ext-temas-container" class="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 mb-3 bg-white text-xs space-y-1">
+                        <!-- Temas generados dinamicamente -->
+                    </div>
+
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Horarios Disponibles:</label>
+                    <select id="ext-horario" class="w-full p-2.5 mb-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 text-sm outline-none transition">
+                        <!-- Horarios generados dinamicamente -->
+                    </select>
+
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Correo Electr nico:</label>
+                    <input type="email" id="ext-correo" class="w-full p-2.5 mb-4 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-orange-500 text-sm outline-none transition" placeholder="tu@correo.com">
+
+                    <div class="flex gap-2">
+                        <button onclick="document.getElementById('ext-paso-2').classList.add('hidden'); document.getElementById('ext-paso-1').classList.remove('hidden');" class="w-1/3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-xl transition duration-200">Volver</button>
+                        <button id="ext-btn-enviar" onclick="generarCopiaExtrahelp()" class="w-2/3 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-xl shadow transition duration-200">Generar Datos para Excel</button>
+                    </div>
+                </div>
+                
+                <div id="ext-exito" class="hidden bg-orange-50 border border-orange-200 rounded-xl p-4 text-center mt-3">
+                    <p class="font-bold text-orange-800 text-sm mb-2">? Datos listos para Excel</p>
+                    <p class="text-xs text-orange-600 mb-3">Haz clic en el cuadro de texto para copiar toda la fila.</p>
+                    
+                    <input type="text" id="ext-datos-copia" readonly class="w-full text-xs font-mono bg-white border border-orange-300 p-2 rounded cursor-pointer hover:bg-orange-100 transition focus:outline-none" onclick="copiarDatosExtrahelpExcel()" title="Clic para copiar">
+                    
+                    <div class="mt-4 pt-3 border-t border-orange-200 flex justify-center">
+                        <button onclick="regresarMenu()" class="bg-white hover:bg-orange-100 text-orange-800 font-bold py-2 px-4 rounded-xl text-xs transition duration-200 border border-orange-300 shadow-sm flex items-center gap-1.5">
+                            ?? Volver al Men  Principal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- ===== MODAL MAPA DE SALONES ===== -->
     <div id="modal-mapa-salones" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMapaSalones()">
         <div class="modal-box" style="max-width: 560px; width: 92%; max-height: 94vh; padding: 0; overflow-y: auto; border-radius: 1.25rem; display: flex; flex-direction: column;">
             <!-- Header Compacto -->
@@ -1503,6 +1584,34 @@
                     </table>
                 </div>
 
+                <!-- Tabla Alumnos Presenciales Sin Profesor Asignado -->
+                <div class="bg-[#fff1f2] border border-[#fecdd3] rounded-2xl p-6 shadow-sm mt-6 mb-6">
+                    <div class="flex items-center justify-between flex-wrap gap-2 mb-4">
+                        <div>
+                            <p class="font-bold text-[#991b1b] text-lg flex items-center gap-2">
+                                <span class="text-red-700">▲</span> Alumnos Presenciales Sin Profesor Asignado
+                                <span id="badge-sin-profesor" class="text-xs bg-[#ffe4e6] text-[#991b1b] px-2.5 py-0.5 rounded-full font-bold border border-[#fecdd3]">0</span>
+                            </p>
+                            <p class="text-xs text-red-700 mt-1">Revisa y corrige manualmente los horarios o niveles de estos alumnos en tu Excel original. (Los alumnos En Línea no aparecen aquí).</p>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-[#fecdd3] max-h-[350px] overflow-y-auto bg-white">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-[#ffe4e6] text-[#991b1b] text-xs uppercase sticky top-0 z-10 border-b border-[#fecdd3]">
+                                <tr>
+                                    <th class="py-3 px-4 font-bold text-left">NOMBRE</th>
+                                    <th class="py-3 px-4 font-bold text-center">NIVEL (PROGRAMA)</th>
+                                    <th class="py-3 px-4 font-bold text-center">HORARIO EN EXCEL</th>
+                                    <th class="py-3 px-4 font-bold text-center">ESTATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-sin-profesor" class="divide-y divide-[#fee2e2] text-gray-700 font-medium">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
         </div>
     </div>
 
@@ -1971,6 +2080,17 @@
         // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1m5V3OLuZo1x3AqmF1yhzuI6h4dNZ36uoJpGT0FcsROEHD-OlRs4sl6wNejPsXDow/exec';
         const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
+        const EXTRAHELP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1211610333&single=true&output=csv';
+
+        const TEMAS_EVOLVE = {
+            1: ["1.1 I am, you are", "1.2 What's ...?, It's ...", "2.1 is / are in statements and yes/no questions", "2.2 is not / are not", "3.1 Possessive adjectives; possessive 's and s'", "3.2 It is (statements and questions); Info questions with be", "4.1 Simple present statements with I, you, we", "4.2 Simple present yes/no questions with I, you, we", "5.1 Simple present statements with he, she, they", "5.2 Questions in the simple present", "6.1 There's, There are; a lot of, some, no", "6.2 Count and non-count nouns", "7.1 Present continuous statements", "7.2 Present continuous questions", "8.1 can and can't for ability; well", "8.2 can and can't for possibility", "9.1 this and these", "9.2 like to, want to, need to, have to", "10.1 Statements with be going to", "10.2 Questions with be going to", "11.1 Statements with was and were", "11.2 Questions with was and were", "12.1 Simple past statements", "12.2 Simple past questions; any"],
+            2: ["1.1 be; possessive adjectives", "1.2 Whose ...?; possessive pronouns; possessive 's", "2.1 Simple present for habits and routines", "2.2 This / that one; these / those ones", "3.1 Present continuous", "3.2 Simple present and present continuous", "4.1 Present continuous for future plans", "4.2 Object pronouns", "5.1 Simple past", "5.2 Simple past negative and questions", "6.1 be going to", "6.2 Determiners", "7.1 Quantifiers", "7.2 Verb patterns", "8.1 if and when", "8.2 Giving reasons using to and for", "9.1 Comparative adjectives", "9.2 Superlative adjectives", "10.1 have to", "10.2 Making predictions", "11.1 Present perfect for experience", "11.2 Present perfect and simple past", "12.1 Questions with be like", "12.2 Relative pronouns: who, which, that"],
+            3: ["1.1 Information questions", "1.2 Indirect questions", "2.1 Present perfect with ever, never, for, since", "2.2 Present perfect with already and yet", "3.1 Articles", "3.2 Modals for advice", "4.1 be going to and will for predictions", "4.2 will for sudden decisions; present continuous for future plans", "5.1 Simple past", "5.2 Past continuous and simple past", "6.1 Quantifiers", "6.2 Present and future real conditionals", "7.1 used to", "7.2 Comparisons with (not) as ... as", "8.1 Present perfect continuous", "8.2 Present perfect vs. present perfect continuous", "9.1 Modals of necessity", "9.2 Modals of prohibition and permission", "10.1 Simple present passive", "10.2 Simple past passive", "11.1 Phrasal verbs", "11.2 Present and future unreal conditionals", "12.1 Indefinite pronouns", "12.2 Reported speech"],
+            4: ["1.1 Tense review (simple and continuous)", "1.2 Dynamic and stative verbs", "2.1 Real conditionals", "2.2 Clauses with after, until, when", "3.1 too and enough", "3.2 Modifying comparisons", "4.1 Modals of speculation", "4.2 Subject and object relative clauses", "5.1 Past perfect", "5.2 was/were going to; was/were supposed to", "6.1 Present and past passive", "6.2 Passive with modals", "7.1 Reported statements", "7.2 Reported questions", "8.1 Present unreal conditionals", "8.2 I wish", "9.1 Prohibition, permission, obligation (present)", "9.2 Prohibition, permission, obligation (past)", "10.1 Past unreal conditionals", "10.2 Modals of past probability", "11.1 Gerund and infinitive after forget, remember, stop", "11.2 Causative verbs help, let, make", "12.1 Adding emphasis", "12.2 Substitution and referencing"],
+            5: ["1.1 Present habits", "1.2 Past habits", "2.1 Comparative structures", "2.2 Superlative structures; ungradable adjectives", "3.1 Relative pronouns; reduced relative clauses", "3.2 Present participles", "4.1 Adding emphasis: so ... that, such ... that, even, only", "4.2 Reflexive pronouns; pronouns with other/another", "5.1 Real conditionals", "5.2 Conditionals: alternatives to if", "6.1 Narrative tenses", "6.2 Reported speech with modal verbs", "7.1 Gerunds and infinitives after adjectives, nouns, and pronouns", "7.2 Infinitives after verbs with and without objects", "8.1 Modal-like expressions with be", "8.2 Future forms", "9.1 Unreal conditionals", "9.2 Wishes and regrets", "10.1 Gerunds after prepositions", "10.2 Causative verbs", "11.1 Passive forms", "11.2 Passives with modals and modal-like expressions; passive infinitives", "12.1 Adverbs with adjectives and adverbs", "12.2 Making non-count nouns countable"],
+            6: ["1.1 Commenting adverbs with future forms", "1.2 Future perfect and future continuous", "2.1 Uses of will", "2.2 Uses of would", "3.1 Variations on past unreal conditionals", "3.2 Commenting on the past", "4.1 Quantifiers and prepositions in relative clauses", "4.2 Noun clauses with question words", "5.1 Participle phrases in initial position", "5.2 Reduced relative clauses", "6.1 Clefts", "6.2 Question words with -ever", "7.1 Negative and limiting adverbials", "7.2 Fronting adverbials", "8.1 Phrases with get", "8.2 Phrases with as", "9.1 Referencing", "9.2 Continuous infinitives", "10.1 Simple past for unreal situations", "10.2 It constructions", "11.1 Subject-verb agreement", "11.2 Articles", "12.1 The present subjunctive", "12.2 Perfect infinitive"]
+        };
+        let horariosExtrahelpBase = [];
 
         // Variables globales existentes
         let baseAlumnos = {};
@@ -2049,7 +2169,7 @@
                 const filas = result.data;
                 baseAlumnos = {};
                 alumnosPorIdNormalizado.clear();
-                for (let idx = 0; idx < filas.length; idx++) {
+                for (let idx = 1; idx < filas.length; idx++) {
                     const fila = filas[idx];
                     if (fila.length < 4) continue;
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
@@ -2135,7 +2255,7 @@
                     const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
                     const filasNuevo = resParsedNuevo.data;
 
-                    for (let idx = 0; idx < filasNuevo.length; idx++) {
+                    for (let idx = 1; idx < filasNuevo.length; idx++) {
                         const fila = filasNuevo[idx];
                         if (fila.length < 4) continue;
                         const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
@@ -5166,8 +5286,10 @@
                 </div>
             `;
             
-            document.getElementById('print-constancia').innerHTML = '';
-            document.getElementById('print-factura').innerHTML = facturaHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printConst) printConst.innerHTML = '';
+            if (printFact) printFact.innerHTML = facturaHtml;
             
             setTimeout(() => {
                 window.print();
@@ -5333,8 +5455,10 @@
                 <p class="constancia-firma">Mtro. Erick Rodrigo García Villarejo</p>
             `;
 
-            document.getElementById('print-factura').innerHTML = '';
-            document.getElementById('print-constancia').innerHTML = constanciaHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printFact) printFact.innerHTML = '';
+            if (printConst) printConst.innerHTML = constanciaHtml;
 
             setTimeout(() => {
                 window.print();
@@ -5540,8 +5664,10 @@
                     </div>
                 </div>
             `;
-            document.getElementById('print-constancia').innerHTML = '';
-            document.getElementById('print-factura').innerHTML = reciboHtml;
+            const printConst = document.getElementById('print-constancia');
+            const printFact = document.getElementById('print-factura');
+            if (printConst) printConst.innerHTML = '';
+            if (printFact) printFact.innerHTML = reciboHtml;
             
             setTimeout(() => {
                 window.print();
@@ -6829,6 +6955,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", inicializarTodo);
+        window.addEventListener('afterprint', function() {
+            const pc = document.getElementById('print-constancia');
+            const pf = document.getElementById('print-factura');
+            if (pc) pc.innerHTML = '';
+            if (pf) pf.innerHTML = '';
+        });
             // ==========================================
         // DASHBOARD LOGIC
         // ==========================================
@@ -6838,6 +6970,7 @@
         let chartWeighted = null;
         let dashboardTeachersData = [];
         let dashboardGruposData = [];
+        let dashboardSinProfesorData = [];
 
         function abrirModalPasswordDashboard() {
             document.getElementById('input-pwd-dashboard').value = '';
@@ -6873,6 +7006,9 @@
             let modalidad = { presencialR: 0, lineaR: 0 };
             let teachersMap = {};
             let gruposArr = [];
+
+            // Limpiar marca de procesado en todos los alumnos
+            Object.values(baseAlumnos).forEach(a => delete a._procesadoDashboard);
 
             // 1. KPIs and Estatus (Solo alumnos del Layout actual)
             Object.values(baseAlumnos).forEach(a => {
@@ -6988,9 +7124,16 @@
 
             // ONLY PRESENCIAL GROUPS - ONLINE MAP OMITTED
 
+            // 3. Alumnos presenciales sin profesor asignado
+            const sinProfesorArr = Object.values(baseAlumnos).filter(a => {
+                if (a.esLayPasado || a.esPrimerMes) return false;
+                return a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' && !a._procesadoDashboard;
+            });
+            sinProfesorArr.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
             Object.values(baseAlumnos).forEach(a => delete a._procesadoDashboard);
 
-            return { kpis, modalidad, teachersMap, gruposArr };
+            return { kpis, modalidad, teachersMap, gruposArr, sinProfesorArr };
         }
 
         function verAlumnosGrupo(encoded) {
@@ -7081,6 +7224,9 @@
 
             dashboardGruposData = data.gruposArr;
             renderGruposTable();
+
+            dashboardSinProfesorData = data.sinProfesorArr || [];
+            renderAlumnosSinProfesor();
         }
 
         function renderChartEstatus(kpis) {
@@ -7235,6 +7381,37 @@
                     <td class="py-2 text-red-600 font-bold">${g.bajas}</td>
                     <td class="py-2 font-bold">${g.total}</td>
                 </tr>`;
+            });
+        }
+
+        function renderAlumnosSinProfesor() {
+            const tbody = document.getElementById('tbody-sin-profesor');
+            const badge = document.getElementById('badge-sin-profesor');
+            if (!tbody) return;
+
+            const lista = dashboardSinProfesorData || [];
+            if (badge) badge.innerText = lista.length;
+
+            tbody.innerHTML = '';
+            if (lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-green-700 font-semibold bg-white/40">🎉 ¡Excelente! Todos los alumnos presenciales están asignados a un profesor y salón.</td></tr>`;
+                return;
+            }
+
+            lista.forEach(a => {
+                let nivelProg = (a.nivelActual !== undefined && a.nivelActual !== null) ? a.nivelActual : '-';
+                if (a.programaNombre && a.programaNombre !== 'ADULTO') {
+                    nivelProg = `${a.nivelActual} (${a.programaNombre})`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-red-50/60 transition-colors border-b border-red-100">
+                        <td class="py-2.5 px-4 font-semibold text-[#881337] uppercase">${a.nombre || 'Sin nombre'}</td>
+                        <td class="py-2.5 px-4 text-center font-medium text-gray-800">${nivelProg}</td>
+                        <td class="py-2.5 px-4 text-center font-medium text-gray-800">${a.horario || '-'}</td>
+                        <td class="py-2.5 px-4 text-center font-medium text-gray-800">${a.estatusPago || '-'}</td>
+                    </tr>
+                `;
             });
         }
 
