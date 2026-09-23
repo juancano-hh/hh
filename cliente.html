@@ -325,6 +325,51 @@
                 </div>
             </div>
         </div>
+
+        <!-- COLUMNA DER: EXTRA HELP CLIENTE -->
+        <div id="seccion-extrahelp-cliente" class="bg-white rounded-3xl p-6 shadow-xl border border-gray-200 hidden flex flex-col justify-center">
+            <h2 class="text-xl font-bold text-emerald-700 border-b border-emerald-100 pb-2 mb-4 flex items-center gap-2">
+                <span>📓</span> Solicitar Extra Help
+            </h2>
+
+            <div class="space-y-3 flex-1">
+                <!-- Correo en tiempo real -->
+                <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-[11px] text-emerald-800 uppercase tracking-wider">📧 Correo de confirmación</span>
+                        <span class="text-[10px] text-emerald-600 font-medium">En vivo</span>
+                    </div>
+                    <p class="text-sm font-bold text-emerald-950 mt-0.5 break-all font-mono" id="eh-cli-correo">No registrado</p>
+                </div>
+
+                <!-- Horario / Sesión disponible -->
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                    <div class="flex justify-between items-center mb-0.5">
+                        <h3 class="font-bold text-xs text-gray-700">📅 Horario Seleccionado</h3>
+                        <span id="eh-cli-cupo" class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full hidden"></span>
+                    </div>
+                    <p class="text-sm font-semibold text-emerald-800" id="eh-cli-horario">Esperando selección de horario...</p>
+                </div>
+
+                <!-- Temas de gramática seleccionados en tiempo real -->
+                <div class="p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-xs text-gray-700">📖 Temas de Gramática a revisar</h3>
+                        <span id="eh-cli-cant-temas" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0/2 temas</span>
+                    </div>
+                    <div id="eh-cli-lista-temas" class="mt-2 space-y-1.5 text-xs text-gray-800">
+                        <p class="text-gray-400 italic text-xs">Esperando selección de temas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Informativo -->
+            <div class="mt-3 p-3 bg-emerald-50/60 border border-emerald-200 rounded-2xl text-center">
+                <p class="text-xs font-semibold text-emerald-800">
+                    ✅ La sesión será asignada conforme a la disponibilidad de cupo.
+                </p>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL MATERIALES -->
@@ -391,6 +436,21 @@
             if (wResCont) wResCont.innerHTML = '';
             const wCompLink = document.getElementById('w-completado-link');
             if (wCompLink) wCompLink.classList.add('hidden');
+        }
+
+        function resetClienteExtraHelp() {
+            const secEH = document.getElementById('seccion-extrahelp-cliente');
+            if (secEH) secEH.classList.add('hidden');
+            const cor = document.getElementById('eh-cli-correo');
+            if (cor) cor.innerText = 'No registrado';
+            const hor = document.getElementById('eh-cli-horario');
+            if (hor) hor.innerText = 'Esperando selección de horario...';
+            const cup = document.getElementById('eh-cli-cupo');
+            if (cup) cup.classList.add('hidden');
+            const cant = document.getElementById('eh-cli-cant-temas');
+            if (cant) cant.innerText = '0/2 temas';
+            const lista = document.getElementById('eh-cli-lista-temas');
+            if (lista) lista.innerHTML = '<p class="text-gray-400 italic text-xs">Esperando selección de temas...</p>';
         }
 
         const materialesInfo = {
@@ -491,6 +551,7 @@
                     document.getElementById('pantalla-info').classList.add('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
                     resetClienteWizard();
+                    resetClienteExtraHelp();
                     document.getElementById('modal-materiales').classList.add('hidden');
                     document.getElementById('modal-calendario').classList.add('hidden');
                     break;
@@ -500,6 +561,7 @@
                     document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
                     resetClienteWizard();
+                    resetClienteExtraHelp();
                     break;
                     
                 case 'STUDENT_DATA':
@@ -507,6 +569,7 @@
                     document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.add('hidden');
                     resetClienteWizard();
+                    resetClienteExtraHelp();
                     
                     const d = msg.payload;
                     document.getElementById('lbl-nombre').innerText = d.nombre;
@@ -546,6 +609,7 @@
                     document.getElementById('pantalla-info').classList.remove('hidden');
                     document.getElementById('seccion-pagos').classList.remove('hidden');
                     resetClienteWizard();
+                    resetClienteExtraHelp();
                     
                     const p = msg.payload;
                     document.getElementById('lbl-precio-curso').innerText = p.precioCurso;
@@ -650,6 +714,7 @@
                     document.getElementById('seccion-pagos').classList.add('hidden');
                     document.getElementById('seccion-wizard').classList.remove('hidden');
                     document.getElementById('seccion-periodos').classList.add('hidden');
+                    resetClienteExtraHelp();
                     
                     // Resetear posibles pantallas de envio/éxito si el asesor vuelve a interactuar
                     document.getElementById('w-enviando').classList.add('hidden');
@@ -735,6 +800,64 @@
                     } else if (st.status === 'ERROR') {
                         document.getElementById('w-enviando').classList.add('hidden');
                         document.getElementById('w-resumen').classList.remove('hidden');
+                    }
+                    break;
+
+                case 'EXTRAHELP_UPDATE':
+                    document.getElementById('pantalla-espera').classList.add('hidden');
+                    document.getElementById('pantalla-info').classList.remove('hidden');
+                    document.getElementById('seccion-pagos').classList.add('hidden');
+                    document.getElementById('seccion-wizard').classList.add('hidden');
+                    resetClienteWizard();
+                    document.getElementById('seccion-periodos').classList.add('hidden');
+                    
+                    const secEHCli = document.getElementById('seccion-extrahelp-cliente');
+                    if (secEHCli) secEHCli.classList.remove('hidden');
+
+                    const eh = msg.payload;
+
+                    // Correo en tiempo real
+                    const elCor = document.getElementById('eh-cli-correo');
+                    if (elCor) {
+                        elCor.innerText = eh.correo || '(Escribe el correo del alumno...)';
+                    }
+
+                    // Horario y cupo
+                    const elHor = document.getElementById('eh-cli-horario');
+                    const elCup = document.getElementById('eh-cli-cupo');
+                    if (elHor) {
+                        elHor.innerText = eh.sesionText || 'Esperando selección de horario...';
+                    }
+                    if (elCup) {
+                        if (eh.cupoText) {
+                            elCup.innerText = eh.cupoText;
+                            elCup.classList.remove('hidden');
+                        } else {
+                            elCup.classList.add('hidden');
+                        }
+                    }
+
+                    // Temas de gramática en tiempo real
+                    const elCant = document.getElementById('eh-cli-cant-temas');
+                    const elLista = document.getElementById('eh-cli-lista-temas');
+                    const temasArr = eh.temas || [];
+                    if (elCant) {
+                        elCant.innerText = `${temasArr.length}/2 temas`;
+                    }
+                    if (elLista) {
+                        if (temasArr.length === 0) {
+                            elLista.innerHTML = '<p class="text-gray-400 italic text-xs">Esperando selección de temas...</p>';
+                        } else {
+                            elLista.innerHTML = temasArr.map(t => {
+                                const m = t.match(/^(\d+\.\d+)\s*(.*)$/);
+                                const num = m ? `(${m[1]}) ` : '';
+                                const txt = m ? m[2] : t;
+                                return `<div class="p-2.5 bg-white rounded-xl border border-emerald-200 shadow-2xs flex items-center gap-2">
+                                    <span class="text-emerald-700 font-bold text-xs">${num}</span>
+                                    <span class="font-medium text-gray-800 text-xs">${txt}</span>
+                                </div>`;
+                            }).join('');
+                        }
                     }
                     break;
             }
