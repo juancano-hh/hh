@@ -946,6 +946,28 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- BLOQUE FORMATO PARA EXCEL EN RECUPERACIÓN -->
+                    <div id="rec-bloque-excel-exito" class="mt-4 p-3.5 bg-white border border-purple-300 rounded-2xl space-y-2.5 shadow-sm text-left">
+                        <div onclick="copiarFilaExcelRecuperacion()" class="cursor-pointer group relative p-3 bg-purple-50/50 rounded-xl border border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100/50 transition-all text-xs font-mono select-all" title="Click aquí para copiar directamente">
+                            <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
+                                <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
+                                <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">
+                                    📋 Click para copiar
+                                </span>
+                            </div>
+                            <div id="rec-texto-fila-excel" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                                <!-- Texto tabulado generado por JS -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <button id="rec-btn-copiar-excel" type="button" onclick="copiarFilaExcelRecuperacion()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                                <span class="text-base">📋</span> Copiar para Excel
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="mt-4 pt-3 border-t border-green-200 flex justify-center">
                         <button onclick="regresarMenu()" class="bg-white hover:bg-green-100 text-green-800 font-bold py-2 px-4 rounded-xl text-xs transition duration-200 border border-green-300 shadow-sm flex items-center gap-1.5">
                             ← Volver al Menú Principal
@@ -2153,6 +2175,7 @@
         let periodosCalendario = [];
         // ===== Horarios de recuperación =====
         let horariosRecuperacion = [];
+        const APPS_SCRIPT_URL = 'PEGAR_URL_AQUI'; // URL del Web App de Google Apps Script para solicitudes
 
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
 
@@ -2868,9 +2891,22 @@
             const recExito = document.getElementById('rec-exito');
             if (recExito) recExito.classList.add('hidden');
             const recError = document.getElementById('rec-error');
-            if (recError) recError.classList.add('hidden');
+            if (recError) {
+                recError.classList.add('hidden');
+                recError.innerHTML = '';
+            }
             const recLinkCont = document.getElementById('rec-link-container');
             if (recLinkCont) recLinkCont.classList.add('hidden');
+
+            const recTextoExcel = document.getElementById('rec-texto-fila-excel');
+            if (recTextoExcel) recTextoExcel.textContent = '';
+            if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = '';
+            const recBtnCopiar = document.getElementById('rec-btn-copiar-excel');
+            if (recBtnCopiar) {
+                recBtnCopiar.innerHTML = '<span class="text-base">📋</span> Copiar para Excel';
+                recBtnCopiar.classList.remove('bg-green-600', 'hover:bg-green-700');
+                recBtnCopiar.classList.add('bg-purple-600', 'hover:bg-purple-700');
+            }
 
             if (typeof diasSeleccionadosRec !== 'undefined' && diasSeleccionadosRec.clear) {
                 diasSeleccionadosRec.clear();
@@ -4933,6 +4969,13 @@
                 <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasTexto}</p>
             `;
             document.getElementById('rec-resumen-container').innerHTML = html;
+
+            if (typeof generarFilaExcelRecuperacionTexto === 'function') {
+                const fila = generarFilaExcelRecuperacionTexto();
+                if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = fila;
+                const filaDiv = document.getElementById('rec-texto-fila-excel');
+                if (filaDiv) filaDiv.textContent = fila;
+            }
         }
 
         function renderizarMiniCalendario() {
@@ -5069,10 +5112,81 @@
             document.getElementById('seccion-recuperacion').classList.add('hidden');
         }
 
+        let ultimaFilaExcelRecuperacion = '';
+
+        function generarFilaExcelRecuperacionTexto() {
+            if (!alumnoActual) return '';
+            const correoInput = document.getElementById('rec-correo');
+            const correo = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
+            const horarioSel = document.getElementById('rec-horario') ? document.getElementById('rec-horario').value : '';
+            const optSel = horarioSel ? document.querySelector(`#rec-horario option[value="${horarioSel}"]`) : null;
+            const frecuencia = optSel ? (optSel.dataset.frecuencia || '') : '';
+            const modalidadEnvio = alumnoActual.modalidad || '';
+            const docente = optSel ? (optSel.dataset.docente || '') : '';
+            const horafmt = optSel ? (optSel.dataset.horafmt || '') : '';
+            const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
+
+            const hoy = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
+            const idSinCeros = String(alumnoActual.idOriginal || '').replace(/^0+/,'');
+            const cursoNum = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '') || String(alumnoActual.nivelActual || '');
+
+            const diasLabels = (typeof formatearTextoDiasRecuperacion === 'function' && typeof diasSeleccionadosRec !== 'undefined')
+                ? formatearTextoDiasRecuperacion(diasSeleccionadosRec)
+                : '';
+
+            return [
+                fechaHoy,
+                idSinCeros,
+                alumnoActual.nombre || '',
+                correo,
+                'PUEBLA ANZURES',
+                'RI',
+                modalidadEnvio,
+                alumnoActual.codigoClase || '',
+                cursoNum,
+                frecuencia,
+                horafmtLimpio,
+                horarioSel,
+                docente,
+                diasLabels,
+                "RECUPERACION"
+            ].join('\t');
+        }
+
+        function copiarFilaExcelRecuperacion(btnId = 'rec-btn-copiar-excel') {
+            const el = document.getElementById('rec-texto-fila-excel');
+            let texto = el ? (el.textContent || el.innerText) : '';
+            if (!texto || !texto.trim()) texto = ultimaFilaExcelRecuperacion || generarFilaExcelRecuperacionTexto();
+            if (!texto || !texto.trim()) return;
+
+            navigator.clipboard.writeText(texto).then(() => {
+                if (typeof mostrarTooltipCopiado === 'function') {
+                    mostrarTooltipCopiado('Fila copiada para Excel');
+                }
+                const btn = document.getElementById(btnId) || document.getElementById('rec-btn-copiar-excel');
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<span class="text-base">✅</span> ¡Copiado!';
+                    btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error("Error al copiar:", err);
+            });
+        }
+
         async function enviarFormRecuperacion() {
             const errorDiv = document.getElementById('rec-error');
             const btnEnviar = document.getElementById('rec-btn-enviar');
             errorDiv.classList.add('hidden');
+            errorDiv.innerHTML = '';
 
             const correo = document.getElementById('rec-correo').value.trim();
             if (!correo || !correo.includes('@')) {
@@ -5100,26 +5214,27 @@
             // Obtener variables de la clase elegida
             const optSel = document.querySelector(`#rec-horario option[value="${horarioSel}"]`);
             const frecuencia = optSel ? optSel.dataset.frecuencia : '';
-            const modalidadEnvio = alumnoActual.modalidad;
+            const modalidadEnvio = alumnoActual ? alumnoActual.modalidad : '';
             const docente = optSel ? optSel.dataset.docente : '';
             const horafmt = optSel ? optSel.dataset.horafmt : '';
-            const horafmtLimpio = horafmt.replace(/^0/, ''); // e.g. "08:00" -> "8:00"
+            const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
 
             const hoy = new Date();
             const pad = n => String(n).padStart(2,'0');
             const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
-            const idSinCeros = String(alumnoActual.idOriginal).replace(/^0+/,'');
+            const idSinCeros = String((alumnoActual && alumnoActual.idOriginal) || '').replace(/^0+/,'');
+            const cursoNum = String(alumnoActual && alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : ((alumnoActual && alumnoActual.cursoVisual) || '')).replace(/\D+/g, '') || String((alumnoActual && alumnoActual.nivelActual) || '');
 
             const payload = {
                 fechaSolicitud: fechaHoy,
                 idAlumno: idSinCeros,
-                nombre: alumnoActual.nombre,
+                nombre: (alumnoActual && alumnoActual.nombre) || '',
                 correo: correo,
                 campus: 'PUEBLA ANZURES',
                 tipo: 'RI',
                 modalidad: modalidadEnvio,
-                codigoClase: alumnoActual.codigoClase || '',
-                nivel: String(alumnoActual.nivelActual),
+                codigoClase: (alumnoActual && alumnoActual.codigoClase) || '',
+                nivel: cursoNum,
                 frecuenciaReq: frecuencia,
                 horarioReq: horafmtLimpio,
                 crnReq: horarioSel, // El value del select es el crn
@@ -5128,11 +5243,37 @@
                 tipoOperacion: "RECUPERACION"
             };
 
+            const filaExcelTexto = [
+                fechaHoy,
+                idSinCeros,
+                (alumnoActual && alumnoActual.nombre) || '',
+                correo,
+                'PUEBLA ANZURES',
+                'RI',
+                modalidadEnvio,
+                (alumnoActual && alumnoActual.codigoClase) || '',
+                cursoNum,
+                frecuencia,
+                horafmtLimpio,
+                horarioSel,
+                docente,
+                diasLabels,
+                "RECUPERACION"
+            ].join('\t');
+
+            ultimaFilaExcelRecuperacion = filaExcelTexto;
+            const filaDiv = document.getElementById('rec-texto-fila-excel');
+            if (filaDiv) {
+                filaDiv.textContent = filaExcelTexto;
+            }
+
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
             sendClientMsg('WIZARD_STATUS', { status: 'ENVIANDO' });
             try {
-                if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') throw new Error('URL no configurada.');
+                if (typeof APPS_SCRIPT_URL === 'undefined' || !APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') {
+                    throw new Error('URL de Apps Script no configurada');
+                }
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
@@ -5156,7 +5297,26 @@
             } catch (err) {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar Solicitud';
-                errorDiv.innerText = 'Error al enviar: ' + err.message;
+                errorDiv.innerHTML = `
+                    <div class="mb-2">
+                        <span class="font-bold">⚠️ No se pudo enviar por Apps Script:</span> ${err.message || 'Error de conexión'}
+                    </div>
+                    <p class="text-xs text-gray-700 mb-2 font-medium">Puedes copiar la fila de la solicitud directamente para Excel:</p>
+                    <div onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="cursor-pointer group relative p-3 bg-white rounded-xl border border-dashed border-red-300 hover:border-red-500 transition-all text-xs font-mono text-left select-all" title="Click aquí para copiar directamente">
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
+                            <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
+                            <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">📋 Click para copiar</span>
+                        </div>
+                        <div class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                            ${filaExcelTexto}
+                        </div>
+                    </div>
+                    <div class="mt-2 text-left">
+                        <button id="rec-btn-copiar-excel-err" type="button" onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                            <span class="text-base">📋</span> Copiar para Excel
+                        </button>
+                    </div>
+                `;
                 errorDiv.classList.remove('hidden');
                 sendClientMsg('WIZARD_STATUS', { status: 'ERROR', message: err.message });
             }
