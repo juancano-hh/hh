@@ -534,6 +534,56 @@
                         <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
                     </label>
                 </div>
+
+                <!-- ===== MATERIAL / LIBRO ===== -->
+                <div class="border-t border-gray-200 pt-3 mt-1 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="calc-material" onchange="actualizarCalculadoraManual()" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-500"></div>
+                            </label>
+                            <span class="text-xs font-bold text-gray-600">📚 Material (Libro)</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-400">$</span>
+                            <input type="number" id="calc-precio-material" min="0" value="0" oninput="actualizarCalculadoraManual()" class="w-20 p-1 border border-gray-300 rounded-lg text-sm text-right font-mono focus:ring-indigo-400 focus:border-indigo-400 outline-none transition" placeholder="0">
+                        </div>
+                    </div>
+                    <!-- Detalle: tipo de programa y libro -->
+                    <div id="calc-material-detalle" class="hidden pl-2 space-y-1.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-indigo-600 mb-1 uppercase tracking-wide">Tipo de programa</label>
+                            <select id="calc-tipo-programa" onchange="actualizarCalculadoraManual()" class="w-full p-1.5 border border-indigo-200 rounded-lg text-xs focus:ring-indigo-400 outline-none transition bg-indigo-50 text-indigo-900 font-semibold">
+                                <option value="teens">TEENS — $777</option>
+                                <option value="adultos">ADULTOS — $777</option>
+                                <option value="preteens">PRETEENS — $700</option>
+                                <option value="kids">KIDS — $994</option>
+                            </select>
+                        </div>
+                        <div id="calc-libro-info" class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-lg p-2">
+                            <span class="text-indigo-500 text-sm">📖</span>
+                            <span id="calc-libro-nombre" class="text-xs font-bold text-indigo-800">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== INSCRIPCIÓN ===== -->
+                <div class="border-t border-gray-200 pt-3 mt-1">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="calc-inscripcion" onchange="actualizarCalculadoraManual()" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                            <span class="text-xs font-bold text-gray-600">🎓 Inscripción</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-400">$</span>
+                            <input type="number" id="calc-precio-inscripcion" min="0" value="400" oninput="actualizarCalculadoraManual()" class="w-20 p-1 border border-gray-300 rounded-lg text-sm text-right font-mono focus:ring-amber-400 focus:border-amber-400 outline-none transition" placeholder="400">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Slider -->
@@ -584,6 +634,21 @@
                 <div class="flex justify-between items-center pt-2">
                     <span class="text-sm font-bold text-gray-700">Total cursos:</span>
                     <span id="calc-tot-cur" class="font-mono font-bold text-gray-900"></span>
+                </div>
+
+                <!-- Fila Material -->
+                <div id="calc-fila-material" style="display:none" class="flex justify-between items-center border-t border-indigo-100 pt-2">
+                    <div>
+                        <span class="block text-sm text-indigo-700 font-bold">📚 Material:</span>
+                        <span id="calc-desglose-material" class="text-[10px] text-indigo-400"></span>
+                    </div>
+                    <span id="calc-mat-tot" class="font-mono text-sm font-bold text-indigo-700"></span>
+                </div>
+
+                <!-- Fila Inscripción -->
+                <div id="calc-fila-inscripcion" style="display:none" class="flex justify-between items-center border-t border-amber-100 pt-2">
+                    <span class="text-sm text-amber-700 font-bold">🎓 Inscripción:</span>
+                    <span id="calc-insc-tot" class="font-mono text-sm font-bold text-amber-700"></span>
                 </div>
 
                 <div class="flex justify-between items-center bg-green-50 p-4 rounded-xl mt-3 border border-green-200 shadow-sm">
@@ -8604,7 +8669,95 @@
             }
 
             document.getElementById('calc-tot-cur').innerText = fmt.format(totalCursosConServicio);
-            document.getElementById('calc-res-total').innerText = fmt.format(totalCursosConServicio);
+
+            // ===== MATERIAL / LIBRO =====
+            const incluyeMaterial = document.getElementById('calc-material').checked;
+            const detalleMaterial = document.getElementById('calc-material-detalle');
+            const filaMaterial = document.getElementById('calc-fila-material');
+
+            let costoMaterial = 0;
+            if (incluyeMaterial) {
+                detalleMaterial.classList.remove('hidden');
+                const tipoPrograma = document.getElementById('calc-tipo-programa').value;
+                const dataMat = materialesInfo[tipoPrograma];
+
+                // Determinar el libro según el curso actual
+                let libroNombre = '—';
+                if (dataMat && dataMat.filas) {
+                    // Cada fila tiene "nivel" como "1 al 4", "5 al 8", etc.
+                    // Extraemos los rangos y buscamos el que contiene el curso actual
+                    for (const fila of dataMat.filas) {
+                        const partes = fila.nivel.match(/(\d+)\s*al\s*(\d+)/);
+                        if (partes) {
+                            const desde = parseInt(partes[1]);
+                            const hasta = parseInt(partes[2]);
+                            if (curso >= desde && curso <= hasta) {
+                                libroNombre = fila.libro;
+                                break;
+                            }
+                        }
+                    }
+                    // Si el curso está fuera de todos los rangos, usar el último libro
+                    if (libroNombre === '—' && dataMat.filas.length > 0) {
+                        libroNombre = dataMat.filas[dataMat.filas.length - 1].libro;
+                    }
+                }
+                document.getElementById('calc-libro-nombre').innerText = libroNombre;
+
+                // Precio: leer el campo editable, si está en 0 usar el precio base del tipo
+                let precioMatEl = parseFloat(document.getElementById('calc-precio-material').value);
+                if (isNaN(precioMatEl) || precioMatEl < 0) precioMatEl = 0;
+                // Si el campo está vacío o en 0 y el tipo tiene precio, pre-cargar el precio base
+                const precioBaseStr = dataMat ? dataMat.precio.replace(/[^0-9]/g, '') : '0';
+                const precioBase = parseInt(precioBaseStr) || 0;
+                // Solo auto-completar el precio si el campo está en 0 (primera vez o al cambiar programa)
+                const campoMat = document.getElementById('calc-precio-material');
+                if (parseFloat(campoMat.value) === 0 && precioBase > 0) {
+                    campoMat.value = precioBase;
+                    precioMatEl = precioBase;
+                }
+                costoMaterial = isNaN(precioMatEl) ? 0 : precioMatEl;
+
+                filaMaterial.style.display = 'flex';
+                document.getElementById('calc-desglose-material').innerText = libroNombre !== '—' ? libroNombre : '';
+                document.getElementById('calc-mat-tot').innerText = fmt.format(costoMaterial);
+
+                // Actualizar las opciones del select con los precios de materialesInfo
+                const selectTipo = document.getElementById('calc-tipo-programa');
+                const opciones = [
+                    { value: 'teens', label: 'TEENS', key: 'teens' },
+                    { value: 'adultos', label: 'ADULTOS', key: 'adultos' },
+                    { value: 'preteens', label: 'PRETEENS', key: 'preteens' },
+                    { value: 'kids', label: 'KIDS', key: 'kids' }
+                ];
+                opciones.forEach(op => {
+                    const opt = selectTipo.querySelector(`option[value="${op.value}"]`);
+                    if (opt && materialesInfo[op.key]) {
+                        opt.text = `${op.label} — ${materialesInfo[op.key].precio}`;
+                    }
+                });
+            } else {
+                detalleMaterial.classList.add('hidden');
+                filaMaterial.style.display = 'none';
+                // Resetear precio a 0 al desactivar
+                document.getElementById('calc-precio-material').value = 0;
+            }
+
+            // ===== INSCRIPCIÓN =====
+            const incluyeInscripcion = document.getElementById('calc-inscripcion').checked;
+            const filaInscripcion = document.getElementById('calc-fila-inscripcion');
+            let costoInscripcion = 0;
+            if (incluyeInscripcion) {
+                costoInscripcion = parseFloat(document.getElementById('calc-precio-inscripcion').value) || 0;
+                filaInscripcion.style.display = 'flex';
+                document.getElementById('calc-insc-tot').innerText = fmt.format(costoInscripcion);
+            } else {
+                filaInscripcion.style.display = 'none';
+            }
+
+            // ===== GRAN TOTAL =====
+            const granTotal = totalCursosConServicio + costoMaterial + costoInscripcion;
+            document.getElementById('calc-res-total').innerText = fmt.format(granTotal);
 
             const ahorro = totalListaGeneral - totalCursosConServicio;
             const ahorroCont = document.getElementById('calc-ahorro-container');
