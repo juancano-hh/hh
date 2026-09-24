@@ -2220,7 +2220,7 @@
                 const filas = result.data;
                 baseAlumnos = {};
                 alumnosPorIdNormalizado.clear();
-                for (let idx = 0; idx < filas.length; idx++) {
+                for (let idx = 1; idx < filas.length; idx++) {
                     const fila = filas[idx];
                     if (fila.length < 4) continue;
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
@@ -2306,7 +2306,7 @@
                     const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
                     const filasNuevo = resParsedNuevo.data;
 
-                    for (let idx = 0; idx < filasNuevo.length; idx++) {
+                    for (let idx = 1; idx < filasNuevo.length; idx++) {
                         const fila = filasNuevo[idx];
                         if (fila.length < 4) continue;
                         const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
