@@ -608,14 +608,18 @@
                 <p id="menu-saludo-id" class="text-base font-mono text-gray-500"></p>
             </div>
             <p class="text-center text-sm font-semibold text-gray-500 mb-3">¿Qué deseas hacer?</p>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button onclick="mostrarSeccionPagos()" class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
                     <span class="text-3xl">💳</span>
                     <span class="text-xs font-bold text-blue-700 leading-tight">Pagos y<br>Cotizaciones</span>
                 </button>
-                <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                <button onclick="mostrarFormRecuperacion()" class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
                     <span class="text-3xl">🔁</span>
                     <span class="text-xs font-bold text-purple-700 leading-tight">Solicitar Clase de<br>Recuperación</span>
+                </button>
+                <button onclick="mostrarFormExtraHelp()" class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-500 transition-all duration-200 text-center shadow-sm hover:shadow-md">
+                    <span class="text-3xl">📓</span>
+                    <span class="text-xs font-bold text-emerald-700 leading-tight">Solicitar<br>Extra Help</span>
                 </button>
             </div>
             <p class="text-center mt-4">
@@ -942,11 +946,138 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- BLOQUE FORMATO PARA EXCEL EN RECUPERACIÓN -->
+                    <div id="rec-bloque-excel-exito" class="mt-4 p-3.5 bg-white border border-purple-300 rounded-2xl space-y-2.5 shadow-sm text-left">
+                        <div onclick="copiarFilaExcelRecuperacion()" class="cursor-pointer group relative p-3 bg-purple-50/50 rounded-xl border border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100/50 transition-all text-xs font-mono select-all" title="Click aquí para copiar directamente">
+                            <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
+                                <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
+                                <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">
+                                    📋 Click para copiar
+                                </span>
+                            </div>
+                            <div id="rec-texto-fila-excel" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                                <!-- Texto tabulado generado por JS -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <button id="rec-btn-copiar-excel" type="button" onclick="copiarFilaExcelRecuperacion()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                                <span class="text-base">📋</span> Copiar para Excel
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="mt-4 pt-3 border-t border-green-200 flex justify-center">
                         <button onclick="regresarMenu()" class="bg-white hover:bg-green-100 text-green-800 font-bold py-2 px-4 rounded-xl text-xs transition duration-200 border border-green-300 shadow-sm flex items-center gap-1.5">
                             ← Volver al Menú Principal
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FORMULARIO INLINE DE EXTRA HELP ===== -->
+        <div id="seccion-extrahelp" class="hidden mt-4 space-y-4">
+            <div class="border-t border-emerald-200 pt-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                        <span class="text-base">📓</span> Solicitar Extra Help
+                    </p>
+                    <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        1 o máx. 2 temas
+                    </span>
+                </div>
+
+                <p class="text-xs text-gray-500 mb-3">
+                    Selecciona tu nivel, sesión disponible y los temas gramaticales a revisar para generar los datos listos para copiar a Excel.
+                </p>
+
+                <!-- Selectores de Programa y Nivel -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Programa</label>
+                        <select id="eh-programa" class="w-full text-xs p-2.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" onchange="cambiarProgramaExtraHelp()">
+                            <option value="Adult">Adultos / Teens</option>
+                            <option value="KIDS">Kids</option>
+                            <option value="PRETEENS">Preteens</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Nivel / Curso</label>
+                        <select id="eh-nivel" class="w-full text-xs p-2.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" onchange="cambiarNivelExtraHelp()">
+                            <!-- Se puebla dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Selector de Sesión con Cupo -->
+                <div class="mb-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-gray-700">Horario disponible de Extra Help</label>
+                        <span id="eh-cupo-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full hidden"></span>
+                    </div>
+                    <select id="eh-sesion" class="w-full text-xs p-2.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" onchange="actualizarResumenExtraHelp()">
+                        <option value="">-- Selecciona una fecha y horario --</option>
+                    </select>
+                    <p id="eh-aviso-sesion" class="text-xs text-amber-600 mt-1 hidden"></p>
+                </div>
+
+                <!-- Correo Electrónico editable -->
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                        Correo electrónico del alumno <span class="text-gray-400 font-normal">(editable si requiere recibirlo en otro correo)</span>
+                    </label>
+                    <input type="email" id="eh-correo" class="w-full text-xs p-2.5 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="correo@ejemplo.com" oninput="actualizarResumenExtraHelp()">
+                </div>
+
+                <!-- Checklist de Temas Gramaticales -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-bold text-gray-700">Temas de Gramática a revisar</label>
+                        <span id="eh-contador-temas" class="text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                            0 de 2 temas seleccionados
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 mb-2">
+                        Se pueden revisar 1 o máximo 2 temas en la misma fecha.
+                    </p>
+                    <div id="eh-temas-container" class="max-h-60 overflow-y-auto p-2 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                        <!-- Unidades y temas inyectados por JS -->
+                    </div>
+                    <p id="eh-temas-alerta" class="text-xs text-amber-700 bg-amber-50 border border-amber-200 p-2 rounded-lg mt-2 hidden">
+                        ⚠️ Ya has seleccionado el máximo permitido de 2 temas. Si necesitas más temas deberás agendar otra sesión.
+                    </p>
+                </div>
+
+                <!-- BLOQUE DE SALIDA LISTO PARA EXCEL -->
+                <div id="eh-bloque-resumen" class="mt-4 p-3.5 bg-emerald-50/70 border border-emerald-300 rounded-2xl space-y-2.5 shadow-sm">
+                    <!-- Fila directa de Excel (al hacer clic encima se copia) -->
+                    <div onclick="copiarFilaExcelExtraHelp()" class="cursor-pointer group relative p-3 bg-white rounded-xl border border-dashed border-emerald-400 hover:border-emerald-600 hover:bg-emerald-50/50 transition-all text-xs font-mono select-all" title="Click aquí para copiar directamente">
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
+                            <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
+                            <span class="text-emerald-700 font-bold group-hover:underline flex items-center gap-1">
+                                📋 Click para copiar
+                            </span>
+                        </div>
+                        <div id="eh-texto-fila-excel" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                            PUEBLA ANZURES	...
+                        </div>
+                    </div>
+
+                    <!-- Botón de Copiado -->
+                    <div>
+                        <button id="eh-btn-copiar" onclick="copiarFilaExcelExtraHelp()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                            <span class="text-base">📋</span> Copiar para Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botón Volver al Menú Principal -->
+                <div class="pt-3 flex justify-center">
+                    <button onclick="regresarMenu()" class="text-xs font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-5 transition-all duration-200 bg-gray-50 hover:bg-gray-100 flex items-center gap-1.5">
+                        ← Regresar al Menú Principal
+                    </button>
                 </div>
             </div>
         </div>
@@ -2006,8 +2137,10 @@
         const CAL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
         const HORARIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
         // ⬇️ Pega aquí la URL de tu Google Apps Script después de implementarlo
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1m5V3OLuZo1x3AqmF1yhzuI6h4dNZ36uoJpGT0FcsROEHD-OlRs4sl6wNejPsXDow/exec';
         const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
+        // URLs de Extra Help: Semana actual (gid=0) y Siguiente semana (gid=1791174714)
+        const EXTRAHELP_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTENdP0NAiKz_h0fYi-A1wzPIGBHcvWlsnfPl-tRSViJj19JAEZ7j_gccYPfmg0NuLldvhuQXvqlKv/pub?gid=0&single=true&output=csv';
+        const EXTRAHELP_SIG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTENdP0NAiKz_h0fYi-A1wzPIGBHcvWlsnfPl-tRSViJj19JAEZ7j_gccYPfmg0NuLldvhuQXvqlKv/pub?gid=1791174714&single=true&output=csv';
 
         // Variables globales existentes
         let baseAlumnos = {};
@@ -2044,6 +2177,7 @@
         let periodosCalendario = [];
         // ===== Horarios de recuperación =====
         let horariosRecuperacion = [];
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby1m5V3OLuZo1x3AqmF1yhzuI6h4dNZ36uoJpGT0FcsROEHD-OlRs4sl6wNejPsXDow/exec'; // URL de Apps Script para solicitudes de recuperación
 
         const NUMEROS_ATENCION = ["522201904887", "522208731288", "522222339058"];
 
@@ -2086,7 +2220,7 @@
                 const filas = result.data;
                 baseAlumnos = {};
                 alumnosPorIdNormalizado.clear();
-                for (let idx = 0; idx < filas.length; idx++) {
+                for (let idx = 1; idx < filas.length; idx++) {
                     const fila = filas[idx];
                     if (fila.length < 4) continue;
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
@@ -2172,7 +2306,7 @@
                     const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
                     const filasNuevo = resParsedNuevo.data;
 
-                    for (let idx = 0; idx < filasNuevo.length; idx++) {
+                    for (let idx = 1; idx < filasNuevo.length; idx++) {
                         const fila = filasNuevo[idx];
                         if (fila.length < 4) continue;
                         const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
@@ -2753,14 +2887,28 @@
 
         // ==================== RESET RECUPERACIÓN ====================
         function resetearFormRecuperacion() {
+            if (typeof resetearFormExtraHelp === 'function') resetearFormExtraHelp();
             const secRec = document.getElementById('seccion-recuperacion');
             if (secRec) secRec.classList.add('hidden');
             const recExito = document.getElementById('rec-exito');
             if (recExito) recExito.classList.add('hidden');
             const recError = document.getElementById('rec-error');
-            if (recError) recError.classList.add('hidden');
+            if (recError) {
+                recError.classList.add('hidden');
+                recError.innerHTML = '';
+            }
             const recLinkCont = document.getElementById('rec-link-container');
             if (recLinkCont) recLinkCont.classList.add('hidden');
+
+            const recTextoExcel = document.getElementById('rec-texto-fila-excel');
+            if (recTextoExcel) recTextoExcel.textContent = '';
+            if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = '';
+            const recBtnCopiar = document.getElementById('rec-btn-copiar-excel');
+            if (recBtnCopiar) {
+                recBtnCopiar.innerHTML = '<span class="text-base">📋</span> Copiar para Excel';
+                recBtnCopiar.classList.remove('bg-green-600', 'hover:bg-green-700');
+                recBtnCopiar.classList.add('bg-purple-600', 'hover:bg-purple-700');
+            }
 
             if (typeof diasSeleccionadosRec !== 'undefined' && diasSeleccionadosRec.clear) {
                 diasSeleccionadosRec.clear();
@@ -3225,6 +3373,7 @@
             document.getElementById('menu-principal').classList.add('hidden');
             document.getElementById('ficha-alumno').classList.remove('hidden');
             document.getElementById('seccion-calculos').classList.remove('hidden');
+            resetearFormExtraHelp();
             descuentoManualPorcentaje = null;
             // Cargar fechas de periodo
             mostrarFechasPeriodo();
@@ -4043,7 +4192,8 @@
                 cargarAlumnos(),
                 cargarPeriodosCalendario(),
                 cargarHorariosRecuperacion(),
-                cargarSalones()
+                cargarSalones(),
+                cargarSesionesExtraHelp()
             ]).then(() => {
                 clearTimeout(timeoutSeguridad);
                 if (btn) { btn.innerText = 'Buscar'; btn.disabled = false; }
@@ -4340,6 +4490,7 @@
             document.getElementById('seccion-periodos').classList.add('hidden');
             document.getElementById('seccion-calculos').classList.add('hidden');
             document.getElementById('seccion-recuperacion').classList.remove('hidden');
+            resetearFormExtraHelp();
 
             // Reset Wizard
             diasSeleccionadosRec.clear();
@@ -4820,6 +4971,13 @@
                 <p><strong>🚫 Días presenciales que faltarás:</strong><br> • ${diasTexto}</p>
             `;
             document.getElementById('rec-resumen-container').innerHTML = html;
+
+            if (typeof generarFilaExcelRecuperacionTexto === 'function') {
+                const fila = generarFilaExcelRecuperacionTexto();
+                if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = fila;
+                const filaDiv = document.getElementById('rec-texto-fila-excel');
+                if (filaDiv) filaDiv.textContent = fila;
+            }
         }
 
         function renderizarMiniCalendario() {
@@ -4956,10 +5114,81 @@
             document.getElementById('seccion-recuperacion').classList.add('hidden');
         }
 
+        let ultimaFilaExcelRecuperacion = '';
+
+        function generarFilaExcelRecuperacionTexto() {
+            if (!alumnoActual) return '';
+            const correoInput = document.getElementById('rec-correo');
+            const correo = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
+            const horarioSel = document.getElementById('rec-horario') ? document.getElementById('rec-horario').value : '';
+            const optSel = horarioSel ? document.querySelector(`#rec-horario option[value="${horarioSel}"]`) : null;
+            const frecuencia = optSel ? (optSel.dataset.frecuencia || '') : '';
+            const modalidadEnvio = alumnoActual.modalidad || '';
+            const docente = optSel ? (optSel.dataset.docente || '') : '';
+            const horafmt = optSel ? (optSel.dataset.horafmt || '') : '';
+            const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
+
+            const hoy = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
+            const idSinCeros = String(alumnoActual.idOriginal || '').replace(/^0+/,'');
+            const cursoNum = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '') || String(alumnoActual.nivelActual || '');
+
+            const diasLabels = (typeof formatearTextoDiasRecuperacion === 'function' && typeof diasSeleccionadosRec !== 'undefined')
+                ? formatearTextoDiasRecuperacion(diasSeleccionadosRec)
+                : '';
+
+            return [
+                fechaHoy,
+                idSinCeros,
+                alumnoActual.nombre || '',
+                correo,
+                'PUEBLA ANZURES',
+                'RI',
+                modalidadEnvio,
+                alumnoActual.codigoClase || '',
+                cursoNum,
+                frecuencia,
+                horafmtLimpio,
+                horarioSel,
+                docente,
+                diasLabels,
+                "RECUPERACION"
+            ].join('\t');
+        }
+
+        function copiarFilaExcelRecuperacion(btnId = 'rec-btn-copiar-excel') {
+            const el = document.getElementById('rec-texto-fila-excel');
+            let texto = el ? (el.textContent || el.innerText) : '';
+            if (!texto || !texto.trim()) texto = ultimaFilaExcelRecuperacion || generarFilaExcelRecuperacionTexto();
+            if (!texto || !texto.trim()) return;
+
+            navigator.clipboard.writeText(texto).then(() => {
+                if (typeof mostrarTooltipCopiado === 'function') {
+                    mostrarTooltipCopiado('Fila copiada para Excel');
+                }
+                const btn = document.getElementById(btnId) || document.getElementById('rec-btn-copiar-excel');
+                if (btn) {
+                    const original = btn.innerHTML;
+                    btn.innerHTML = '<span class="text-base">✅</span> ¡Copiado!';
+                    btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    setTimeout(() => {
+                        btn.innerHTML = original;
+                        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error("Error al copiar:", err);
+            });
+        }
+
         async function enviarFormRecuperacion() {
             const errorDiv = document.getElementById('rec-error');
             const btnEnviar = document.getElementById('rec-btn-enviar');
             errorDiv.classList.add('hidden');
+            errorDiv.innerHTML = '';
 
             const correo = document.getElementById('rec-correo').value.trim();
             if (!correo || !correo.includes('@')) {
@@ -4987,26 +5216,27 @@
             // Obtener variables de la clase elegida
             const optSel = document.querySelector(`#rec-horario option[value="${horarioSel}"]`);
             const frecuencia = optSel ? optSel.dataset.frecuencia : '';
-            const modalidadEnvio = alumnoActual.modalidad;
+            const modalidadEnvio = alumnoActual ? alumnoActual.modalidad : '';
             const docente = optSel ? optSel.dataset.docente : '';
             const horafmt = optSel ? optSel.dataset.horafmt : '';
-            const horafmtLimpio = horafmt.replace(/^0/, ''); // e.g. "08:00" -> "8:00"
+            const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
 
             const hoy = new Date();
             const pad = n => String(n).padStart(2,'0');
             const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
-            const idSinCeros = String(alumnoActual.idOriginal).replace(/^0+/,'');
+            const idSinCeros = String((alumnoActual && alumnoActual.idOriginal) || '').replace(/^0+/,'');
+            const cursoNum = String(alumnoActual && alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : ((alumnoActual && alumnoActual.cursoVisual) || '')).replace(/\D+/g, '') || String((alumnoActual && alumnoActual.nivelActual) || '');
 
             const payload = {
                 fechaSolicitud: fechaHoy,
                 idAlumno: idSinCeros,
-                nombre: alumnoActual.nombre,
+                nombre: (alumnoActual && alumnoActual.nombre) || '',
                 correo: correo,
                 campus: 'PUEBLA ANZURES',
                 tipo: 'RI',
                 modalidad: modalidadEnvio,
-                codigoClase: alumnoActual.codigoClase || '',
-                nivel: String(alumnoActual.nivelActual),
+                codigoClase: (alumnoActual && alumnoActual.codigoClase) || '',
+                nivel: cursoNum,
                 frecuenciaReq: frecuencia,
                 horarioReq: horafmtLimpio,
                 crnReq: horarioSel, // El value del select es el crn
@@ -5015,11 +5245,37 @@
                 tipoOperacion: "RECUPERACION"
             };
 
+            const filaExcelTexto = [
+                fechaHoy,
+                idSinCeros,
+                (alumnoActual && alumnoActual.nombre) || '',
+                correo,
+                'PUEBLA ANZURES',
+                'RI',
+                modalidadEnvio,
+                (alumnoActual && alumnoActual.codigoClase) || '',
+                cursoNum,
+                frecuencia,
+                horafmtLimpio,
+                horarioSel,
+                docente,
+                diasLabels,
+                "RECUPERACION"
+            ].join('\t');
+
+            ultimaFilaExcelRecuperacion = filaExcelTexto;
+            const filaDiv = document.getElementById('rec-texto-fila-excel');
+            if (filaDiv) {
+                filaDiv.textContent = filaExcelTexto;
+            }
+
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
             sendClientMsg('WIZARD_STATUS', { status: 'ENVIANDO' });
             try {
-                if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') throw new Error('URL no configurada.');
+                if (typeof APPS_SCRIPT_URL === 'undefined' || !APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGAR_URL_AQUI') {
+                    throw new Error('URL de Apps Script no configurada');
+                }
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST', mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
@@ -5043,11 +5299,766 @@
             } catch (err) {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Enviar Solicitud';
-                errorDiv.innerText = 'Error al enviar: ' + err.message;
+                errorDiv.innerHTML = `
+                    <div class="mb-2">
+                        <span class="font-bold">⚠️ No se pudo enviar por Apps Script:</span> ${err.message || 'Error de conexión'}
+                    </div>
+                    <p class="text-xs text-gray-700 mb-2 font-medium">Puedes copiar la fila de la solicitud directamente para Excel:</p>
+                    <div onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="cursor-pointer group relative p-3 bg-white rounded-xl border border-dashed border-red-300 hover:border-red-500 transition-all text-xs font-mono text-left select-all" title="Click aquí para copiar directamente">
+                        <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
+                            <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
+                            <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">📋 Click para copiar</span>
+                        </div>
+                        <div class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
+                            ${filaExcelTexto}
+                        </div>
+                    </div>
+                    <div class="mt-2 text-left">
+                        <button id="rec-btn-copiar-excel-err" type="button" onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                            <span class="text-base">📋</span> Copiar para Excel
+                        </button>
+                    </div>
+                `;
                 errorDiv.classList.remove('hidden');
                 sendClientMsg('WIZARD_STATUS', { status: 'ERROR', message: err.message });
             }
         }
+
+        // =========================================================================
+        // ==================== MÓDULO: SOLICITAR EXTRA HELP 📓 =====================
+        // =========================================================================
+
+        let sesionesExtraHelp = [];
+        let temasSeleccionadosEH = [];
+
+        // Catálogo de Gramática Evolve (Niveles 1 a 6)
+        const TEMAS_EVOLVE = {
+            1: [
+                { u: 1, temas: ["1.1 I am, you are", "1.2 What's ...?, It's ..."] },
+                { u: 2, temas: ["2.1 is / are in statements and yes/no questions", "2.2 is not / are not"] },
+                { u: 3, temas: ["3.1 Possessive adjectives; possessive 's and s'", "3.2 It is (statements and questions with short answers); Information questions with be"] },
+                { u: 4, temas: ["4.1 Simple present statements with I, you, we", "4.2 Simple present yes/no questions with I, you, we"] },
+                { u: 5, temas: ["5.1 Simple present statements with he, she, they", "5.2 Questions in the simple present"] },
+                { u: 6, temas: ["6.1 There's, There are; a lot of, some, no", "6.2 Count and non-count nouns"] },
+                { u: 7, temas: ["7.1 Present continuous statements", "7.2 Present continuous questions"] },
+                { u: 8, temas: ["8.1 can and can't for ability; well", "8.2 can and can't for possibility"] },
+                { u: 9, temas: ["9.1 this and these", "9.2 like to, want to, need to, have to"] },
+                { u: 10, temas: ["10.1 Statements with be going to", "10.2 Questions with be going to"] },
+                { u: 11, temas: ["11.1 Statements with was and were", "11.2 Questions with was and were"] },
+                { u: 12, temas: ["12.1 Simple past statements", "12.2 Simple past questions; any"] }
+            ],
+            2: [
+                { u: 1, temas: ["1.1 be; possessive adjectives", "1.2 Whose ...?; possessive pronouns; possessive 's"] },
+                { u: 2, temas: ["2.1 Simple present for habits and routines", "2.2 This / that one; these / those ones"] },
+                { u: 3, temas: ["3.1 Present continuous", "3.2 Simple present and present continuous"] },
+                { u: 4, temas: ["4.1 Present continuous for future plans", "4.2 Object pronouns"] },
+                { u: 5, temas: ["5.1 Simple past", "5.2 Simple past negative and questions"] },
+                { u: 6, temas: ["6.1 be going to", "6.2 Determiners"] },
+                { u: 7, temas: ["7.1 Quantifiers", "7.2 Verb patterns"] },
+                { u: 8, temas: ["8.1 if and when", "8.2 Giving reasons using to and for"] },
+                { u: 9, temas: ["9.1 Comparative adjectives", "9.2 Superlative adjectives"] },
+                { u: 10, temas: ["10.1 have to", "10.2 Making predictions"] },
+                { u: 11, temas: ["11.1 Present perfect for experience", "11.2 Present perfect and simple past"] },
+                { u: 12, temas: ["12.1 Questions with be like", "12.2 Relative pronouns: who, which, that"] }
+            ],
+            3: [
+                { u: 1, temas: ["1.1 Information questions", "1.2 Indirect questions"] },
+                { u: 2, temas: ["2.1 Present perfect with ever, never, for, and since", "2.2 Present perfect with already and yet"] },
+                { u: 3, temas: ["3.1 Articles", "3.2 Modals for advice"] },
+                { u: 4, temas: ["4.1 be going to and will for predictions", "4.2 will for sudden decisions; present continuous for future plans"] },
+                { u: 5, temas: ["5.1 Simple past", "5.2 Past continuous and simple past"] },
+                { u: 6, temas: ["6.1 Quantifiers", "6.2 Present and future real conditionals"] },
+                { u: 7, temas: ["7.1 used to", "7.2 Comparisons with (not) as ... as"] },
+                { u: 8, temas: ["8.1 Present perfect continuous", "8.2 Present perfect vs. present perfect continuous"] },
+                { u: 9, temas: ["9.1 Modals of necessity", "9.2 Modals of prohibition and permission"] },
+                { u: 10, temas: ["10.1 Simple present passive", "10.2 Simple past passive"] },
+                { u: 11, temas: ["11.1 Phrasal verbs", "11.2 Present and future unreal conditionals"] },
+                { u: 12, temas: ["12.1 Indefinite pronouns", "12.2 Reported speech"] }
+            ],
+            4: [
+                { u: 1, temas: ["1.1 Tense review (simple and continuous)", "1.2 Dynamic and stative verbs"] },
+                { u: 2, temas: ["2.1 Real conditionals", "2.2 Clauses with after, until, when"] },
+                { u: 3, temas: ["3.1 too and enough", "3.2 Modifying comparisons"] },
+                { u: 4, temas: ["4.1 Modals of speculation", "4.2 Subject and object relative clauses"] },
+                { u: 5, temas: ["5.1 Past perfect", "5.2 was/were going to; was/were supposed to"] },
+                { u: 6, temas: ["6.1 Present and past passive", "6.2 Passive with modals"] },
+                { u: 7, temas: ["7.1 Reported statements", "7.2 Reported questions"] },
+                { u: 8, temas: ["8.1 Present unreal conditionals", "8.2 I wish"] },
+                { u: 9, temas: ["9.1 Prohibition, permission, obligation (present)", "9.2 Prohibition, permission, obligation (past)"] },
+                { u: 10, temas: ["10.1 Past unreal conditionals", "10.2 Modals of past probability"] },
+                { u: 11, temas: ["11.1 Gerund and infinitive after forget, remember, stop", "11.2 Causative verbs help, let, make"] },
+                { u: 12, temas: ["12.1 Adding emphasis", "12.2 Substitution and referencing"] }
+            ],
+            5: [
+                { u: 1, temas: ["1.1 Present habits", "1.2 Past habits"] },
+                { u: 2, temas: ["2.1 Comparative structures", "2.2 Superlative structures; ungradable adjectives"] },
+                { u: 3, temas: ["3.1 Relative pronouns; reduced relative clauses", "3.2 Present participles"] },
+                { u: 4, temas: ["4.1 Adding emphasis: so ... that, such ... that, even, only", "4.2 Reflexive pronouns; pronouns with other/another"] },
+                { u: 5, temas: ["5.1 Real conditionals", "5.2 Conditionals: alternatives to if"] },
+                { u: 6, temas: ["6.1 Narrative tenses", "6.2 Reported speech with modal verbs"] },
+                { u: 7, temas: ["7.1 Gerunds and infinitives after adjectives, nouns, and pronouns", "7.2 Infinitives after verbs with and without objects"] },
+                { u: 8, temas: ["8.1 Modal-like expressions with be", "8.2 Future forms"] },
+                { u: 9, temas: ["9.1 Unreal conditionals", "9.2 Wishes and regrets"] },
+                { u: 10, temas: ["10.1 Gerunds after prepositions", "10.2 Causative verbs"] },
+                { u: 11, temas: ["11.1 Passive forms", "11.2 Passives with modals and modal-like expressions; passive infinitives"] },
+                { u: 12, temas: ["12.1 Adverbs with adjectives and adverbs", "12.2 Making non-count nouns countable"] }
+            ],
+            6: [
+                { u: 1, temas: ["1.1 Commenting adverbs with future forms", "1.2 Future perfect and future continuous"] },
+                { u: 2, temas: ["2.1 Uses of will", "2.2 Uses of would"] },
+                { u: 3, temas: ["3.1 Variations on past unreal conditionals", "3.2 Commenting on the past"] },
+                { u: 4, temas: ["4.1 Quantifiers and prepositions in relative clauses", "4.2 Noun clauses with question words"] },
+                { u: 5, temas: ["5.1 Participle phrases in initial position", "5.2 Reduced relative clauses"] },
+                { u: 6, temas: ["6.1 Clefts", "6.2 Question words with -ever"] },
+                { u: 7, temas: ["7.1 Negative and limiting adverbials", "7.2 Fronting adverbials"] },
+                { u: 8, temas: ["8.1 Phrases with get", "8.2 Phrases with as"] },
+                { u: 9, temas: ["9.1 Referencing", "9.2 Continuous infinitives"] },
+                { u: 10, temas: ["10.1 Simple past for unreal situations", "10.2 It constructions"] },
+                { u: 11, temas: ["11.1 Subject-verb agreement", "11.2 Articles"] },
+                { u: 12, temas: ["12.1 The present subjunctive", "12.2 Perfect infinitive"] }
+            ]
+        };
+
+        const NIVELES_EXTRAHELP = {
+            'Adult': [
+                { num: 1, label: "Nivel 1 ( 1-4)" },
+                { num: 2, label: "Nivel 2 ( 5-8)" },
+                { num: 3, label: "Nivel 3(9-12)" },
+                { num: 4, label: "Nivel 4 ( 13-16)" },
+                { num: 5, label: "Nivel 5 ( 17-20)" },
+                { num: 6, label: "Nivel 6 ( 21-24)" }
+            ],
+            'KIDS': [
+                { num: 1, label: "Nivel 1 ( 1-4)" },
+                { num: 2, label: "Nivel 2 ( 5-8)" },
+                { num: 3, label: "Nivel 3(9-12)" }
+            ],
+            'PRETEENS': [
+                { num: 1, label: "Nivel 1 ( 1-4)" },
+                { num: 2, label: "Nivel 2 ( 5-8)" },
+                { num: 3, label: "Nivel 3(9-12)" }
+            ]
+        };
+
+        // Carga y parseo del CSV de Extra Help (Semana actual y Siguiente semana)
+        async function cargarSesionesExtraHelp() {
+            try {
+                const urls = [
+                    (typeof EXTRAHELP_CSV_URL !== 'undefined') ? EXTRAHELP_CSV_URL : '',
+                    (typeof EXTRAHELP_SIG_CSV_URL !== 'undefined') ? EXTRAHELP_SIG_CSV_URL : ''
+                ].filter(Boolean);
+
+                const fetchPromises = urls.map(url => 
+                    fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now())
+                        .then(r => r.text())
+                        .catch(e => {
+                            console.warn('Error cargando Extra Help CSV:', url, e);
+                            return '';
+                        })
+                );
+
+                const resultados = await Promise.all(fetchPromises);
+                const gruposMap = new Map();
+
+                resultados.forEach(txt => {
+                    if (!txt || !txt.trim()) return;
+                    const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                    const filas = parsed.data;
+                    if (!filas || filas.length < 2) return;
+
+                    // El encabezado solo es la fila 1 (índice 0); la fila 2 (índice 1) ya tiene datos
+                    for (let i = 1; i < filas.length; i++) {
+                        const f = filas[i];
+                        if (!f || f.length < 5) continue;
+
+                        const progRaw = String(f[0] || '').trim();
+                        const nivelRaw = String(f[2] || '').trim();
+                        const fechaRaw = String(f[3] || '').trim();
+                        const horarioRaw = String(f[4] || '').trim();
+
+                        if (!progRaw || !nivelRaw || !fechaRaw || !horarioRaw) continue;
+                        if (progRaw.toLowerCase() === 'programa' || fechaRaw.toLowerCase().includes('fecha')) continue;
+
+                        let progNorm = 'Adult';
+                        const pUpper = progRaw.toUpperCase();
+                        if (pUpper.includes('KID')) progNorm = 'KIDS';
+                        else if (pUpper.includes('PRE') || pUpper.includes('TEEN')) progNorm = 'PRETEENS';
+                        else progNorm = 'Adult';
+
+                        // Normalizar nivel (quitar espacios redundantes)
+                        const nivelNorm = nivelRaw.replace(/\s+/g, ' ').trim();
+
+                        // Detectar si el lugar está ocupado (columnas G a L)
+                        // Fila G=6 (Instituto), H=7 (ID), I=8 (Nombre), J=9 (Correo), K=10 (Curso), L=11 (Tema)
+                        const inst = f[6] ? String(f[6]).trim() : '';
+                        const idAl = f[7] ? String(f[7]).trim() : '';
+                        const nomAl = f[8] ? String(f[8]).trim() : '';
+                        const corAl = f[9] ? String(f[9]).trim() : '';
+                        const estaOcupado = !!(idAl || nomAl || inst || corAl);
+
+                        const docNombre = f[16] ? String(f[16]).trim() : (f[15] ? String(f[15]).trim() : '');
+
+                        const key = `${progNorm}__${nivelNorm.toLowerCase()}__${fechaRaw.toLowerCase()}__${horarioRaw.toLowerCase()}`;
+                        if (!gruposMap.has(key)) {
+                            gruposMap.set(key, {
+                                programa: progNorm,
+                                nivel: nivelNorm,
+                                fecha: fechaRaw,
+                                horario: horarioRaw,
+                                docente: docNombre,
+                                totalLugares: 0,
+                                ocupados: 0
+                            });
+                        }
+
+                        const g = gruposMap.get(key);
+                        g.totalLugares++;
+                        if (estaOcupado) g.ocupados++;
+                        if (!g.docente && docNombre) g.docente = docNombre;
+                    }
+                });
+
+                sesionesExtraHelp = Array.from(gruposMap.values()).map(g => {
+                    const cupoBase = g.totalLugares > 0 ? g.totalLugares : 6;
+                    const disponibles = Math.max(0, cupoBase - g.ocupados);
+                    return {
+                        ...g,
+                        totalLugares: cupoBase,
+                        disponibles: disponibles,
+                        lleno: disponibles <= 0
+                    };
+                });
+
+                console.log('✅ Sesiones de Extra Help cargadas (ambas semanas):', sesionesExtraHelp.length);
+            } catch (err) {
+                console.error('Error cargando Extra Help CSV:', err);
+            }
+        }
+
+        // Parseo de fechas en español para validar anticipación de 1 día
+        function parseFechaSesionEH(str) {
+            if (!str) return null;
+            const meses = {
+                'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3, 'mayo': 4, 'junio': 5,
+                'julio': 6, 'agosto': 7, 'septiembre': 8, 'setiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+            };
+            const limpio = str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const match = limpio.match(/(\d{1,2})\s+de\s+([a-z]+)\s+de\s+(\d{4})/);
+            if (match) {
+                const dia = parseInt(match[1], 10);
+                const mesNombre = match[2];
+                const anio = parseInt(match[3], 10);
+                const mes = meses[mesNombre];
+                if (mes !== undefined && !isNaN(dia) && !isNaN(anio)) {
+                    return new Date(anio, mes, dia);
+                }
+            }
+            const d = new Date(str);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        // Parseo de horas (ej. 10:00 AM, 5:00 PM) para ordenamiento cronológico
+        function parseHoraMinutosEH(hStr) {
+            if (!hStr) return 0;
+            const m = String(hStr).trim().match(/(\d+):(\d+)\s*(AM|PM)?/i);
+            if (!m) return 0;
+            let hrs = parseInt(m[1], 10);
+            const mins = parseInt(m[2], 10);
+            const ampm = (m[3] || '').toUpperCase();
+            if (ampm === 'PM' && hrs < 12) hrs += 12;
+            if (ampm === 'AM' && hrs === 12) hrs = 0;
+            return hrs * 60 + mins;
+        }
+
+        // Cálculo del nivel inicial por curso (cada 4 cursos = 1 nivel)
+        function calcularNivelDefectoEH(curso, prog) {
+            let c = parseInt(curso, 10);
+            if (isNaN(c) || c < 1) c = 1;
+            let n = Math.ceil(c / 4);
+            if (prog === 'KIDS' || prog === 'PRETEENS') {
+                if (n > 3) n = 3;
+            } else {
+                if (n > 6) n = 6;
+            }
+            return n;
+        }
+
+        function poblarNivelesExtraHelp(prog, cursoAlumno = null) {
+            const nivelSel = document.getElementById('eh-nivel');
+            if (!nivelSel) return;
+            nivelSel.innerHTML = '';
+
+            const lista = NIVELES_EXTRAHELP[prog] || NIVELES_EXTRAHELP['Adult'];
+            let nivelDefectoNum = 1;
+            if (cursoAlumno !== null) {
+                nivelDefectoNum = calcularNivelDefectoEH(cursoAlumno, prog);
+            }
+
+            lista.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.label;
+                opt.dataset.num = item.num;
+                opt.textContent = item.label;
+                if (item.num === nivelDefectoNum) {
+                    opt.selected = true;
+                }
+                nivelSel.appendChild(opt);
+            });
+        }
+
+        function cambiarProgramaExtraHelp() {
+            const prog = document.getElementById('eh-programa').value;
+            poblarNivelesExtraHelp(prog, alumnoActual ? alumnoActual.nivelActual : 1);
+            temasSeleccionadosEH = [];
+            filtrarSesionesExtraHelp();
+            renderizarTemasExtraHelp();
+            actualizarResumenExtraHelp();
+        }
+
+        function cambiarNivelExtraHelp() {
+            temasSeleccionadosEH = [];
+            filtrarSesionesExtraHelp();
+            renderizarTemasExtraHelp();
+            actualizarResumenExtraHelp();
+        }
+
+        function filtrarSesionesExtraHelp() {
+            const prog = document.getElementById('eh-programa').value;
+            const nivelSel = document.getElementById('eh-nivel');
+            const nivelTexto = nivelSel ? nivelSel.value : '';
+            const sesionSel = document.getElementById('eh-sesion');
+            const badgeCupo = document.getElementById('eh-cupo-badge');
+            const aviso = document.getElementById('eh-aviso-sesion');
+            if (!sesionSel) return;
+
+            sesionSel.innerHTML = '<option value="">-- Selecciona una fecha y horario --</option>';
+            if (badgeCupo) badgeCupo.classList.add('hidden');
+            if (aviso) aviso.classList.add('hidden');
+
+            if (!prog || !nivelTexto) return;
+
+            // Extraer el número de nivel para comparación flexible
+            const optSel = nivelSel.options[nivelSel.selectedIndex];
+            const numNivel = optSel ? parseInt(optSel.dataset.num, 10) : null;
+            const nivelNorm = nivelTexto.replace(/\s+/g, ' ').trim().toLowerCase();
+
+            // Bloquear días pasados y el día de hoy (requiere al menos 1 día de anticipación)
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            const filtradas = sesionesExtraHelp.filter(s => {
+                if (s.programa !== prog) return false;
+
+                // Comparación de nivel: exacta o por número de nivel
+                const sNivelNorm = (s.nivel || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                const coincideTexto = (sNivelNorm === nivelNorm) || sNivelNorm.includes(nivelNorm) || nivelNorm.includes(sNivelNorm);
+                
+                let coincideNum = false;
+                if (numNivel !== null) {
+                    const matchNumS = sNivelNorm.match(/nivel\s*(\d+)/);
+                    if (matchNumS && parseInt(matchNumS[1], 10) === numNivel) {
+                        coincideNum = true;
+                    }
+                }
+
+                if (!coincideTexto && !coincideNum) return false;
+
+                // Validar fecha futura
+                const fSesion = parseFechaSesionEH(s.fecha);
+                if (fSesion && fSesion <= hoy) {
+                    return false; // Bloqueado: hoy o pasado
+                }
+                return true;
+            });
+
+            // Ordenar cronológicamente por fecha y hora (semana actual primero, luego siguiente semana)
+            filtradas.sort((a, b) => {
+                const fa = parseFechaSesionEH(a.fecha);
+                const fb = parseFechaSesionEH(b.fecha);
+                const ta = fa ? fa.getTime() : 0;
+                const tb = fb ? fb.getTime() : 0;
+                if (ta !== tb) return ta - tb;
+                return parseHoraMinutosEH(a.horario) - parseHoraMinutosEH(b.horario);
+            });
+
+            if (filtradas.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.disabled = true;
+                opt.textContent = "No hay horarios disponibles con anticipación para este nivel";
+                sesionSel.appendChild(opt);
+                if (aviso) {
+                    aviso.innerText = "No se encontraron fechas programadas a partir de mañana para este nivel.";
+                    aviso.classList.remove('hidden');
+                }
+                return;
+            }
+
+            filtradas.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = `${s.fecha} | ${s.horario}`;
+                opt.dataset.disponibles = s.disponibles;
+                opt.dataset.total = s.totalLugares;
+                opt.dataset.docente = s.docente || '';
+                opt.dataset.lleno = s.lleno ? 'true' : 'false';
+
+                const docTxt = s.docente ? ` - Prof. ${s.docente}` : '';
+                if (s.lleno) {
+                    opt.disabled = true;
+                    opt.textContent = `❌ [LLENO (0/${s.totalLugares})] ${s.fecha} - ${s.horario}${docTxt}`;
+                } else {
+                    opt.textContent = `🟢 ${s.fecha} - ${s.horario} (Cupo: ${s.disponibles}/${s.totalLugares} disp.)${docTxt}`;
+                }
+                sesionSel.appendChild(opt);
+            });
+        }
+
+        function renderizarTemasExtraHelp() {
+            const prog = document.getElementById('eh-programa').value;
+            const nivelSel = document.getElementById('eh-nivel');
+            const contenedor = document.getElementById('eh-temas-container');
+            const alerta = document.getElementById('eh-temas-alerta');
+            if (!contenedor) return;
+
+            contenedor.innerHTML = '';
+            if (alerta) alerta.classList.add('hidden');
+
+            if (prog === 'KIDS' || prog === 'PRETEENS') {
+                contenedor.innerHTML = `
+                    <div class="p-3.5 text-center text-xs text-gray-600 bg-white rounded-xl border border-dashed border-emerald-300">
+                        <span class="text-xl block mb-1">📘</span>
+                        Los temas de gramática de <strong>${prog}</strong> están en proceso de integración.
+                        <div class="mt-2.5 text-left">
+                            <label class="block text-[11px] font-bold text-gray-700 mb-1">Escribe el tema o unidad a revisar:</label>
+                            <input type="text" id="eh-tema-manual" class="w-full text-xs p-2 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Ej. Unit 2 Grammar" oninput="manejarTemaManual(this.value)">
+                        </div>
+                    </div>
+                `;
+                actualizarContadorTemas();
+                return;
+            }
+
+            // Adultos / Teens: Evolve 1 a 6
+            const optSelected = nivelSel ? nivelSel.options[nivelSel.selectedIndex] : null;
+            let numNivel = optSelected ? parseInt(optSelected.dataset.num, 10) : 1;
+            if (isNaN(numNivel) || numNivel < 1 || numNivel > 6) numNivel = 1;
+
+            const temasNivel = TEMAS_EVOLVE[numNivel];
+            if (!temasNivel || temasNivel.length === 0) {
+                contenedor.innerHTML = `<p class="text-xs text-gray-500 text-center py-2">No hay temas configurados para este nivel.</p>`;
+                actualizarContadorTemas();
+                return;
+            }
+
+            temasNivel.forEach(u => {
+                const uBox = document.createElement('div');
+                uBox.className = 'p-2.5 bg-white rounded-xl border border-gray-200 shadow-2xs';
+
+                const uTitle = document.createElement('div');
+                uTitle.className = 'text-[11px] font-bold text-gray-700 uppercase tracking-wide border-b border-gray-100 pb-1 mb-1.5 flex items-center justify-between';
+                uTitle.innerHTML = `<span>📖 Unidad ${u.u}</span><span class="text-[9px] text-gray-400 font-normal">Evolve ${numNivel}</span>`;
+                uBox.appendChild(uTitle);
+
+                const listaDiv = document.createElement('div');
+                listaDiv.className = 'space-y-1.5';
+
+                u.temas.forEach(tema => {
+                    const isChecked = temasSeleccionadosEH.includes(tema);
+                    const label = document.createElement('label');
+                    label.className = `flex items-start gap-2 text-xs p-1.5 rounded-lg cursor-pointer transition-all hover:bg-emerald-50/60 ${isChecked ? 'bg-emerald-50 border border-emerald-300 font-medium text-emerald-900' : 'text-gray-700'}`;
+
+                    const chk = document.createElement('input');
+                    chk.type = 'checkbox';
+                    chk.value = tema;
+                    chk.checked = isChecked;
+                    chk.className = 'mt-0.5 rounded text-emerald-600 focus:ring-emerald-500 eh-chk-tema';
+                    chk.onchange = function() { manejarCheckboxTema(this); };
+
+                    const span = document.createElement('span');
+                    span.textContent = tema;
+
+                    label.appendChild(chk);
+                    label.appendChild(span);
+                    listaDiv.appendChild(label);
+                });
+
+                uBox.appendChild(listaDiv);
+                contenedor.appendChild(uBox);
+            });
+
+            actualizarContadorTemas();
+            actualizarEstadoCheckboxes();
+        }
+
+        function manejarTemaManual(val) {
+            if (val && val.trim() !== '') {
+                temasSeleccionadosEH = [val.trim()];
+            } else {
+                temasSeleccionadosEH = [];
+            }
+            actualizarContadorTemas();
+            actualizarResumenExtraHelp();
+        }
+
+        function manejarCheckboxTema(chk) {
+            const tema = chk.value;
+            const alerta = document.getElementById('eh-temas-alerta');
+            if (chk.checked) {
+                if (temasSeleccionadosEH.length >= 2) {
+                    chk.checked = false;
+                    if (alerta) alerta.classList.remove('hidden');
+                    return;
+                }
+                if (!temasSeleccionadosEH.includes(tema)) {
+                    temasSeleccionadosEH.push(tema);
+                }
+                if (alerta) alerta.classList.add('hidden');
+            } else {
+                temasSeleccionadosEH = temasSeleccionadosEH.filter(t => t !== tema);
+                if (alerta) alerta.classList.add('hidden');
+            }
+
+            actualizarContadorTemas();
+            actualizarEstadoCheckboxes();
+            actualizarResumenExtraHelp();
+        }
+
+        function actualizarEstadoCheckboxes() {
+            const checkboxes = document.querySelectorAll('.eh-chk-tema');
+            const maxAlcanzado = temasSeleccionadosEH.length >= 2;
+            checkboxes.forEach(c => {
+                if (!c.checked) {
+                    c.disabled = maxAlcanzado;
+                    if (c.parentElement) {
+                        if (maxAlcanzado) {
+                            c.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            c.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
+                } else {
+                    c.disabled = false;
+                    if (c.parentElement) c.parentElement.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
+
+        function actualizarContadorTemas() {
+            const contador = document.getElementById('eh-contador-temas');
+            if (!contador) return;
+            const count = temasSeleccionadosEH.length;
+            contador.textContent = `${count} de 2 temas seleccionados`;
+            if (count === 2) {
+                contador.className = 'text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300';
+            } else if (count === 1) {
+                contador.className = 'text-[11px] font-bold text-blue-800 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-300';
+            } else {
+                contador.className = 'text-[11px] font-bold text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200';
+            }
+        }
+
+        // Formatea temas al formato requerido: "(1.1) TEMA" o "(1.1) TEMA / (1.2) TEMA"
+        function formatearTemasParaExcel(temas) {
+            if (!temas || temas.length === 0) return 'Sin temas seleccionados';
+            return temas.map(t => {
+                const m = t.match(/^(\d+\.\d+)\s*(.*)$/);
+                if (m) {
+                    return `(${m[1]}) ${m[2]}`;
+                }
+                return t;
+            }).join(' / ');
+        }
+
+        function syncExtraHelpToClient() {
+            if (!alumnoActual) return;
+            const correoInput = document.getElementById('eh-correo');
+            const correoVal = correoInput ? correoInput.value : (alumnoActual.correo || '');
+            const sesionSel = document.getElementById('eh-sesion');
+            let sesionTxt = '';
+            let cupoTxt = '';
+            if (sesionSel && sesionSel.selectedIndex > 0) {
+                const opt = sesionSel.options[sesionSel.selectedIndex];
+                if (opt && opt.value) {
+                    sesionTxt = opt.textContent;
+                    if (opt.dataset.disponibles) {
+                        cupoTxt = `${opt.dataset.disponibles}/${opt.dataset.total} disp.`;
+                    }
+                }
+            }
+
+            sendClientMsg('EXTRAHELP_UPDATE', {
+                correo: correoVal,
+                sesionText: sesionTxt,
+                cupoText: cupoTxt,
+                temas: temasSeleccionadosEH || []
+            });
+        }
+
+        function actualizarResumenExtraHelp() {
+            if (!alumnoActual) return;
+            const correoInput = document.getElementById('eh-correo');
+            const correoVal = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
+            // Extraer solo el número de curso (ej. 14)
+            const cursoRegistrado = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '') || String(alumnoActual.nivelActual || '');
+            const temasTexto = formatearTemasParaExcel(temasSeleccionadosEH);
+
+            // Fila para Excel con tabuladores (\t)
+            const filaTexto = [
+                "PUEBLA ANZURES",
+                alumnoActual.idOriginal || '',
+                alumnoActual.nombre || '',
+                correoVal,
+                cursoRegistrado,
+                temasTexto
+            ].join('\t');
+
+            const filaDiv = document.getElementById('eh-texto-fila-excel');
+            if (filaDiv) {
+                filaDiv.textContent = filaTexto;
+            }
+
+            // Actualizar indicador de cupo de la sesión elegida
+            const sesionSel = document.getElementById('eh-sesion');
+            const badgeCupo = document.getElementById('eh-cupo-badge');
+            if (sesionSel && badgeCupo) {
+                const opt = sesionSel.options[sesionSel.selectedIndex];
+                if (opt && opt.value) {
+                    const disp = opt.dataset.disponibles;
+                    const tot = opt.dataset.total;
+                    badgeCupo.textContent = `Cupo: ${disp}/${tot} disp.`;
+                    badgeCupo.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${parseInt(disp, 10) > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`;
+                    badgeCupo.classList.remove('hidden');
+                } else {
+                    badgeCupo.classList.add('hidden');
+                }
+            }
+
+            // Sincronizar en tiempo real con la pantalla cliente
+            syncExtraHelpToClient();
+        }
+
+        function generarFilaExcelExtraHelpTexto() {
+            if (!alumnoActual) return '';
+            const correoInput = document.getElementById('eh-correo');
+            const correoVal = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
+            const cursoRegistrado = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '') || String(alumnoActual.nivelActual || '');
+            const temasTexto = formatearTemasParaExcel(temasSeleccionadosEH);
+
+            return [
+                "PUEBLA ANZURES",
+                alumnoActual.idOriginal || '',
+                alumnoActual.nombre || '',
+                correoVal,
+                cursoRegistrado,
+                temasTexto
+            ].join('\t');
+        }
+
+        function copiarFilaExcelExtraHelp() {
+            const texto = generarFilaExcelExtraHelpTexto();
+            if (!texto) return;
+
+            const accionExito = () => {
+                const btn = document.getElementById('eh-btn-copiar');
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<span class="text-base">✅</span> ¡Copiado para Excel! (Listo para pegar con Ctrl+V)';
+                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                    btn.classList.add('bg-green-600');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.classList.remove('bg-green-600');
+                        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                    }, 2500);
+                }
+
+                // Toast flotante
+                const tt = document.createElement('div');
+                tt.className = 'tooltip-copiado';
+                tt.textContent = '✅ ¡6 columnas copiadas para Excel!';
+                document.body.appendChild(tt);
+                const rect = document.getElementById('eh-bloque-resumen')?.getBoundingClientRect() || { left: 100, top: 100, width: 200 };
+                tt.style.left = (rect.left + rect.width / 2 - tt.offsetWidth / 2) + 'px';
+                tt.style.top  = (rect.top + window.scrollY) + 'px';
+                setTimeout(() => tt.remove(), 1800);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(texto).then(accionExito).catch(() => {
+                    copiarFallback(texto, accionExito);
+                });
+            } else {
+                copiarFallback(texto, accionExito);
+            }
+        }
+
+        function mostrarFormExtraHelp() {
+            if (!alumnoActual) return;
+
+            // Ocultar botones principales y otras secciones
+            document.getElementById('menu-principal').classList.add('hidden');
+            document.getElementById('ficha-alumno').classList.remove('hidden');
+            document.getElementById('seccion-periodos').classList.add('hidden');
+            document.getElementById('seccion-calculos').classList.add('hidden');
+            document.getElementById('seccion-recuperacion').classList.add('hidden');
+            resetearFormRecuperacion();
+
+            const secEH = document.getElementById('seccion-extrahelp');
+            if (secEH) secEH.classList.remove('hidden');
+
+            // 1. Preseleccionar programa
+            const progSel = document.getElementById('eh-programa');
+            let progVal = 'Adult';
+            if (alumnoActual.programaNombre === 'KIDS') {
+                progVal = 'KIDS';
+            } else if (alumnoActual.programaNombre === 'PTEEN') {
+                progVal = 'PRETEENS';
+            } else {
+                progVal = 'Adult';
+            }
+            if (progSel) progSel.value = progVal;
+
+            // 2. Prellenar correo editable
+            const correoInput = document.getElementById('eh-correo');
+            if (correoInput) {
+                correoInput.value = (alumnoActual.correo && alumnoActual.correo !== 'No registrado') ? alumnoActual.correo : '';
+            }
+
+            // 3. Reset temas
+            temasSeleccionadosEH = [];
+
+            // 4. Poblar niveles y preseleccionar según nivel actual
+            poblarNivelesExtraHelp(progVal, alumnoActual.nivelActual);
+
+            // 5. Filtrar sesiones y renderizar temas
+            filtrarSesionesExtraHelp();
+            renderizarTemasExtraHelp();
+
+            // 6. Actualizar bloque para Excel
+            actualizarResumenExtraHelp();
+            enviarDatosAlumnoACliente();
+
+            // Recargar en segundo plano para actualizar cupos en tiempo real
+            cargarSesionesExtraHelp().then(() => {
+                filtrarSesionesExtraHelp();
+                actualizarResumenExtraHelp();
+            }).catch(() => {});
+        }
+
+        function resetearFormExtraHelp() {
+            const secEH = document.getElementById('seccion-extrahelp');
+            if (secEH) secEH.classList.add('hidden');
+            temasSeleccionadosEH = [];
+            const temasContainer = document.getElementById('eh-temas-container');
+            if (temasContainer) temasContainer.innerHTML = '';
+            const aviso = document.getElementById('eh-aviso-sesion');
+            if (aviso) aviso.classList.add('hidden');
+            const alerta = document.getElementById('eh-temas-alerta');
+            if (alerta) alerta.classList.add('hidden');
+            const badgeCupo = document.getElementById('eh-cupo-badge');
+            if (badgeCupo) badgeCupo.classList.add('hidden');
+        }
+
         // ==================== IMPRESION ====================
         function ejecutarImpresionFactura() {
             if (!alumnoActual) {
