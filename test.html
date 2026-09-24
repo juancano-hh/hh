@@ -5463,26 +5463,6 @@
             ]
         };
 
-        let libroActualPreteens = 'STARTER';
-
-        function determinarLibroPreteensDefecto() {
-            let cursoNum = 1;
-            if (alumnoActual) {
-                const cStr = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '');
-                const c = parseInt(cStr, 10);
-                if (!isNaN(c) && c > 0) cursoNum = c;
-            }
-            if (cursoNum <= 3) return 'STARTER';
-            if (cursoNum <= 6) return '1';
-            if (cursoNum <= 9) return '2';
-            return '3';
-        }
-
-        function cambiarLibroPreteens(libroClave) {
-            libroActualPreteens = libroClave;
-            renderizarTemasExtraHelp();
-        }
-
         const NIVELES_EXTRAHELP = {
             'Adult': [
                 { num: 1, label: "Nivel 1 ( 1-4)" },
@@ -5498,9 +5478,10 @@
                 { num: 3, label: "Nivel 3(9-12)" }
             ],
             'PRETEENS': [
-                { num: 1, label: "Nivel 1 ( 1-4)" },
-                { num: 2, label: "Nivel 2 ( 5-8)" },
-                { num: 3, label: "Nivel 3(9-12)" }
+                { num: 1, key: 'STARTER', label: "Starter (1 al 3)", sheetNiveles: ["nivel 1"] },
+                { num: 2, key: '1', label: "Game Changer Level 1 (4 al 6)", sheetNiveles: ["nivel 1", "nivel 2"] },
+                { num: 3, key: '2', label: "Game Changer Level 2 (7 al 9)", sheetNiveles: ["nivel 2", "nivel 3"] },
+                { num: 4, key: '3', label: "Game Changer Level 3 (10 al 12)", sheetNiveles: ["nivel 3"] }
             ]
         };
 
@@ -5634,16 +5615,23 @@
             return hrs * 60 + mins;
         }
 
-        // Cálculo del nivel inicial por curso (cada 4 cursos = 1 nivel)
+        // Cálculo del nivel inicial por curso
         function calcularNivelDefectoEH(curso, prog) {
             let c = parseInt(curso, 10);
             if (isNaN(c) || c < 1) c = 1;
-            let n = Math.ceil(c / 4);
-            if (prog === 'KIDS' || prog === 'PRETEENS') {
-                if (n > 3) n = 3;
-            } else {
-                if (n > 6) n = 6;
+            if (prog === 'PRETEENS') {
+                if (c <= 3) return 1; // Starter (1 al 3)
+                if (c <= 6) return 2; // Game Changer Level 1 (4 al 6)
+                if (c <= 9) return 3; // Game Changer Level 2 (7 al 9)
+                return 4;             // Game Changer Level 3 (10 al 12)
             }
+            if (prog === 'KIDS') {
+                let n = Math.ceil(c / 4);
+                if (n > 3) n = 3;
+                return n;
+            }
+            let n = Math.ceil(c / 4);
+            if (n > 6) n = 6;
             return n;
         }
 
@@ -5672,9 +5660,6 @@
 
         function cambiarProgramaExtraHelp() {
             const prog = document.getElementById('eh-programa').value;
-            if (prog === 'PRETEENS') {
-                libroActualPreteens = determinarLibroPreteensDefecto();
-            }
             poblarNivelesExtraHelp(prog, alumnoActual ? alumnoActual.nivelActual : 1);
             temasSeleccionadosEH = [];
             filtrarSesionesExtraHelp();
@@ -5683,19 +5668,6 @@
         }
 
         function cambiarNivelExtraHelp() {
-            const prog = document.getElementById('eh-programa').value;
-            if (prog === 'PRETEENS') {
-                const nivelSel = document.getElementById('eh-nivel');
-                const optSelected = nivelSel ? nivelSel.options[nivelSel.selectedIndex] : null;
-                const numNivel = optSelected ? parseInt(optSelected.dataset.num, 10) : 1;
-                if (numNivel === 1 && libroActualPreteens !== 'STARTER' && libroActualPreteens !== '1') {
-                    libroActualPreteens = 'STARTER';
-                } else if (numNivel === 2 && libroActualPreteens !== '1' && libroActualPreteens !== '2') {
-                    libroActualPreteens = '1';
-                } else if (numNivel === 3 && libroActualPreteens !== '2' && libroActualPreteens !== '3') {
-                    libroActualPreteens = '2';
-                }
-            }
             temasSeleccionadosEH = [];
             filtrarSesionesExtraHelp();
             renderizarTemasExtraHelp();
@@ -5729,19 +5701,27 @@
             const filtradas = sesionesExtraHelp.filter(s => {
                 if (s.programa !== prog) return false;
 
-                // Comparación de nivel: exacta o por número de nivel
-                const sNivelNorm = (s.nivel || '').replace(/\s+/g, ' ').trim().toLowerCase();
-                const coincideTexto = (sNivelNorm === nivelNorm) || sNivelNorm.includes(nivelNorm) || nivelNorm.includes(sNivelNorm);
-                
-                let coincideNum = false;
-                if (numNivel !== null) {
-                    const matchNumS = sNivelNorm.match(/nivel\s*(\d+)/);
-                    if (matchNumS && parseInt(matchNumS[1], 10) === numNivel) {
-                        coincideNum = true;
+                if (prog === 'PRETEENS') {
+                    const itemDef = NIVELES_EXTRAHELP['PRETEENS'].find(it => it.num === numNivel);
+                    const allowed = itemDef ? itemDef.sheetNiveles : ["nivel 1"];
+                    const sNivelNorm = (s.nivel || '').toLowerCase();
+                    const match = allowed.some(keyword => sNivelNorm.includes(keyword));
+                    if (!match) return false;
+                } else {
+                    // Comparación de nivel: exacta o por número de nivel (Adultos / Kids)
+                    const sNivelNorm = (s.nivel || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                    const coincideTexto = (sNivelNorm === nivelNorm) || sNivelNorm.includes(nivelNorm) || nivelNorm.includes(sNivelNorm);
+                    
+                    let coincideNum = false;
+                    if (numNivel !== null) {
+                        const matchNumS = sNivelNorm.match(/nivel\s*(\d+)/);
+                        if (matchNumS && parseInt(matchNumS[1], 10) === numNivel) {
+                            coincideNum = true;
+                        }
                     }
-                }
 
-                if (!coincideTexto && !coincideNum) return false;
+                    if (!coincideTexto && !coincideNum) return false;
+                }
 
                 // Validar fecha futura
                 const fSesion = parseFechaSesionEH(s.fecha);
@@ -5820,47 +5800,20 @@
 
             // Preteens: Game Changer (Starter, 1, 2, 3)
             if (prog === 'PRETEENS') {
-                const libroNombres = {
-                    'STARTER': 'Game Changer Starter',
-                    '1': 'Game Changer 1',
-                    '2': 'Game Changer 2',
-                    '3': 'Game Changer 3'
-                };
+                const optSelected = nivelSel ? nivelSel.options[nivelSel.selectedIndex] : null;
+                const numNivel = optSelected ? parseInt(optSelected.dataset.num, 10) : 1;
+                const configPreteens = NIVELES_EXTRAHELP['PRETEENS'].find(it => it.num === numNivel) || NIVELES_EXTRAHELP['PRETEENS'][0];
+                const libroClave = configPreteens.key;
+                const libroNombre = configPreteens.label;
 
-                const navLibros = document.createElement('div');
-                navLibros.className = 'mb-3 p-2 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1.5';
-                navLibros.innerHTML = `
-                    <div class="flex items-center justify-between px-1">
-                        <span class="text-[11px] font-bold text-emerald-900">📚 Libro Game Changer:</span>
-                        <span class="text-[10px] text-emerald-700 font-bold bg-white px-2 py-0.5 rounded-full border border-emerald-200">
-                            ${libroNombres[libroActualPreteens] || 'Game Changer'}
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                        <button type="button" onclick="cambiarLibroPreteens('STARTER')" class="py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${libroActualPreteens === 'STARTER' ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400' : 'bg-white text-gray-700 hover:bg-emerald-100/60 border border-gray-200'}">
-                            Starter
-                        </button>
-                        <button type="button" onclick="cambiarLibroPreteens('1')" class="py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${libroActualPreteens === '1' ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400' : 'bg-white text-gray-700 hover:bg-emerald-100/60 border border-gray-200'}">
-                            Level 1
-                        </button>
-                        <button type="button" onclick="cambiarLibroPreteens('2')" class="py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${libroActualPreteens === '2' ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400' : 'bg-white text-gray-700 hover:bg-emerald-100/60 border border-gray-200'}">
-                            Level 2
-                        </button>
-                        <button type="button" onclick="cambiarLibroPreteens('3')" class="py-1.5 px-2 rounded-lg text-xs font-bold transition-all text-center ${libroActualPreteens === '3' ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400' : 'bg-white text-gray-700 hover:bg-emerald-100/60 border border-gray-200'}">
-                            Level 3
-                        </button>
-                    </div>
-                `;
-                contenedor.appendChild(navLibros);
-
-                const temasLibro = TEMAS_GAME_CHANGER[libroActualPreteens] || [];
+                const temasLibro = TEMAS_GAME_CHANGER[libroClave] || [];
                 temasLibro.forEach(u => {
                     const uBox = document.createElement('div');
                     uBox.className = 'p-2.5 bg-white rounded-xl border border-gray-200 shadow-2xs mb-2';
 
                     const uTitle = document.createElement('div');
                     uTitle.className = 'text-[11px] font-bold text-gray-700 uppercase tracking-wide border-b border-gray-100 pb-1 mb-1.5 flex items-center justify-between';
-                    uTitle.innerHTML = `<span>📖 Unidad ${u.u}</span><span class="text-[9px] text-gray-400 font-normal">${libroNombres[libroActualPreteens]}</span>`;
+                    uTitle.innerHTML = `<span>📖 Unidad ${u.u}</span><span class="text-[9px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">${libroNombre}</span>`;
                     uBox.appendChild(uTitle);
 
                     const listaDiv = document.createElement('div');
@@ -6174,9 +6127,6 @@
                 progVal = 'Adult';
             }
             if (progSel) progSel.value = progVal;
-            if (progVal === 'PRETEENS') {
-                libroActualPreteens = determinarLibroPreteensDefecto();
-            }
 
             // 2. Prellenar correo editable
             const correoInput = document.getElementById('eh-correo');
