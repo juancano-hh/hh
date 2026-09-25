@@ -134,6 +134,10 @@
             size: letter;
             margin: 0;
         }
+        /* Orientación horizontal para listas de asistencia */
+        body.imprimiendo-listas {
+            /* Se activa vía JS al imprimir listas */
+        }
 
         @media print {
             body {
@@ -146,11 +150,22 @@
                 min-height: 0 !important;
                 height: auto !important;
             }
-            body > *:not(#print-factura):not(#print-constancia) {
+            body > *:not(#print-factura):not(#print-constancia):not(#listas-print-container) {
                 display: none !important;
             }
             #print-constancia:empty, #print-factura:empty {
                 display: none !important;
+            }
+            #listas-print-container:not(:empty) {
+                display: block !important;
+            }
+            body.imprimiendo-listas #listas-print-container {
+                display: block !important;
+            }
+            body.imprimiendo-listas {
+                /* Landscape automático para las listas */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             #print-constancia:not(:empty) {
                 display: block !important;
@@ -9054,44 +9069,27 @@
         const container = document.getElementById('listas-print-container');
         container.innerHTML = '';
 
-        // Ocultar el modal para que no se imprima
-        const modal = document.getElementById('modal-listas');
-        modal.classList.add('hidden');
-
+        // Llenar el contenedor con todas las hojas
         grupos.forEach(g => {
             container.appendChild(listas_generarTabla(g));
         });
 
-        // Mostrar el contenedor de impresión
-        container.style.display = 'block';
+        // Cerrar el modal y marcar body para que el CSS de impresión funcione
+        document.getElementById('modal-listas').classList.add('hidden');
+        document.body.classList.add('imprimiendo-listas');
 
-        // Sobreescribir temporalmente el CSS de impresión
-        const styleId = 'listas-print-style-tmp';
-        let styleEl = document.getElementById(styleId);
-        if (!styleEl) {
-            styleEl = document.createElement('style');
-            styleEl.id = styleId;
-            styleEl.media = 'print';
-            document.head.appendChild(styleEl);
-        }
-        styleEl.textContent = `
-            @media print {
-                body > *:not(#listas-print-container) { display: none !important; }
-                #listas-print-container { display: block !important; }
-                @page { size: landscape; margin: 6mm; }
-            }
-        `;
-
-        setTimeout(() => {
-            window.print();
-            // Restaurar
-            setTimeout(() => {
-                container.style.display = 'none';
-                container.innerHTML = '';
-                styleEl.textContent = '';
-                modal.classList.remove('hidden');
-            }, 500);
-        }, 200);
+        // Dar tiempo al navegador para aplicar los cambios y luego imprimir
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.print();
+                // Limpiar después de imprimir
+                setTimeout(() => {
+                    container.innerHTML = '';
+                    document.body.classList.remove('imprimiendo-listas');
+                    document.getElementById('modal-listas').classList.remove('hidden');
+                }, 600);
+            });
+        });
     }
 
     function listas_generarTabla(grupo) {
