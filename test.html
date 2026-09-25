@@ -2360,6 +2360,7 @@
                     const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                     const tieneR = estatusPagoRaw.toUpperCase() === 'R';
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+                    const crnLayout = fila[17] ? String(fila[17]).trim() : '';
                     const esNuevoLayout = fila[0] ? String(fila[0]).trim().toUpperCase() === 'N' : false;
 
                     const alumno = {
@@ -2374,6 +2375,7 @@
                         tieneR: tieneR,
                         estatusPago: estatusPagoRaw,
                         codigoClase: codigoClaseLayout,
+                        crn: crnLayout,
                         esPrimerMes: false,
                         esLayPasado: false,
                         esNuevoLayout: esNuevoLayout,
@@ -2467,6 +2469,7 @@
                         const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
                         const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
                         const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
+                        const crnLayout = fila[17] ? String(fila[17]).trim() : '';
 
                         const alumno = {
                             idOriginal: id, nombre: nombreAlumno, nota: notaAlumno, correo: correoAlumno, celular: celularAlumno,
@@ -2480,6 +2483,7 @@
                             tieneR: false,
                             estatusPago: estatusPagoRaw,
                             codigoClase: codigoClaseLayout,
+                            crn: crnLayout,
                             esPrimerMes: true,
                             esLayPasado: true,
                             noLeTocaPago: false
@@ -9002,12 +9006,12 @@
                     alumnos: []
                 });
             } else {
-                // Agrupar alumnos por CRN (codigoClase)
+                // Agrupar alumnos por CRN (Columna R del layout)
                 const porCrn = {};
                 for (const al of alumnosCoincidentes) {
-                    const c = (al.codigoClase && String(al.codigoClase).trim()) ? String(al.codigoClase).trim() : 'Sin CRN';
-                    if (!porCrn[c]) porCrn[c] = [];
-                    porCrn[c].push(al);
+                    const crnEfectivo = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : ((al.codigoClase && String(al.codigoClase).trim()) ? String(al.codigoClase).trim() : 'Sin CRN');
+                    if (!porCrn[crnEfectivo]) porCrn[crnEfectivo] = [];
+                    porCrn[crnEfectivo].push(al);
                 }
 
                 for (const [crnVal, als] of Object.entries(porCrn)) {
