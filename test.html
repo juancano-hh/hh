@@ -8925,7 +8925,7 @@
     }
 
     function listas_obtenerGrupos(teacherNombre) {
-        const grupos = {};
+        const gruposBase = [];
         const todasFilas = [
             ...(matrizSalones.filas || []).map(f => ({...f, esSabado: false})),
             ...(matrizSalones.filasSabado || []).map(f => ({...f, esSabado: true}))
@@ -8939,9 +8939,6 @@
                 if (!celda) continue;
 
                 const salon = matrizSalones.salones[ci] || 'Sin salon';
-                const key   = `${salon}|${fila.horaFmt}|${fila.esSabado}|${ci}`;
-                if (grupos[key]) continue;
-
                 const celdaClean = celda.replace(/\([^)]*\)/g, '').trim();
                 let progNombre = 'ADULTO';
                 let nivelNum   = null;
@@ -8960,26 +8957,27 @@
 
                 let dias = fila.dias || (fila.esSabado ? 'Sábados' : 'Lunes - Jueves');
 
-                grupos[key] = {
+                gruposBase.push({
                     salon, horaFmt: fila.horaFmt, dias, esSabado: fila.esSabado,
                     progNombre, nivelNum, celdaOriginal: celdaClean,
                     teacher: teacher, colIdx: ci
-                };
+                });
             }
         }
 
-        // Asociar alumnos
-        const lista = Object.values(grupos);
-        for (const grupo of lista) {
-            grupo.alumnos = [];
+        // Para cada grupo base, buscar los alumnos coincidentes y agruparlos por CRN (codigoClase)
+        const listaFinal = [];
+
+        for (const gBase of gruposBase) {
+            const alumnosCoincidentes = [];
             for (const alumno of Object.values(baseAlumnos || {})) {
-                if (alumno.nivelActual !== grupo.nivelNum) continue;
-                if (alumno.programaNombre !== grupo.progNombre) continue;
+                if (alumno.nivelActual !== gBase.nivelNum) continue;
+                if (alumno.programaNombre !== gBase.progNombre) continue;
 
                 const horUpp = (alumno.horario || '').toUpperCase().replace(/[\.\s]/g, '');
                 let matchH = false;
 
-                if (grupo.esSabado) {
+                if (gBase.esSabado) {
                     matchH = horUpp.includes('SA') || horUpp.includes('SM') || horUpp.includes('SV');
                 } else if (alumno.prefijoMod === 'DO') {
                     matchH = false;
@@ -8990,23 +8988,48 @@
                         if (horUpp.includes('P') && hA < 12) hA += 12;
                         if (horUpp.includes('A') && hA === 12) hA = 0;
                         const hFmtA = hA.toString().padStart(2, '0') + ':' + mH[2].substring(0, 2);
-                        matchH = (hFmtA === grupo.horaFmt);
+                        matchH = (hFmtA === gBase.horaFmt);
                     }
                 }
                 if (!matchH) continue;
-                grupo.alumnos.push(alumno);
+                alumnosCoincidentes.push(alumno);
             }
-            grupo.alumnos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            if (alumnosCoincidentes.length === 0) {
+                listaFinal.push({
+                    ...gBase,
+                    crn: '',
+                    alumnos: []
+                });
+            } else {
+                // Agrupar alumnos por CRN (codigoClase)
+                const porCrn = {};
+                for (const al of alumnosCoincidentes) {
+                    const c = (al.codigoClase && String(al.codigoClase).trim()) ? String(al.codigoClase).trim() : 'Sin CRN';
+                    if (!porCrn[c]) porCrn[c] = [];
+                    porCrn[c].push(al);
+                }
+
+                for (const [crnVal, als] of Object.entries(porCrn)) {
+                    als.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                    listaFinal.push({
+                        ...gBase,
+                        crn: crnVal !== 'Sin CRN' ? crnVal : '',
+                        alumnos: als
+                    });
+                }
+            }
         }
 
-        lista.sort((a, b) => {
+        listaFinal.sort((a, b) => {
             if (a.esSabado !== b.esSabado) return a.esSabado ? 1 : -1;
             if (a.horaFmt < b.horaFmt) return -1;
             if (a.horaFmt > b.horaFmt) return 1;
-            return a.salon.localeCompare(b.salon);
+            if (a.celdaOriginal !== b.celdaOriginal) return a.celdaOriginal.localeCompare(b.celdaOriginal);
+            return String(a.crn).localeCompare(String(b.crn));
         });
 
-        return lista;
+        return listaFinal;
     }
 
     function listas_renderGrupos() {
@@ -9033,6 +9056,19 @@
                 ? 'background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;'
                 : 'background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;';
 
+            let diasEtiqueta = 'Lunes - Jueves';
+            if (g.esSabado) {
+                diasEtiqueta = 'Sábados';
+            } else if (g.dias === 'Lunes y Miércoles') {
+                diasEtiqueta = 'Lunes y Miércoles';
+            } else if (g.dias === 'Martes y Jueves') {
+                diasEtiqueta = 'Martes y Jueves';
+            }
+
+            const badgeCrn = g.crn
+                ? `<span style="font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#f3e8ff;color:#7e22ce;border:1px solid #e9d5ff;">CRN: ${g.crn}</span>`
+                : '';
+
             const card = document.createElement('div');
             card.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);';
             card.innerHTML = `
@@ -9040,14 +9076,12 @@
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
                         <span style="font-weight:900;color:#111827;font-size:1.05rem;">${g.progNombre} ${g.nivelNum}</span>
                         <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;${modColor}">${modLabel}</span>
+                        ${badgeCrn}
                     </div>
-                    <p style="font-size:0.82rem;font-weight:600;color:#4b5563;margin:0 0 3px 0;">
-                        ${g.horaFmt} &nbsp;·&nbsp; ${g.dias}
+                    <p style="font-size:0.82rem;font-weight:600;color:#4b5563;margin:0 0 4px 0;">
+                        ${g.horaFmt} &nbsp;·&nbsp; ${diasEtiqueta}
                     </p>
-                    <p style="font-size:0.75rem;font-weight:600;color:#6b7280;margin:0 0 2px 0;">
-                        📍 Salón: <span style="color:#4f46e5;font-weight:700;">${g.salon}</span>
-                    </p>
-                    <p style="font-size:0.72rem;color:#9ca3af;margin:0;">${g.alumnos.length} alumno(s)</p>
+                    <p style="font-size:0.75rem;color:#6b7280;margin:0;font-weight:500;">${g.alumnos.length} alumno(s)</p>
                 </div>
                 <button onclick="listas_descargarUna(${idx})"
                     style="flex-shrink:0;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #d1d5db;border-radius:10px;padding:8px 14px;font-weight:700;font-size:0.75rem;color:#374151;cursor:pointer;transition:all 0.15s;white-space:nowrap;"
@@ -9131,9 +9165,10 @@
         }
         orientStyle.textContent = `@media print { @page { size: letter landscape !important; margin: 6mm !important; } }`;
 
-        // Llenar el contenedor con todas las hojas
+        // Llenar el contenedor con todas las hojas paginadas de cada grupo
         grupos.forEach(g => {
-            container.appendChild(listas_generarTabla(g));
+            const hojas = listas_generarHojasGrupo(g);
+            hojas.forEach(h => container.appendChild(h));
         });
 
         // Cerrar el modal y marcar body para que el CSS de impresión funcione
@@ -9155,7 +9190,45 @@
         });
     }
 
-    function listas_generarTabla(grupo) {
+    function listas_generarHojasGrupo(grupo) {
+        // Máximo 19 alumnos por hoja (caben perfectamente en hoja carta horizontal)
+        const ALUMNOS_POR_HOJA = 19;
+        const totalAlumnos = (grupo.alumnos || []).length;
+        const totalHojas = Math.max(1, Math.ceil(totalAlumnos / ALUMNOS_POR_HOJA));
+        const hojas = [];
+
+        for (let hojaIdx = 0; hojaIdx < totalHojas; hojaIdx++) {
+            const inicioIdx = hojaIdx * ALUMNOS_POR_HOJA;
+            const finIdx = inicioIdx + ALUMNOS_POR_HOJA;
+            const alumnosHoja = (grupo.alumnos || []).slice(inicioIdx, finIdx);
+            hojas.push(listas_generarUnaHoja(grupo, alumnosHoja, inicioIdx, hojaIdx + 1, totalHojas));
+        }
+        return hojas;
+    }
+
+    function obtenerCodigoPeriodoIni() {
+        const lbl = document.getElementById('lbl-periodo-actual');
+        let texto = lbl ? lbl.innerText.trim() : '';
+        let match = texto.match(/(\d{2})$/);
+        if (match && match[1] !== '00') return `INI ${match[1]}`;
+
+        if (typeof periodosCalendario !== 'undefined' && periodosCalendario.length > 0) {
+            const hoy = new Date();
+            const pAct = periodosCalendario.find(p => p.inicio && p.fin && hoy >= p.inicio && hoy <= p.fin && p.periodo && p.periodo.startsWith('2604'));
+            if (pAct && pAct.periodo) {
+                const m = pAct.periodo.match(/(\d{2})$/);
+                if (m) return `INI ${m[1]}`;
+            }
+            const pCualquiera = periodosCalendario.find(p => p.inicio && p.fin && hoy >= p.inicio && hoy <= p.fin);
+            if (pCualquiera && pCualquiera.periodo) {
+                const m = pCualquiera.periodo.match(/(\d{2})$/);
+                if (m) return `INI ${m[1]}`;
+            }
+        }
+        return 'INI 09';
+    }
+
+    function listas_generarUnaHoja(grupo, alumnosHoja, offsetNum, numHoja, totalHojas) {
         // Días por semana (sin viernes): L, M, MI, J, S
         const DIAS = ['L','M','MI','J','S'];
         let estadoCelda = {};
@@ -9176,10 +9249,11 @@
 
         const NUM_SEMANAS = 4;
         const totalDiasCols = DIAS.length * NUM_SEMANAS; // 20 columnas de días
-        const totalCols = 3 + totalDiasCols; // 23 columnas en total
+        const totalCols = 3 + totalDiasCols + 2; // 25 columnas en total (con F y A)
 
         // Horario formateado con duración completa
         const horarioTextoCompleto = calcularRangoHorario(grupo);
+        const textoPaginacion = totalHojas > 1 ? ` &nbsp; (Hoja ${numHoja} de ${totalHojas})` : '';
 
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'page-break-after:always;padding:4pt;font-family:Arial,sans-serif;width:100%;box-sizing:border-box;';
@@ -9190,17 +9264,19 @@
         enc.innerHTML = `
             <tr>
                 <td colspan="${totalCols}" style="text-align:center;font-weight:900;font-size:11pt;border:1px solid #000;border-top:none;border-left:none;border-right:none;padding:4pt;letter-spacing:2px;">
-                    ATTENDANCE
+                    LISTA DE ASISTENCIA ${textoPaginacion}
                 </td>
             </tr>
             <tr>
                 <td colspan="8" style="border:1px solid #000;border-left:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>INSTITUTO: PUEBLA ANZURES</b></td>
-                <td colspan="15" style="border:1px solid #000;border-right:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
+                <td colspan="17" style="border:1px solid #000;border-right:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
             </tr>
             <tr>
-                <td colspan="6" style="border:1px solid #000;border-left:none;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
-                <td colspan="6" style="border:1px solid #000;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>CURSO:</b> ${grupo.celdaOriginal}</td>
-                <td colspan="11" style="border:1px solid #000;border-right:none;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>HORARIO:</b> ${horarioTextoCompleto}</td>
+                <td colspan="4" style="border:1px solid #000;border-left:none;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
+                <td colspan="4" style="border:1px solid #000;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>CURSO:</b> ${grupo.celdaOriginal}</td>
+                <td colspan="4" style="border:1px solid #000;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>CRN:</b> ${grupo.crn || 'N/A'}</td>
+                <td colspan="3" style="border:1px solid #000;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>PERIODO:</b> ${obtenerCodigoPeriodoIni()}</td>
+                <td colspan="10" style="border:1px solid #000;border-right:none;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>HORARIO:</b> ${horarioTextoCompleto}</td>
             </tr>`;
         wrapper.appendChild(enc);
 
@@ -9211,11 +9287,13 @@
         // Fila de semanas (con línea gruesa de separación entre semanas)
         let rowSem = '<tr>';
         rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:18pt;" rowspan="2">#</th>';
-        rowSem += '<th style="border:1px solid #000;padding:2pt 4pt;min-width:140pt;text-align:left;" rowspan="2">NAME</th>';
-        rowSem += '<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;min-width:65pt;" rowspan="2">ID / PHONE</th>';
+        rowSem += '<th style="border:1px solid #000;padding:2pt 4pt;min-width:140pt;text-align:left;" rowspan="2">NOMBRE DEL ALUMNO</th>';
+        rowSem += '<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;min-width:65pt;" rowspan="2">MATRÍCULA / TELÉFONO</th>';
         for (let s = 1; s <= NUM_SEMANAS; s++) {
-            rowSem += `<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;" colspan="${DIAS.length}">WEEK ${s}</th>`;
+            rowSem += `<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;" colspan="${DIAS.length}">SEMANA ${s}</th>`;
         }
+        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:18pt;" rowspan="2">F</th>';
+        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:18pt;" rowspan="2">A</th>';
         rowSem += '</tr>';
 
         // Sub-fila de días (con línea vertical gruesa donde termina la semana)
@@ -9233,17 +9311,18 @@
 
         table.innerHTML = rowSem + rowDias;
 
-        // Filas de alumnos (14 filas siempre)
-        const MAX = 14;
+        // Filas de alumnos (hasta 19 filas por hoja)
+        const MAX = 19;
         for (let r = 0; r < MAX; r++) {
-            const al  = grupo.alumnos[r] || null;
+            const al  = alumnosHoja[r] || null;
             const tr  = document.createElement('tr');
-            tr.style.height = '20pt';
+            tr.style.height = '18.5pt';
 
-            // #
+            // # (numeración continua: 1 a 19 en hoja 1, 20 a 38 en hoja 2, etc.)
+            const numConsecutivo = offsetNum + r + 1;
             const tdN = document.createElement('td');
             tdN.style.cssText = 'border:1px solid #000;padding:1pt 2pt;text-align:center;font-weight:bold;';
-            tdN.textContent   = r + 1;
+            tdN.textContent   = numConsecutivo;
             tr.appendChild(tdN);
 
             // Nombre
@@ -9254,7 +9333,7 @@
 
             // ID + Teléfono (con borde derecho grueso antes de la semana 1)
             const tdId = document.createElement('td');
-            tdId.style.cssText = 'border:1px solid #000;border-right:2.5px solid #000;padding:1pt 3pt;font-size:6.5pt;line-height:1.25;';
+            tdId.style.cssText = 'border:1px solid #000;border-right:2.5px solid #000;padding:1pt 3pt;font-size:6.5pt;line-height:1.2;';
             if (al) tdId.innerHTML = `ID:${al.idOriginal||''}${al.celular ? '<br>'+al.celular : ''}`;
             tr.appendChild(tdId);
 
@@ -9272,6 +9351,17 @@
                     tr.appendChild(td);
                 });
             }
+
+            // Columna F (Faltas)
+            const tdF = document.createElement('td');
+            tdF.style.cssText = 'border:1px solid #000;width:18pt;text-align:center;';
+            tr.appendChild(tdF);
+
+            // Columna A (Asistencias)
+            const tdA = document.createElement('td');
+            tdA.style.cssText = 'border:1px solid #000;width:18pt;text-align:center;';
+            tr.appendChild(tdA);
+
             table.appendChild(tr);
         }
 
