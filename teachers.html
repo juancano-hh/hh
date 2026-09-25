@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Teachers - Harmony Bells</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        .fade-in { animation: fadeIn 0.35s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .modal-box {
+            width: 100%; max-width: 980px;
+            margin: 12px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, #f0f4ff 0%, #e8ecf5 100%);
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 20px;
+            background: rgba(255,255,255,0.6);
+            border-bottom: 1px solid rgba(200,210,230,0.4);
+        }
+
+        /* ===== HORARIO LAYOUT ===== */
+        .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+        .cal-mes { background: rgba(255,255,255,0.22); border-radius: 14px; padding: 4px 5px 6px; border: 1px solid rgba(200,210,230,0.22); }
+        .cal-mes-tit { text-align: center; font-size: 0.65rem; font-weight: 700; color: #2d2a3b; margin-bottom: 5px; letter-spacing: 0.03em; }
+        .cal-wdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; margin-bottom: 3px; text-align: center; }
+        .cal-wday { font-size: 0.45rem; font-weight: 600; color: #534d66; padding: 2px 0; }
+        .cal-wday.dom { color: #e11d48; }
+        .cal-dgrid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+        .cal-d { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; border-radius: 7px; background: rgba(255,255,255,0.12); border: 1px solid rgba(200,210,230,0.18); font-size: 0.53rem; font-weight: 450; color: #2d2a3b; cursor: default; }
+        .cal-d.otro-mes { opacity: 0.12; }
+        .cal-d.cal-clase  { background: rgba(100,180,255,0.28)!important; }
+        .cal-d.cal-sab    { background: rgba(33,150,243,0.35)!important; }
+        .cal-d.cal-dom    { background: rgba(255,255,255,0.04)!important; color:#b0a8c0!important; opacity:0.38; }
+        .cal-d.cal-inicio { background: rgba(76,200,80,0.48)!important; color:#1a4a1a!important; font-weight:700; opacity:1!important; }
+        .cal-d.cal-fin    { background: rgba(186,104,200,0.52)!important; color:#4a1a5a!important; font-weight:700; opacity:1!important; }
+        .cal-d.cal-hoy    { border:2.5px solid #ef4444!important; font-weight:900!important; transform:scale(1.15); z-index:5; box-shadow:0 0 0 2px rgba(239,68,68,0.35); color:#b91c1c!important; }
+        .cal-leyenda { margin-top:12px; display:flex; flex-wrap:wrap; justify-content:center; gap:5px 12px; font-size:0.57rem; color:#3e3850; padding-top:10px; border-top:1px solid rgba(200,210,230,0.25); }
+        .cal-ley-item { display:flex; align-items:center; gap:3px; }
+        .cal-cuadro { display:inline-block; width:11px; height:11px; border-radius:4px; border:1px solid rgba(0,0,0,0.08); }
+        .cal-cuadro.verde  { background: rgba(76,200,80,0.48); }
+        .cal-cuadro.morado { background: rgba(186,104,200,0.52); }
+        .cal-cuadro.azul-l { background: rgba(100,180,255,0.28); }
+        .cal-cuadro.azul   { background: rgba(33,150,243,0.35); }
+        .cal-cuadro.hoy    { background: #fee2e2; border: 2px solid #ef4444; }
+
+        /* ===== LISTA DE ASISTENCIA (IMPRESIÓN) ===== */
+        @media print {
+            body { background: white !important; margin: 0; padding: 0; }
+            body > *:not(#print-container) { display: none !important; }
+            #print-container { display: block !important; }
+            .no-print { display: none !important; }
+        }
+        #print-container { display: none; }
+
+        .attendance-sheet {
+            width: 10.5in;
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            border-collapse: collapse;
+            page-break-after: always;
+            margin: 0 auto;
+        }
+        .attendance-sheet:last-child { page-break-after: auto; }
+        .attendance-sheet th, .attendance-sheet td {
+            border: 1px solid #000;
+            padding: 2px 3px;
+            vertical-align: middle;
+        }
+        .attendance-sheet .header-row td {
+            background: #fff;
+            font-weight: bold;
+            font-size: 8pt;
+        }
+        .attendance-sheet .week-header {
+            text-align: center;
+            font-weight: bold;
+            background: #fff;
+        }
+        .attendance-sheet .day-cell {
+            text-align: center;
+            min-width: 18px;
+            width: 18px;
+            font-size: 7pt;
+        }
+        .attendance-sheet .day-blocked {
+            background: #000 !important;
+            color: #000;
+        }
+        .attendance-sheet .day-gray {
+            background: #c8c8c8 !important;
+        }
+        .attendance-sheet .alumno-cell {
+            min-width: 180px;
+            font-size: 7pt;
+        }
+        .attendance-sheet .num-cell {
+            text-align: center;
+            width: 18px;
+            font-size: 7pt;
+        }
+        .attendance-sheet .title-row td {
+            background: #fff;
+            font-size: 10pt;
+            font-weight: bold;
+            text-align: center;
+            padding: 4px;
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner { border: 3px solid #e5e7eb; border-top-color: #6366f1; border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== GROUP CARD ===== */
+        .grupo-card {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .grupo-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+
+        /* ===== SELECT TEACHER ===== */
+        #select-teacher {
+            font-size: 1rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236366f1'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            appearance: none;
+            padding-right: 40px;
+        }
+
+        @media (max-width: 640px) {
+            .cal-grid { grid-template-columns: repeat(2,1fr); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 min-h-screen">
+
+<!-- ===== CONTENEDOR IMPRESIÓN ===== -->
+<div id="print-container"></div>
+
+<!-- ===== PANTALLA PRINCIPAL ===== -->
+<div id="app" class="max-w-2xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <div class="text-center mb-8 fade-in">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl shadow-lg mb-4">
+            <span class="text-3xl">🎓</span>
+        </div>
+        <h1 class="text-3xl font-black text-gray-800 tracking-tight">Portal Teachers</h1>
+        <p class="text-gray-500 mt-1 font-medium">Harmony Bells Language Institute</p>
+    </div>
+
+    <!-- PASO 1: Selección de Teacher -->
+    <div id="seccion-seleccion" class="bg-white rounded-3xl shadow-xl p-6 border border-gray-100 fade-in">
+        <h2 class="text-lg font-bold text-gray-700 mb-1 flex items-center gap-2">
+            <span class="text-indigo-500">👤</span> Selecciona tu nombre
+        </h2>
+        <p class="text-sm text-gray-400 mb-5">Selecciona tu nombre de la lista para continuar.</p>
+
+        <!-- Cargando -->
+        <div id="loading-teachers" class="flex items-center gap-3 py-6 justify-center">
+            <div class="spinner"></div>
+            <span class="text-gray-500 text-sm font-medium">Cargando teachers...</span>
+        </div>
+
+        <!-- Select Teacher -->
+        <div id="form-seleccion" class="hidden space-y-4">
+            <select id="select-teacher" class="w-full p-3 border-2 border-indigo-200 rounded-2xl text-gray-800 font-semibold focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 outline-none transition bg-white shadow-sm">
+                <option value="">-- Selecciona tu nombre --</option>
+            </select>
+            <button id="btn-entrar" onclick="entrarComoTeacher()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                <span class="text-lg">🚀</span> Entrar
+            </button>
+        </div>
+
+        <div id="error-carga" class="hidden bg-red-50 text-red-700 border border-red-200 rounded-xl p-4 text-sm text-center mt-2">
+            ⚠️ No se pudo cargar la información. Verifica tu conexión e intenta de nuevo.
+            <button onclick="inicializar()" class="block mx-auto mt-2 underline font-bold">Reintentar</button>
+        </div>
+    </div>
+
+    <!-- PASO 2: Panel del Teacher -->
+    <div id="seccion-panel" class="hidden fade-in space-y-5">
+
+        <!-- Bienvenida -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-3xl p-6 text-white shadow-xl">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-indigo-200 text-sm font-medium uppercase tracking-wider">Bienvenido/a</p>
+                    <h2 id="lbl-nombre-teacher" class="text-2xl font-black mt-0.5 leading-tight"></h2>
+                    <p id="lbl-grupos-count" class="text-indigo-200 text-sm mt-1"></p>
+                </div>
+                <div class="text-5xl opacity-60">🏫</div>
+            </div>
+        </div>
+
+        <!-- Opciones principales -->
+        <div class="grid grid-cols-1 gap-4">
+
+            <!-- Botón: Mis Grupos y Listas -->
+            <button onclick="mostrarGrupos()" class="grupo-card bg-white rounded-2xl p-5 border-2 border-blue-100 hover:border-blue-400 shadow-sm flex items-center gap-4 text-left">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">📋</span>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800 text-base">Mis Grupos y Listas</p>
+                    <p class="text-gray-500 text-sm mt-0.5">Ver grupos asignados y descargar listas de asistencia</p>
+                </div>
+                <span class="text-gray-400 text-xl">›</span>
+            </button>
+
+            <!-- Botón: Horarios de Recuperación -->
+            <button onclick="mostrarHorariosRec()" class="grupo-card bg-white rounded-2xl p-5 border-2 border-purple-100 hover:border-purple-400 shadow-sm flex items-center gap-4 text-left">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">🔁</span>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800 text-base">Horarios de Recuperación</p>
+                    <p class="text-gray-500 text-sm mt-0.5">Consulta los horarios disponibles para recuperar clases por grupo</p>
+                </div>
+                <span class="text-gray-400 text-xl">›</span>
+            </button>
+
+            <!-- Botón: Ver mi Horario -->
+            <button onclick="abrirModalHorariosLayout()" class="grupo-card bg-white rounded-2xl p-5 border-2 border-orange-100 hover:border-orange-400 shadow-sm flex items-center gap-4 text-left">
+                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">🕒</span>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800 text-base">Ver mi Horario</p>
+                    <p class="text-gray-500 text-sm mt-0.5">Consulta el horario layout de todos los grupos</p>
+                </div>
+                <span class="text-gray-400 text-xl">›</span>
+            </button>
+        </div>
+
+        <!-- Regresar -->
+        <div class="text-center">
+            <button onclick="regresarSeleccion()" class="text-sm font-semibold text-gray-400 hover:text-gray-600 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-5 transition-all bg-white">
+                ↩ Cambiar teacher
+            </button>
+        </div>
+    </div>
+
+    <!-- PASO 3a: Mis Grupos -->
+    <div id="seccion-grupos" class="hidden fade-in space-y-4">
+        <button onclick="regresarPanel()" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition bg-white shadow-sm">
+            ← Regresar
+        </button>
+
+        <div class="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+            <div class="flex items-center justify-between mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <span>📋</span> Mis Grupos
+                    </h2>
+                    <p id="lbl-grupos-teacher-sub" class="text-sm text-gray-500 mt-0.5"></p>
+                </div>
+                <!-- Botón descargar TODAS -->
+                <button onclick="descargarTodasLasListas()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-transform">
+                    <span>⬇️</span> Descargar Todas
+                </button>
+            </div>
+
+            <!-- Lista de grupos -->
+            <div id="lista-grupos-teacher" class="space-y-3">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PASO 3b: Horarios de Recuperación -->
+    <div id="seccion-horarios-rec" class="hidden fade-in space-y-4">
+        <button onclick="regresarPanel()" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-700 border border-gray-200 hover:border-gray-400 rounded-xl py-2 px-4 transition bg-white shadow-sm">
+            ← Regresar
+        </button>
+
+        <div class="bg-white rounded-3xl shadow-xl p-6 border border-gray-100">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-1">
+                <span>🔁</span> Horarios de Recuperación
+            </h2>
+            <p class="text-sm text-gray-500 mb-5">Selecciona un grupo para ver los horarios disponibles.</p>
+
+            <!-- Selector de grupo -->
+            <div class="mb-5">
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Grupo</label>
+                <select id="select-grupo-rec" onchange="mostrarHorariosDeGrupo()" class="w-full p-3 border-2 border-purple-200 rounded-2xl text-gray-800 font-semibold focus:ring-4 focus:ring-purple-100 focus:border-purple-400 outline-none transition bg-white">
+                    <option value="">-- Selecciona un grupo --</option>
+                </select>
+            </div>
+
+            <!-- Resultados de horarios -->
+            <div id="horarios-rec-resultado" class="hidden">
+                <div class="bg-purple-50 rounded-2xl p-4 border border-purple-200 mb-4">
+                    <p class="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1">Grupo seleccionado</p>
+                    <p id="lbl-grupo-rec-sel" class="font-bold text-purple-900 text-base"></p>
+                </div>
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Horarios disponibles para recuperar:</p>
+                <div id="lista-horarios-rec" class="space-y-2">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <div id="horarios-rec-vacio" class="hidden text-center py-8 text-gray-400">
+                <div class="text-4xl mb-2">📭</div>
+                <p class="font-medium">No hay horarios de recuperación disponibles para este grupo.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL HORARIO LAYOUT ===== -->
+<div id="modal-horarios" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalHorarios()">
+    <div class="modal-box fade-in">
+        <div class="modal-header bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+            <div>
+                <h2 class="text-lg font-bold">🕒 Horario Layout</h2>
+                <p class="text-xs text-orange-100 mt-0.5">Distribución de grupos y salones</p>
+            </div>
+            <button onclick="cerrarModalHorarios()" class="text-white hover:text-orange-200 text-2xl font-bold transition px-1">✕</button>
+        </div>
+        <div class="p-4 space-y-6 max-h-[80vh] overflow-y-auto" id="modal-horarios-content">
+            <div class="flex items-center justify-center py-10">
+                <div class="spinner"></div>
+                <span class="ml-3 text-gray-500 text-sm">Cargando horarios...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL HORARIOS DE RECUPERACIÓN (detalle por grupo) ===== -->
+<div id="modal-rec-detalle" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalRecDetalle()">
+    <div class="modal-box fade-in" style="max-width:600px">
+        <div class="modal-header bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            <div>
+                <h2 class="text-base font-bold" id="modal-rec-titulo">Horarios de Recuperación</h2>
+                <p class="text-xs text-purple-200 mt-0.5" id="modal-rec-subtitulo"></p>
+            </div>
+            <button onclick="cerrarModalRecDetalle()" class="text-white hover:text-purple-200 text-2xl font-bold transition px-1">✕</button>
+        </div>
+        <div class="p-5 max-h-[80vh] overflow-y-auto" id="modal-rec-detalle-content"></div>
+    </div>
+</div>
+
+<script>
+// ==================== CONFIGURACIÓN ====================
+const SALONES_CSV_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
+const HORARIOS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRm3peFH3_yuFKnvk7_rIe_RLspibi2WJy9IJaWtGq9qcSD2f9QYqZ4UYXJY4BeBNRJ54bcElcJlPas/pub?output=csv';
+const LAYOUT_CSV_URL    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
+const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
+const CAL_CSV_URL       = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7i4l20VBfO7nna5jCWWLEG9G3wtPQE_fgZO5HjIeiHA0hWRrCdFj-OB_gQm6W4m4-Eqae4-r0VlAh/pub?output=csv';
+
+// ==================== ESTADO GLOBAL ====================
+let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
+let horariosRecuperacion = [];
+let baseAlumnos = {};
+let periodosCalendario = [];
+
+let teacherActual = null;  // nombre del teacher seleccionado
+let gruposDelTeacher = []; // array de objetos {salon, horario, horaFmt, dias, alumnos[], programa, nivel}
+
+// ==================== INICIALIZAR ====================
+async function inicializar() {
+    document.getElementById('loading-teachers').classList.remove('hidden');
+    document.getElementById('form-seleccion').classList.add('hidden');
+    document.getElementById('error-carga').classList.add('hidden');
+
+    try {
+        await Promise.all([
+            cargarSalones(),
+            cargarHorariosRecuperacion(),
+            cargarAlumnos()
+        ]);
+        poblarSelectTeachers();
+    } catch (e) {
+        console.error('Error al inicializar:', e);
+        document.getElementById('loading-teachers').classList.add('hidden');
+        document.getElementById('error-carga').classList.remove('hidden');
+    }
+}
+
+// ==================== CARGAR SALONES ====================
+async function cargarSalones() {
+    const url = SALONES_CSV_URL + '&t=' + Date.now();
+    const res = await fetch(url);
+    const txt = await res.text();
+    const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+    const filas = parsed.data;
+    if (filas.length < 3) return;
+
+    matrizSalones.salones  = filas[0].map(s => String(s).trim());
+    matrizSalones.teachers = filas[1].map(t => String(t).trim());
+    matrizSalones.filas       = [];
+    matrizSalones.filasSabado = [];
+
+    let esSabado = false;
+    let count1545 = 0;
+    for (let i = 2; i < filas.length; i++) {
+        const f   = filas[i];
+        const hor = String(f[0] || '').trim().toUpperCase();
+        if (hor.includes('SABADO') || hor.includes('SÁBADO')) { esSabado = true; continue; }
+        if (!hor) continue;
+        let [h, m] = hor.split(':');
+        if (!m) m = '00';
+        const hStr = h.padStart(2,'0') + ':' + m;
+        const obj  = { horaFmt: hStr, celdas: f };
+        if (!esSabado && hStr === '15:45') {
+            obj.dias = (count1545 === 0) ? 'Lunes y Miércoles' : 'Martes y Jueves';
+            count1545++;
+        }
+        (esSabado ? matrizSalones.filasSabado : matrizSalones.filas).push(obj);
+    }
+}
+
+// ==================== CARGAR HORARIOS REC ====================
+async function cargarHorariosRecuperacion() {
+    const res = await fetch(HORARIOS_CSV_URL + '&t=' + Date.now());
+    const txt = await res.text();
+    const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+    horariosRecuperacion = [];
+    const filas = parsed.data;
+    for (let i = 1; i < filas.length; i++) {
+        const f = filas[i];
+        if (!f || f.length < 13) continue;
+        const colP      = f[15] ? String(f[15]).trim().toUpperCase() : '';
+        const docenteRaw= f[14] ? String(f[14]).trim().toUpperCase() : '';
+        if (colP.includes('GRUPO PRIVADO') || docenteRaw.includes('GRUPO PRIVADO')) continue;
+        const crn     = f[9]  ? String(f[9]).trim()  : '';
+        const horario = f[11] ? String(f[11]).trim()  : '';
+        if (!crn || !horario) continue;
+
+        const nivelIni  = f[3] ? String(f[3]).trim()  : '';
+        const nivelFin  = f[4] ? String(f[4]).trim()  : '';
+        const subCode   = f[5] ? String(f[5]).trim().toUpperCase() : '';
+        const frecuencia= f[6] ? String(f[6]).trim().toUpperCase() : '';
+        const docente   = f[14]? String(f[14]).trim() : 'Por Asignar';
+        const cupo      = f[12]? (parseInt(String(f[12]).trim(),10)||0) : 0;
+        const link      = f[15]? String(f[15]).trim() : '';
+
+        const h = horario.padStart(4,'0');
+        const horaFmt = h.substring(0, h.length-2) + ':' + h.substring(h.length-2);
+
+        let diasLabel = '';
+        if (frecuencia==='FF') diasLabel='Lunes - Jueves';
+        else if (frecuencia==='S1') diasLabel='Lunes y Miércoles';
+        else if (frecuencia==='S2') diasLabel='Martes y Jueves';
+        else if (['SA','SM','SV'].includes(frecuencia)) diasLabel='Sábados';
+        else if (['DO','DOM'].includes(frecuencia)) diasLabel='Domingos';
+        else diasLabel=frecuencia;
+
+        const modalidad = (['SA','SM','SV'].includes(frecuencia))
+            ? 'SABATINO'
+            : (['DO','DOM'].includes(frecuencia)) ? 'DOMINICAL' : 'ENTRE SEMANA';
+
+        horariosRecuperacion.push({
+            crn, horario, horaFmt, diasLabel, modalidad,
+            nivelIni: nivelIni !== '' ? parseInt(nivelIni,10) : null,
+            nivelFin: nivelFin !== '' ? parseInt(nivelFin,10) : null,
+            subCode, frecuencia, docente, cupo, link
+        });
+    }
+}
+
+// ==================== CARGAR ALUMNOS ====================
+async function cargarAlumnos() {
+    async function parsearHoja(url) {
+        const res = await fetch(url + '&t=' + Date.now());
+        const txt = await res.text();
+        const result = Papa.parse(txt, { header: false, skipEmptyLines: true });
+        return result.data;
+    }
+
+    const [filas1, filas2] = await Promise.all([
+        parsearHoja(LAYOUT_CSV_URL),
+        parsearHoja(LAYOUT_NUEVO_INGRESO_CSV_URL)
+    ]);
+
+    const procesar = (filas, esNuevo) => {
+        for (let idx = 1; idx < filas.length; idx++) {
+            const fila = filas[idx];
+            if (fila.length < 4) continue;
+            const id = fila[3] ? String(fila[3]).trim().toUpperCase() : '';
+            if (!id) continue;
+            if (esNuevo && baseAlumnos[id]) continue;
+
+            const nombre   = fila[6]  ? String(fila[6]).trim()  : 'Sin nombre';
+            const celular  = fila[9]  ? String(fila[9]).trim().replace(/[\/\\|]+/g,',').replace(/\s*,\s*/g,', ').replace(/^,|,$/g,'') : '';
+            const horario  = fila[15] ? String(fila[15]).trim() : '';
+            const progRaw  = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+            const cursoSig = fila[14] ? String(fila[14]).trim() : '';
+            const estatusPago = fila[2] ? String(fila[2]).trim() : '';
+
+            if (esNuevo) {
+                const periodo  = fila[1] ? String(fila[1]).trim() : '';
+                const st = estatusPago.toUpperCase();
+                const esValido = st==='R'||st==='REC'||st.includes('TRANSFERENCIA');
+                const esAdulto = !progRaw.includes('PTEEN')&&!progRaw.includes('KIDS')&&!progRaw.includes('TEENS');
+                const m = cursoSig.match(/\d+/);
+                const esCurso24 = m && parseInt(m[0])===24;
+                if (!periodo.includes('2608') && !(esAdulto && esCurso24)) continue;
+                if (!esValido) continue;
+            }
+
+            let nivelSig = 1;
+            const nm = cursoSig.match(/\d+/);
+            if (nm) nivelSig = parseInt(nm[0]);
+            const nivelActual = Math.max(0, nivelSig - 1);
+
+            let progNombre = 'ADULTO';
+            if (progRaw.includes('PTEEN'))      progNombre = 'PTEEN';
+            else if (progRaw.includes('KIDS'))  progNombre = 'KIDS';
+            else if (progRaw.includes('TEENS')) progNombre = 'TEENS';
+
+            const horUpp = horario.toUpperCase();
+            let modalidad = 'FFI';
+            if (horUpp.includes('SA')||horUpp.includes('SM')||horUpp.includes('SV')) modalidad='SA';
+            else if (horUpp.includes('DO')||horUpp.includes('DOM')) modalidad='DO';
+
+            baseAlumnos[id] = {
+                id, nombre, celular, horario, nivelActual, progNombre, modalidad,
+                estatusPago
+            };
+        }
+    };
+
+    procesar(filas1, false);
+    procesar(filas2, true);
+}
+
+// ==================== OBTENER GRUPOS DEL TEACHER ====================
+function obtenerGruposDeTeacher(teacherNombre) {
+    // Recorrer matrizSalones y agrupar por (salon+hora+esSabado)
+    const grupos = {};
+    const todasFilas = [
+        ...matrizSalones.filas.map(f => ({...f, esSabado: false})),
+        ...matrizSalones.filasSabado.map(f => ({...f, esSabado: true}))
+    ];
+
+    for (const fila of todasFilas) {
+        for (let ci = 1; ci < fila.celdas.length; ci++) {
+            const teacher = (matrizSalones.teachers[ci] || '').trim();
+            if (teacher.toUpperCase() !== teacherNombre.toUpperCase()) continue;
+            const celda = String(fila.celdas[ci] || '').trim();
+            if (!celda) continue;
+
+            const salon = matrizSalones.salones[ci] || 'Sin salon';
+            const key   = `${salon}|${fila.horaFmt}|${fila.esSabado}|${ci}`;
+            if (grupos[key]) continue;
+
+            // Parsear nivel y programa de la celda (ej: "TN 12", "KB 3", "PT 5", "14")
+            const celdaClean = celda.replace(/\([^)]*\)/g,'').trim();
+            let progNombre = 'ADULTO';
+            let nivelNum   = null;
+            const mAdulto  = celdaClean.match(/^(\d+)$/);
+            const mTN      = celdaClean.match(/^TN\s*(\d+)$/i);
+            const mKB      = celdaClean.match(/^KB\s*(\d+)$/i);
+            const mPT      = celdaClean.match(/^PT\s*(\d+)$/i);
+
+            if (mTN)      { progNombre='TEENS'; nivelNum=parseInt(mTN[1]); }
+            else if (mKB) { progNombre='KIDS';  nivelNum=parseInt(mKB[1]); }
+            else if (mPT) { progNombre='PTEEN'; nivelNum=parseInt(mPT[1]); }
+            else if (mAdulto) { progNombre='ADULTO'; nivelNum=parseInt(mAdulto[1]); }
+
+            if (nivelNum === null) continue;
+
+            // Determinar días
+            let dias = fila.dias || '';
+            if (!dias) {
+                if (fila.esSabado) dias = 'Sábados';
+                else dias = 'Lunes - Jueves';
+            }
+
+            // Calcular modalidad
+            let modalidadGrupo = 'FFI';
+            if (fila.esSabado) modalidadGrupo = 'SA';
+
+            grupos[key] = {
+                salon, horaFmt: fila.horaFmt, dias, esSabado: fila.esSabado,
+                progNombre, nivelNum, celdaOriginal: celdaClean, modalidadGrupo,
+                teacher: teacher,
+                colIdx: ci
+            };
+        }
+    }
+
+    // Asociar alumnos a cada grupo
+    const listaGrupos = Object.values(grupos);
+    for (const grupo of listaGrupos) {
+        grupo.alumnos = [];
+        for (const alumno of Object.values(baseAlumnos)) {
+            if (alumno.nivelActual !== grupo.nivelNum) continue;
+            if (alumno.progNombre !== grupo.progNombre) continue;
+
+            // Verificar que el horario del alumno coincida
+            const horUpp = alumno.horario.toUpperCase().replace(/[\.\s]/g,'');
+            let matchH = false;
+            if (grupo.esSabado) {
+                matchH = horUpp.includes('SA')||horUpp.includes('SM')||horUpp.includes('SV');
+            } else if (alumno.modalidad === 'DO') {
+                matchH = false; // dominicales no van en entre semana
+            } else {
+                // Verificar hora
+                const mH = alumno.horario.match(/(\d+):(\d+)/);
+                if (mH) {
+                    let hA = parseInt(mH[1]);
+                    if (horUpp.includes('P') && hA<12) hA+=12;
+                    if (horUpp.includes('A') && hA===12) hA=0;
+                    const hFmtA = hA.toString().padStart(2,'0')+':'+mH[2].substring(0,2);
+                    matchH = (hFmtA === grupo.horaFmt);
+                }
+            }
+            if (!matchH) continue;
+
+            // Verificar días para 15:45
+            if (!grupo.esSabado && grupo.horaFmt === '15:45' && grupo.dias) {
+                const diasAlumno = alumno.modalidad; // FFI
+                if (grupo.dias === 'Lunes y Miércoles' && alumno.tipoLMI === 'MJ') continue;
+                if (grupo.dias === 'Martes y Jueves' && alumno.tipoLMI === 'LMI') continue;
+            }
+
+            grupo.alumnos.push(alumno);
+        }
+        // Ordenar alumnos por nombre
+        grupo.alumnos.sort((a,b) => a.nombre.localeCompare(b.nombre));
+    }
+
+    // Ordenar grupos por hora y luego por salón
+    listaGrupos.sort((a,b) => {
+        if (a.esSabado !== b.esSabado) return a.esSabado ? 1 : -1;
+        if (a.horaFmt < b.horaFmt) return -1;
+        if (a.horaFmt > b.horaFmt) return 1;
+        return a.salon.localeCompare(b.salon);
+    });
+
+    return listaGrupos;
+}
+
+// ==================== POBLAR SELECT TEACHERS ====================
+function poblarSelectTeachers() {
+    const teachers = [...new Set(
+        matrizSalones.teachers.filter(t => t && t.trim() && t.trim().toUpperCase() !== 'TEACHER')
+    )].sort();
+
+    document.getElementById('loading-teachers').classList.add('hidden');
+    document.getElementById('form-seleccion').classList.remove('hidden');
+
+    const sel = document.getElementById('select-teacher');
+    teachers.forEach(t => {
+        const op = document.createElement('option');
+        op.value = t;
+        op.textContent = t;
+        sel.appendChild(op);
+    });
+}
+
+// ==================== ENTRAR COMO TEACHER ====================
+function entrarComoTeacher() {
+    const sel  = document.getElementById('select-teacher');
+    const nombre = sel.value.trim();
+    if (!nombre) {
+        sel.classList.add('border-red-400');
+        sel.focus();
+        setTimeout(() => sel.classList.remove('border-red-400'), 2000);
+        return;
+    }
+    teacherActual  = nombre;
+    gruposDelTeacher = obtenerGruposDeTeacher(nombre);
+
+    document.getElementById('lbl-nombre-teacher').textContent = nombre;
+    document.getElementById('lbl-grupos-count').textContent =
+        gruposDelTeacher.length === 0
+            ? 'Sin grupos asignados en este periodo'
+            : `${gruposDelTeacher.length} grupo${gruposDelTeacher.length!==1?'s':''} asignado${gruposDelTeacher.length!==1?'s':''}`;
+
+    mostrarSeccion('seccion-panel');
+}
+
+// ==================== NAVEGACIÓN ====================
+function mostrarSeccion(id) {
+    ['seccion-seleccion','seccion-panel','seccion-grupos','seccion-horarios-rec'].forEach(s => {
+        document.getElementById(s).classList.toggle('hidden', s !== id);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+}
+function regresarSeleccion() { mostrarSeccion('seccion-seleccion'); }
+function regresarPanel()     { mostrarSeccion('seccion-panel'); }
+
+// ==================== MOSTRAR GRUPOS ====================
+function mostrarGrupos() {
+    mostrarSeccion('seccion-grupos');
+    document.getElementById('lbl-grupos-teacher-sub').textContent =
+        `Teacher: ${teacherActual} — ${gruposDelTeacher.length} grupo(s) asignado(s)`;
+
+    const container = document.getElementById('lista-grupos-teacher');
+    if (gruposDelTeacher.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-10 text-gray-400">
+                <div class="text-4xl mb-2">📭</div>
+                <p class="font-medium">No se encontraron grupos asignados.</p>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    gruposDelTeacher.forEach((grupo, idx) => {
+        const modalidadLabel = grupo.esSabado ? 'Sabatino' : 'Entre Semana';
+        const modalidadColor = grupo.esSabado
+            ? 'bg-blue-100 text-blue-700 border-blue-200'
+            : 'bg-green-100 text-green-700 border-green-200';
+
+        const card = document.createElement('div');
+        card.className = 'bg-gray-50 rounded-2xl border border-gray-200 p-4 flex items-center justify-between gap-3';
+        card.innerHTML = `
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-gray-800 text-base">${grupo.salon}</span>
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full border ${modalidadColor}">${modalidadLabel}</span>
+                </div>
+                <p class="text-sm text-gray-600 mt-0.5">
+                    <span class="font-semibold">${grupo.progNombre} ${grupo.nivelNum}</span> &nbsp;·&nbsp;
+                    ${grupo.horaFmt} &nbsp;·&nbsp; ${grupo.dias}
+                </p>
+                <p class="text-xs text-gray-400 mt-0.5">${grupo.alumnos.length} alumno(s)</p>
+            </div>
+            <button onclick="descargarListaGrupo(${idx})"
+                class="flex-shrink-0 flex items-center gap-1.5 bg-white border border-gray-300 hover:border-blue-400 hover:bg-blue-50 text-gray-700 hover:text-blue-700 font-semibold text-xs py-2 px-3 rounded-xl transition shadow-sm">
+                <span>⬇️</span> Descargar Lista
+            </button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// ==================== MOSTRAR HORARIOS REC ====================
+function mostrarHorariosRec() {
+    mostrarSeccion('seccion-horarios-rec');
+    const sel = document.getElementById('select-grupo-rec');
+    sel.innerHTML = '<option value="">-- Selecciona un grupo --</option>';
+    gruposDelTeacher.forEach((g, idx) => {
+        const op = document.createElement('option');
+        op.value = idx;
+        op.textContent = `${g.salon} — ${g.progNombre} ${g.nivelNum} — ${g.horaFmt} ${g.dias}`;
+        sel.appendChild(op);
+    });
+    document.getElementById('horarios-rec-resultado').classList.add('hidden');
+    document.getElementById('horarios-rec-vacio').classList.add('hidden');
+}
+
+function mostrarHorariosDeGrupo() {
+    const idx = parseInt(document.getElementById('select-grupo-rec').value);
+    if (isNaN(idx)) {
+        document.getElementById('horarios-rec-resultado').classList.add('hidden');
+        document.getElementById('horarios-rec-vacio').classList.add('hidden');
+        return;
+    }
+    const grupo = gruposDelTeacher[idx];
+    document.getElementById('lbl-grupo-rec-sel').textContent =
+        `${grupo.salon} — ${grupo.progNombre} ${grupo.nivelNum} — ${grupo.horaFmt} (${grupo.dias})`;
+
+    // Buscar horarios de recuperación compatibles con este grupo
+    // Filtrar por subjectCode y nivel
+    const horariosFiltrados = horariosRecuperacion.filter(h => {
+        // Solo mostrar: entre semana, sabatino, dominical
+        const modOk = ['FF','S1','S2','SA','SM','SV','DO','DOM'].includes(h.frecuencia);
+        if (!modOk) return false;
+
+        // Coincidir programa/subjectCode
+        let subOk = false;
+        if (grupo.progNombre === 'ADULTO' && (h.subCode === 'ADLT' || h.subCode === 'ADLTS' || h.subCode === '' || h.subCode === 'ADL')) subOk=true;
+        if (grupo.progNombre === 'TEENS'  && h.subCode === 'TEEN') subOk=true;
+        if (grupo.progNombre === 'PTEEN'  && h.subCode === 'PTEE') subOk=true;
+        if (grupo.progNombre === 'KIDS'   && h.subCode === 'KIDS') subOk=true;
+        // Si no matchea por subjectCode, intentar por rango de nivel
+        if (!subOk) {
+            const nI = h.nivelIni, nF = h.nivelFin;
+            if (nI !== null && nF !== null) {
+                if (grupo.nivelNum >= nI && grupo.nivelNum <= nF) subOk = true;
+            } else if (nI !== null) {
+                if (grupo.nivelNum >= nI) subOk = true;
+            }
+        }
+        return subOk;
+    });
+
+    // Mostrar
+    const lista = document.getElementById('lista-horarios-rec');
+    const resDiv = document.getElementById('horarios-rec-resultado');
+    const vacioDiv = document.getElementById('horarios-rec-vacio');
+
+    if (horariosFiltrados.length === 0) {
+        resDiv.classList.add('hidden');
+        vacioDiv.classList.remove('hidden');
+        return;
+    }
+
+    vacioDiv.classList.add('hidden');
+    resDiv.classList.remove('hidden');
+
+    // Agrupar por modalidad
+    const grupos_modal = {};
+    for (const h of horariosFiltrados) {
+        if (!grupos_modal[h.modalidad]) grupos_modal[h.modalidad] = [];
+        grupos_modal[h.modalidad].push(h);
+    }
+
+    lista.innerHTML = '';
+    const modalidadOrder = ['ENTRE SEMANA', 'SABATINO', 'DOMINICAL'];
+    const modalidadColors = {
+        'ENTRE SEMANA': 'bg-green-50 border-green-200 text-green-800',
+        'SABATINO':     'bg-blue-50 border-blue-200 text-blue-800',
+        'DOMINICAL':    'bg-orange-50 border-orange-200 text-orange-800'
+    };
+    const modalidadBadge = {
+        'ENTRE SEMANA': 'bg-green-100 text-green-700',
+        'SABATINO':     'bg-blue-100 text-blue-700',
+        'DOMINICAL':    'bg-orange-100 text-orange-700'
+    };
+    const modalidadEmoji = {
+        'ENTRE SEMANA':'🗓️','SABATINO':'📅','DOMINICAL':'☀️'
+    };
+
+    for (const mod of modalidadOrder) {
+        if (!grupos_modal[mod]) continue;
+        const items = grupos_modal[mod];
+        const header = document.createElement('p');
+        header.className = `text-xs font-bold uppercase tracking-wider mt-3 mb-2 text-gray-500 flex items-center gap-1`;
+        header.innerHTML = `${modalidadEmoji[mod]} ${mod}`;
+        lista.appendChild(header);
+
+        items.forEach(h => {
+            const card = document.createElement('div');
+            card.className = `p-3.5 rounded-xl border ${modalidadColors[mod]} flex items-center justify-between gap-3`;
+            card.innerHTML = `
+                <div>
+                    <p class="font-bold text-sm">${h.horaFmt} &nbsp;·&nbsp; ${h.diasLabel}</p>
+                    <p class="text-xs opacity-75 mt-0.5">CRN: ${h.crn} &nbsp;·&nbsp; Teacher: ${h.docente}</p>
+                </div>
+                <span class="text-xs font-bold px-2 py-0.5 rounded-full ${modalidadBadge[mod]}">${mod}</span>
+            `;
+            lista.appendChild(card);
+        });
+    }
+}
+
+// ==================== DESCARGAR TODAS LAS LISTAS ====================
+function descargarTodasLasListas() {
+    if (gruposDelTeacher.length === 0) return;
+    imprimirListasGrupos(gruposDelTeacher);
+}
+
+function descargarListaGrupo(idx) {
+    imprimirListasGrupos([gruposDelTeacher[idx]]);
+}
+
+// ==================== GENERAR LISTA DE ASISTENCIA ====================
+// Formato basado en las fotos: 4 semanas, L-MI-J-V-S por semana
+// - Entre semana: L MI J V (S en blanco/vacío)
+// - Sabatino: L MI J V S (L-J bloqueado negro, S activo)
+// - Lunes y Miércoles (15:45 S1): L MI J V — MI/J/V = gris
+//   CORREGIDO: L activo, MI activo, J y V en gris (solo asisten L y MI)
+// - Martes y Jueves (15:45 S2): L MI J V — L/MI = gris
+//   CORREGIDO: L y MI en gris, J activo (como martes se muestra en J), V en gris
+
+function imprimirListasGrupos(grupos) {
+    const container = document.getElementById('print-container');
+    container.innerHTML = '';
+
+    grupos.forEach(grupo => {
+        const tabla = generarTablaAsistencia(grupo);
+        container.appendChild(tabla);
+    });
+
+    window.print();
+}
+
+function generarTablaAsistencia(grupo) {
+    const diasHeader = ['L','M','MI','J','V','S'];
+    // Determinar qué celdas de día van en negro/gris según modalidad
+    // días: 0=L, 1=M, 2=MI, 3=J, 4=V, 5=S
+    // La lista muestra: L, M, MI, J, V, S por semana
+
+    let estadoCelda = {}; // índice -> 'normal'|'blocked'|'gray'|'empty'
+    // La imagen muestra columnas: L  M  MI  J  V  S
+    // Índices:                    0  1   2  3  4  5
+
+    if (grupo.esSabado) {
+        // Sabatino: L, M, MI, J bloqueados (negro); V gris; S activo
+        estadoCelda = { 0:'blocked', 1:'blocked', 2:'blocked', 3:'blocked', 4:'gray', 5:'normal' };
+    } else if (grupo.dias === 'Lunes y Miércoles') {
+        // L y MI activos; M, J, V, S = gris
+        estadoCelda = { 0:'normal', 1:'gray', 2:'normal', 3:'gray', 4:'gray', 5:'gray' };
+    } else if (grupo.dias === 'Martes y Jueves') {
+        // M y J activos (mostrados en col M y J); L, MI, V, S = gris
+        estadoCelda = { 0:'gray', 1:'normal', 2:'gray', 3:'normal', 4:'gray', 5:'gray' };
+    } else {
+        // Entre semana normal: L, M, MI, J, V activos; S = gris o vacío
+        estadoCelda = { 0:'normal', 1:'normal', 2:'normal', 3:'normal', 4:'normal', 5:'gray' };
+    }
+
+    const numSemanas = 4;
+    const totalDiasCols = diasHeader.length * numSemanas; // 24 columnas de asistencia
+
+    const wrapper = document.createElement('div');
+    wrapper.style.pageBreakAfter = 'always';
+    wrapper.style.marginBottom   = '0';
+    wrapper.style.padding        = '6pt';
+
+    // Logo + título
+    const titulo = document.createElement('table');
+    titulo.style.cssText = 'width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:7.5pt;margin-bottom:3pt;';
+    titulo.innerHTML = `
+        <tr>
+            <td colspan="${6 + totalDiasCols}" style="text-align:center;font-weight:bold;font-size:10pt;border:1px solid #000;padding:3pt;">
+                LIST OF GRADES AND ATTENDANCE
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="border:1px solid #000;padding:2pt;font-size:7pt;">
+                <b>INSTITUTO: DF-AM CHALCO</b>
+            </td>
+            <td colspan="${3 + totalDiasCols}" style="border:1px solid #000;padding:2pt;font-size:7pt;">
+                <b>PROFESOR: ${(grupo.teacher||teacherActual).toUpperCase()}</b>
+            </td>
+        </tr>
+        <tr>
+            <td style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
+            <td colspan="2" style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>CEPLAN:</b></td>
+            <td style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>GRUPO:</b> ${grupo.celdaOriginal}</td>
+            <td colspan="2" style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>HORARIO:</b> ${grupo.horaFmt}</td>
+            <td colspan="${totalDiasCols - 2}" style="border:1px solid #000;padding:2pt;font-size:7pt;text-align:right;"><b>CURSO: ${grupo.celdaOriginal} ${grupo.esSabado?'SAB':'SEMANAL'}</b></td>
+        </tr>
+    `;
+    wrapper.appendChild(titulo);
+
+    // Tabla principal
+    const table = document.createElement('table');
+    table.style.cssText = 'width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:7pt;';
+
+    // Fila encabezado semanas
+    let headerSemanas = '<tr>';
+    headerSemanas += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:20pt;" rowspan="2">#</th>';
+    headerSemanas += `<th style="border:1px solid #000;padding:2pt;min-width:160pt;text-align:left;" rowspan="2">NAME</th>`;
+    headerSemanas += `<th style="border:1px solid #000;padding:2pt;text-align:center;width:55pt;" rowspan="2">ID / PHONE</th>`;
+    for (let s = 1; s <= numSemanas; s++) {
+        headerSemanas += `<th style="border:1px solid #000;padding:2pt;text-align:center;" colspan="${diasHeader.length}">WEEK ${s}</th>`;
+    }
+    headerSemanas += '</tr>';
+
+    // Fila sub-encabezado días
+    let headerDias = '<tr>';
+    for (let s = 0; s < numSemanas; s++) {
+        diasHeader.forEach((d, di) => {
+            const est = estadoCelda[di] || 'normal';
+            let bg = '';
+            if (est === 'blocked') bg = 'background:#000;color:#000;';
+            else if (est === 'gray') bg = 'background:#c8c8c8;';
+            headerDias += `<th style="border:1px solid #000;padding:1pt;text-align:center;width:18pt;${bg}">${est==='blocked'?'':d}</th>`;
+        });
+    }
+    headerDias += '</tr>';
+
+    table.innerHTML = headerSemanas + headerDias;
+
+    // Filas de alumnos (máximo 14 filas)
+    const maxAlumnos = 14;
+    for (let r = 0; r < maxAlumnos; r++) {
+        const alumno = grupo.alumnos[r] || null;
+        const tr = document.createElement('tr');
+        tr.style.height = '20pt';
+
+        // Número
+        const tdNum = document.createElement('td');
+        tdNum.style.cssText = 'border:1px solid #000;padding:2pt;text-align:center;font-size:7pt;';
+        tdNum.textContent = r + 1;
+        tr.appendChild(tdNum);
+
+        // Nombre + ID
+        const tdNombre = document.createElement('td');
+        tdNombre.style.cssText = 'border:1px solid #000;padding:2pt;font-size:7pt;';
+        if (alumno) {
+            tdNombre.innerHTML = `<b>${alumno.nombre.toUpperCase()}</b>`;
+        }
+        tr.appendChild(tdNombre);
+
+        // ID + Teléfono
+        const tdId = document.createElement('td');
+        tdId.style.cssText = 'border:1px solid #000;padding:2pt;font-size:6pt;';
+        if (alumno) {
+            tdId.innerHTML = `ID:${alumno.id}<br>${alumno.celular||''}`;
+        }
+        tr.appendChild(tdId);
+
+        // Celdas de asistencia
+        for (let s = 0; s < numSemanas; s++) {
+            diasHeader.forEach((d, di) => {
+                const est = estadoCelda[di] || 'normal';
+                const td = document.createElement('td');
+                td.style.cssText = 'border:1px solid #000;padding:0;text-align:center;width:18pt;';
+                if (est === 'blocked') {
+                    td.style.background = '#000';
+                } else if (est === 'gray') {
+                    td.style.background = '#c8c8c8';
+                }
+                tr.appendChild(td);
+            });
+        }
+
+        table.appendChild(tr);
+    }
+
+    wrapper.appendChild(table);
+    return wrapper;
+}
+
+// ==================== MODAL HORARIO LAYOUT ====================
+async function abrirModalHorariosLayout() {
+    document.getElementById('modal-horarios').classList.remove('hidden');
+    const content = document.getElementById('modal-horarios-content');
+
+    // Intentar reusar los datos ya cargados de matrizSalones
+    try {
+        // Cargar hoja de layout CSV por separado para mostrar visual
+        const res  = await fetch(LAYOUT_CSV_URL + '&t=' + Date.now());
+        const txt  = await res.text();
+        const data = Papa.parse(txt, { header: false, skipEmptyLines: true });
+        renderHorariosLayout(data.data, content);
+    } catch(e) {
+        content.innerHTML = '<p class="text-center text-red-500 py-10">Error al cargar el horario. Intenta de nuevo.</p>';
+    }
+}
+
+function renderHorariosLayout(filas, container) {
+    if (!filas || filas.length < 3) {
+        container.innerHTML = '<p class="text-center text-gray-500 py-10">No se encontró información de horarios.</p>';
+        return;
+    }
+
+    const salones  = filas[0].map(s => String(s||'').trim());
+    const teachers = filas[1].map(t => String(t||'').trim());
+
+    // Separar filas entre semana y sábado
+    let esSabado = false;
+    const rowsES = [], rowsSA = [];
+    for (let i = 2; i < filas.length; i++) {
+        const f   = filas[i];
+        const hor = String(f[0]||'').trim().toUpperCase();
+        if (hor.includes('SABADO')||hor.includes('SÁBADO')) { esSabado=true; continue; }
+        if (!hor) continue;
+        (esSabado ? rowsSA : rowsES).push(f);
+    }
+
+    const renderTabla = (rows, titulo) => {
+        if (rows.length === 0) return '';
+
+        const numCols = salones.length;
+
+        let html = `<div class="mb-6">
+            <p class="font-bold text-gray-700 text-sm mb-2 flex items-center gap-2">
+                <span>${titulo.includes('Sábado')?'📅':'🗓️'}</span> ${titulo}
+            </p>
+            <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table style="border-collapse:collapse;font-size:11px;width:100%;min-width:600px;">
+                <thead>
+                    <tr style="background:#f1f5f9;">
+                        <th style="border:1px solid #cbd5e1;padding:5px 8px;text-align:center;font-weight:700;min-width:60px;">Hora</th>`;
+        for (let ci = 1; ci < numCols; ci++) {
+            const salon = salones[ci] || '';
+            const teacher = teachers[ci] || '';
+            if (!salon) continue;
+            html += `<th style="border:1px solid #cbd5e1;padding:5px 6px;text-align:center;font-weight:700;min-width:80px;font-size:10px;">
+                <div style="font-weight:800;color:#1e40af;">${salon}</div>
+                <div style="font-weight:500;color:#6366f1;font-size:9px;">${teacher}</div>
+            </th>`;
+        }
+        html += `</tr></thead><tbody>`;
+
+        const coloresNiveles = ['#dbeafe','#dcfce7','#fef9c3','#fce7f3','#f3e8ff','#ffedd5','#e0f2fe','#d1fae5'];
+
+        rows.forEach((fila, ri) => {
+            const hor = String(fila[0]||'').trim();
+            html += `<tr style="background:${ri%2===0?'#fff':'#f8fafc'};">
+                <td style="border:1px solid #e2e8f0;padding:5px 8px;text-align:center;font-weight:800;font-size:11px;color:#374151;white-space:nowrap;">${hor}</td>`;
+            for (let ci = 1; ci < numCols; ci++) {
+                const salon = salones[ci] || '';
+                if (!salon) continue;
+                const celda = String(fila[ci]||'').trim();
+                const colorIdx = (celda ? (celda.charCodeAt(0) + celda.length) % coloresNiveles.length : -1);
+                const bg = celda ? coloresNiveles[colorIdx] : 'transparent';
+                html += `<td style="border:1px solid #e2e8f0;padding:4px 6px;text-align:center;background:${bg};font-weight:${celda?'700':'400'};font-size:11px;color:#1e293b;">${celda||''}</td>`;
+            }
+            html += `</tr>`;
+        });
+
+        html += `</tbody></table></div></div>`;
+        return html;
+    };
+
+    container.innerHTML =
+        renderTabla(rowsES, 'Entre Semana (Monday – Thursday)') +
+        renderTabla(rowsSA, 'Sabatino (Saturdays)');
+}
+
+function cerrarModalHorarios() {
+    document.getElementById('modal-horarios').classList.add('hidden');
+}
+
+function cerrarModalRecDetalle() {
+    document.getElementById('modal-rec-detalle').classList.add('hidden');
+}
+
+// ==================== ARRANCAR ====================
+document.addEventListener('DOMContentLoaded', inicializar);
+</script>
+</body>
+</html>
