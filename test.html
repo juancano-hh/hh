@@ -9065,9 +9065,32 @@
         listas_imprimir([listasGruposActuales[idx]]);
     }
 
+    function formatearHora12(horaStr) {
+        if (!horaStr) return '';
+        let limpia = String(horaStr).trim();
+        if (limpia.toLowerCase().includes('am') || limpia.toLowerCase().includes('pm')) return limpia;
+        let m = limpia.match(/(\d+):(\d+)/);
+        if (!m) return limpia;
+        let h = parseInt(m[1], 10);
+        let min = m[2];
+        let ampm = h >= 12 ? 'pm' : 'am';
+        let h12 = h % 12;
+        if (h12 === 0) h12 = 12;
+        return `${h12}:${min} ${ampm}`;
+    }
+
     function listas_imprimir(grupos) {
         const container = document.getElementById('listas-print-container');
         container.innerHTML = '';
+
+        // Estilo de orientación de página forzada a Letter Landscape
+        let orientStyle = document.getElementById('listas-print-orientation-style');
+        if (!orientStyle) {
+            orientStyle = document.createElement('style');
+            orientStyle.id = 'listas-print-orientation-style';
+            document.head.appendChild(orientStyle);
+        }
+        orientStyle.textContent = `@media print { @page { size: letter landscape !important; margin: 6mm !important; } }`;
 
         // Llenar el contenedor con todas las hojas
         grupos.forEach(g => {
@@ -9085,6 +9108,7 @@
                 // Limpiar después de imprimir
                 setTimeout(() => {
                     container.innerHTML = '';
+                    if (orientStyle) orientStyle.textContent = '';
                     document.body.classList.remove('imprimiendo-listas');
                     document.getElementById('modal-listas').classList.remove('hidden');
                 }, 600);
@@ -9093,48 +9117,53 @@
     }
 
     function listas_generarTabla(grupo) {
-        // Determinar estado de cada columna de día
-        // Columnas: L(0) M(1) MI(2) J(3) V(4) S(5)
-        const DIAS = ['L','M','MI','J','V','S'];
+        // Días por semana (sin viernes): L, M, MI, J, S
+        const DIAS = ['L','M','MI','J','S'];
         let estadoCelda = {};
 
         if (grupo.esSabado) {
-            // Sabatino: L,M,MI,J bloqueados negro; V gris; S activo
-            estadoCelda = {0:'blocked',1:'blocked',2:'blocked',3:'blocked',4:'gray',5:'normal'};
+            // Sabatino: L, M, MI, J bloqueados (gris); S activo
+            estadoCelda = { 0:'blocked', 1:'blocked', 2:'blocked', 3:'blocked', 4:'normal' };
         } else if (grupo.dias === 'Lunes y Miércoles') {
-            // L y MI activos; M,J,V,S gris
-            estadoCelda = {0:'normal',1:'gray',2:'normal',3:'gray',4:'gray',5:'gray'};
+            // L y MI activos; M, J, S en gris
+            estadoCelda = { 0:'normal', 1:'gray', 2:'normal', 3:'gray', 4:'gray' };
         } else if (grupo.dias === 'Martes y Jueves') {
-            // M y J activos; L,MI,V,S gris
-            estadoCelda = {0:'gray',1:'normal',2:'gray',3:'normal',4:'gray',5:'gray'};
+            // M y J activos; L, MI, S en gris
+            estadoCelda = { 0:'gray', 1:'normal', 2:'gray', 3:'normal', 4:'gray' };
         } else {
-            // Entre semana completa L-V; S gris
-            estadoCelda = {0:'normal',1:'normal',2:'normal',3:'normal',4:'normal',5:'gray'};
+            // Entre semana regular L-J: L, M, MI, J activos; S en gris
+            estadoCelda = { 0:'normal', 1:'normal', 2:'normal', 3:'normal', 4:'gray' };
         }
 
         const NUM_SEMANAS = 4;
+        const totalDiasCols = DIAS.length * NUM_SEMANAS; // 20 columnas de días
+        const totalCols = 3 + totalDiasCols; // 23 columnas en total
+
+        // Horario formateado: "Entre semana - 5:30 pm" o "Sabatino - 8:00 am"
+        const modLabel = grupo.esSabado ? 'Sabatino' : 'Entre semana';
+        const horaAmPm = formatearHora12(grupo.horaFmt);
+        const horarioTextoCompleto = `${modLabel} - ${horaAmPm}`;
+
         const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'page-break-after:always;padding:5pt;font-family:Arial,sans-serif;';
+        wrapper.style.cssText = 'page-break-after:always;padding:4pt;font-family:Arial,sans-serif;width:100%;box-sizing:border-box;';
 
         // ---- Encabezado ----
         const enc = document.createElement('table');
-        enc.style.cssText = 'width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:2pt;';
-        const totalDiasCols = DIAS.length * NUM_SEMANAS;
+        enc.style.cssText = 'width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:3pt;';
         enc.innerHTML = `
             <tr>
-                <td colspan="${3 + totalDiasCols}" style="text-align:center;font-weight:bold;font-size:10pt;border:1px solid #000;padding:3pt;letter-spacing:1px;">
-                    LIST OF GRADES AND ATTENDANCE
+                <td colspan="${totalCols}" style="text-align:center;font-weight:900;font-size:11pt;border:1px solid #000;padding:4pt;letter-spacing:2px;">
+                    ATTENDANCE
                 </td>
             </tr>
             <tr>
-                <td colspan="2" style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>INSTITUTO: DF-AM CHALCO</b></td>
-                <td colspan="${1 + totalDiasCols}" style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
+                <td colspan="8" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>INSTITUTO: PUEBLA ANZURES</b></td>
+                <td colspan="15" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
             </tr>
             <tr>
-                <td style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
-                <td style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>CEPLAN:</b></td>
-                <td style="border:1px solid #000;padding:2pt;font-size:7pt;"><b>GRUPO:</b> ${grupo.celdaOriginal} &nbsp; <b>HORARIO:</b> ${grupo.horaFmt} &nbsp; <b>CURSO:</b> ${grupo.celdaOriginal} ${grupo.esSabado?'SAB':'SEM'}</td>
-                <td colspan="${totalDiasCols - 1}" style="border:1px solid #000;padding:2pt;font-size:7pt;text-align:right;color:#555;">${grupo.dias}</td>
+                <td colspan="6" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
+                <td colspan="6" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>CURSO:</b> ${grupo.celdaOriginal}</td>
+                <td colspan="11" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>HORARIO:</b> ${horarioTextoCompleto}</td>
             </tr>`;
         wrapper.appendChild(enc);
 
@@ -9144,21 +9173,21 @@
 
         // Fila de semanas
         let rowSem = '<tr>';
-        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:16pt;" rowspan="2">#</th>';
-        rowSem += '<th style="border:1px solid #000;padding:2pt;min-width:130pt;text-align:left;" rowspan="2">NAME</th>';
-        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;min-width:55pt;" rowspan="2">ID / PHONE</th>';
+        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:18pt;" rowspan="2">#</th>';
+        rowSem += '<th style="border:1px solid #000;padding:2pt 4pt;min-width:140pt;text-align:left;" rowspan="2">NAME</th>';
+        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;min-width:65pt;" rowspan="2">ID / PHONE</th>';
         for (let s = 1; s <= NUM_SEMANAS; s++) {
             rowSem += `<th style="border:1px solid #000;padding:2pt;text-align:center;" colspan="${DIAS.length}">WEEK ${s}</th>`;
         }
         rowSem += '</tr>';
 
-        // Sub-fila de días
+        // Sub-fila de días (bloqueados y no lectivos en gris suave #d4d4d8)
         let rowDias = '<tr>';
         for (let s = 0; s < NUM_SEMANAS; s++) {
             DIAS.forEach((d, di) => {
                 const est = estadoCelda[di] || 'normal';
-                const bg  = est === 'blocked' ? 'background:#000;' : est === 'gray' ? 'background:#c0c0c0;' : '';
-                rowDias += `<th style="border:1px solid #000;padding:1pt;text-align:center;width:16pt;${bg}">${est==='blocked'?'':d}</th>`;
+                const bg  = (est === 'blocked' || est === 'gray') ? 'background:#d4d4d8;' : '';
+                rowDias += `<th style="border:1px solid #000;padding:1.5pt;text-align:center;width:18pt;${bg}">${d}</th>`;
             });
         }
         rowDias += '</tr>';
@@ -9170,34 +9199,35 @@
         for (let r = 0; r < MAX; r++) {
             const al  = grupo.alumnos[r] || null;
             const tr  = document.createElement('tr');
-            tr.style.height = '19pt';
+            tr.style.height = '20pt';
 
             // #
             const tdN = document.createElement('td');
-            tdN.style.cssText = 'border:1px solid #000;padding:1pt 2pt;text-align:center;';
+            tdN.style.cssText = 'border:1px solid #000;padding:1pt 2pt;text-align:center;font-weight:bold;';
             tdN.textContent   = r + 1;
             tr.appendChild(tdN);
 
             // Nombre
             const tdNom = document.createElement('td');
-            tdNom.style.cssText = 'border:1px solid #000;padding:1pt 3pt;font-size:7pt;';
+            tdNom.style.cssText = 'border:1px solid #000;padding:1pt 4pt;font-size:7pt;';
             if (al) tdNom.innerHTML = `<b>${al.nombre.toUpperCase()}</b>`;
             tr.appendChild(tdNom);
 
             // ID + Teléfono
             const tdId = document.createElement('td');
-            tdId.style.cssText = 'border:1px solid #000;padding:1pt 2pt;font-size:6pt;line-height:1.3;';
+            tdId.style.cssText = 'border:1px solid #000;padding:1pt 3pt;font-size:6.5pt;line-height:1.25;';
             if (al) tdId.innerHTML = `ID:${al.idOriginal||''}${al.celular ? '<br>'+al.celular : ''}`;
             tr.appendChild(tdId);
 
-            // Celdas de asistencia
+            // Celdas de asistencia (fondo gris #d4d4d8 para celdas bloqueadas o no lectivas, ahorrando tinta)
             for (let s = 0; s < NUM_SEMANAS; s++) {
                 DIAS.forEach((d, di) => {
                     const est = estadoCelda[di] || 'normal';
                     const td  = document.createElement('td');
-                    td.style.cssText = 'border:1px solid #000;width:16pt;';
-                    if (est === 'blocked') td.style.background = '#000';
-                    else if (est === 'gray') td.style.background = '#c0c0c0';
+                    td.style.cssText = 'border:1px solid #000;width:18pt;text-align:center;';
+                    if (est === 'blocked' || est === 'gray') {
+                        td.style.background = '#d4d4d8';
+                    }
                     tr.appendChild(td);
                 });
             }
