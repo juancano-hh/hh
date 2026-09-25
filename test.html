@@ -8969,12 +8969,18 @@
             }
         }
 
-        // Para cada grupo base, buscar los alumnos coincidentes y agruparlos por CRN (codigoClase)
+        // Para cada grupo base, buscar los alumnos presenciales coincidentes y agruparlos por CRN
         const listaFinal = [];
 
         for (const gBase of gruposBase) {
             const alumnosCoincidentes = [];
             for (const alumno of Object.values(baseAlumnos || {})) {
+                // FILTRAR SOLO ALUMNOS PRESENCIALES Y DESCARTAR PROGRAMAS EN LÍNEA / TEACHERS / TKT
+                const modUp = (alumno.modalidad || '').toUpperCase();
+                if (!modUp.includes('PRESENCIAL')) continue;
+                const progUp = (alumno.programaRaw || '').toUpperCase();
+                if (progUp.includes('TEACHER') || progUp.includes('TKT')) continue;
+
                 if (alumno.nivelActual !== gBase.nivelNum) continue;
                 if (alumno.programaNombre !== gBase.progNombre) continue;
 
@@ -9006,21 +9012,36 @@
                     alumnos: []
                 });
             } else {
-                // Agrupar alumnos por CRN (Columna R del layout)
-                const porCrn = {};
-                for (const al of alumnosCoincidentes) {
-                    const crnEfectivo = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : ((al.codigoClase && String(al.codigoClase).trim()) ? String(al.codigoClase).trim() : 'Sin CRN');
-                    if (!porCrn[crnEfectivo]) porCrn[crnEfectivo] = [];
-                    porCrn[crnEfectivo].push(al);
-                }
+                // Obtener lista de CRNs distintos no vacíos en este grupo
+                const distinctCrns = [...new Set(alumnosCoincidentes.map(a => (a.crn || '').trim()).filter(c => c !== ''))];
 
-                for (const [crnVal, als] of Object.entries(porCrn)) {
-                    als.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                if (distinctCrns.length <= 1) {
+                    // Si todos tienen el mismo CRN o alguno lo tiene vacío (ej. Ameyali en Adulto 14),
+                    // se unifican todos en una sola lista con el CRN único del grupo.
+                    const crnUnico = distinctCrns[0] || '';
+                    alumnosCoincidentes.sort((a, b) => a.nombre.localeCompare(b.nombre));
                     listaFinal.push({
                         ...gBase,
-                        crn: crnVal !== 'Sin CRN' ? crnVal : '',
-                        alumnos: als
+                        crn: crnUnico,
+                        alumnos: alumnosCoincidentes
                     });
+                } else {
+                    // Si realmente hay múltiples CRNs distintos (grupos combinados)
+                    const porCrn = {};
+                    for (const al of alumnosCoincidentes) {
+                        const crnVal = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : 'Sin CRN';
+                        if (!porCrn[crnVal]) porCrn[crnVal] = [];
+                        porCrn[crnVal].push(al);
+                    }
+
+                    for (const [crnVal, als] of Object.entries(porCrn)) {
+                        als.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                        listaFinal.push({
+                            ...gBase,
+                            crn: crnVal !== 'Sin CRN' ? crnVal : '',
+                            alumnos: als
+                        });
+                    }
                 }
             }
         }
