@@ -9037,17 +9037,20 @@
             card.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);';
             card.innerHTML = `
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                        <span style="font-weight:800;color:#111827;font-size:0.95rem;">${g.salon}</span>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+                        <span style="font-weight:900;color:#111827;font-size:1.05rem;">${g.progNombre} ${g.nivelNum}</span>
                         <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;${modColor}">${modLabel}</span>
                     </div>
-                    <p style="font-size:0.8rem;color:#4b5563;margin:0;">
-                        <b>${g.progNombre} ${g.nivelNum}</b> &nbsp;·&nbsp; ${g.horaFmt} &nbsp;·&nbsp; ${g.dias}
+                    <p style="font-size:0.82rem;font-weight:600;color:#4b5563;margin:0 0 3px 0;">
+                        ${g.horaFmt} &nbsp;·&nbsp; ${g.dias}
                     </p>
-                    <p style="font-size:0.72rem;color:#9ca3af;margin:3px 0 0;">${g.alumnos.length} alumno(s)</p>
+                    <p style="font-size:0.75rem;font-weight:600;color:#6b7280;margin:0 0 2px 0;">
+                        📍 Salón: <span style="color:#4f46e5;font-weight:700;">${g.salon}</span>
+                    </p>
+                    <p style="font-size:0.72rem;color:#9ca3af;margin:0;">${g.alumnos.length} alumno(s)</p>
                 </div>
                 <button onclick="listas_descargarUna(${idx})"
-                    style="flex-shrink:0;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #d1d5db;border-radius:10px;padding:7px 14px;font-weight:700;font-size:0.75rem;color:#374151;cursor:pointer;transition:all 0.15s;white-space:nowrap;"
+                    style="flex-shrink:0;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #d1d5db;border-radius:10px;padding:8px 14px;font-weight:700;font-size:0.75rem;color:#374151;cursor:pointer;transition:all 0.15s;white-space:nowrap;"
                     onmouseover="this.style.borderColor='#e11d48';this.style.color='#e11d48';this.style.background='#fff1f2';"
                     onmouseout="this.style.borderColor='#d1d5db';this.style.color='#374151';this.style.background='#fff';">
                     ⬇️ Descargar
@@ -9065,18 +9068,54 @@
         listas_imprimir([listasGruposActuales[idx]]);
     }
 
-    function formatearHora12(horaStr) {
-        if (!horaStr) return '';
-        let limpia = String(horaStr).trim();
-        if (limpia.toLowerCase().includes('am') || limpia.toLowerCase().includes('pm')) return limpia;
-        let m = limpia.match(/(\d+):(\d+)/);
-        if (!m) return limpia;
-        let h = parseInt(m[1], 10);
-        let min = m[2];
-        let ampm = h >= 12 ? 'pm' : 'am';
-        let h12 = h % 12;
+    function formatearHora12(h24, mins) {
+        let ampm = h24 >= 12 ? 'pm' : 'am';
+        let h12 = h24 % 12;
         if (h12 === 0) h12 = 12;
-        return `${h12}:${min} ${ampm}`;
+        let mStr = String(mins).padStart(2, '0');
+        return `${h12}:${mStr} ${ampm}`;
+    }
+
+    function calcularRangoHorario(grupo) {
+        if (!grupo || !grupo.horaFmt) return '';
+
+        let m = String(grupo.horaFmt).match(/(\d+):(\d+)/);
+        if (!m) return grupo.horaFmt;
+
+        let h = parseInt(m[1], 10);
+        let min = parseInt(m[2], 10);
+        let startMin = h * 60 + min;
+
+        // Duración:
+        // Sábados: Adultos = 6 hrs (360 min). Kids, Preteens, Teens = 3 hrs (180 min).
+        // Entre semana: 1 hora y media = 90 min.
+        let duracionMin = 90;
+        if (grupo.esSabado) {
+            if (grupo.progNombre === 'ADULTO') {
+                duracionMin = 360; // 6 horas
+            } else {
+                duracionMin = 180; // 3 horas (KIDS, PTEEN, TEENS)
+            }
+        }
+
+        let endMin = startMin + duracionMin;
+        let endH = Math.floor(endMin / 60) % 24;
+        let endM = endMin % 60;
+
+        let inicioStr = formatearHora12(h, min);
+        let finStr = formatearHora12(endH, endM);
+
+        // Días a mostrar
+        let diasStr = 'Lunes - Jueves';
+        if (grupo.esSabado) {
+            diasStr = 'Sabatino';
+        } else if (grupo.dias === 'Lunes y Miércoles') {
+            diasStr = 'Lunes y Miércoles';
+        } else if (grupo.dias === 'Martes y Jueves') {
+            diasStr = 'Martes y Jueves';
+        }
+
+        return `${diasStr} - ${inicioStr} a ${finStr}`;
     }
 
     function listas_imprimir(grupos) {
@@ -9139,55 +9178,55 @@
         const totalDiasCols = DIAS.length * NUM_SEMANAS; // 20 columnas de días
         const totalCols = 3 + totalDiasCols; // 23 columnas en total
 
-        // Horario formateado: "Entre semana - 5:30 pm" o "Sabatino - 8:00 am"
-        const modLabel = grupo.esSabado ? 'Sabatino' : 'Entre semana';
-        const horaAmPm = formatearHora12(grupo.horaFmt);
-        const horarioTextoCompleto = `${modLabel} - ${horaAmPm}`;
+        // Horario formateado con duración completa
+        const horarioTextoCompleto = calcularRangoHorario(grupo);
 
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'page-break-after:always;padding:4pt;font-family:Arial,sans-serif;width:100%;box-sizing:border-box;';
 
         // ---- Encabezado ----
         const enc = document.createElement('table');
-        enc.style.cssText = 'width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:3pt;';
+        enc.style.cssText = 'width:100%;border-collapse:collapse;font-size:7.5pt;margin-bottom:0;border:2.5px solid #000;border-bottom:none;';
         enc.innerHTML = `
             <tr>
-                <td colspan="${totalCols}" style="text-align:center;font-weight:900;font-size:11pt;border:1px solid #000;padding:4pt;letter-spacing:2px;">
+                <td colspan="${totalCols}" style="text-align:center;font-weight:900;font-size:11pt;border:1px solid #000;border-top:none;border-left:none;border-right:none;padding:4pt;letter-spacing:2px;">
                     ATTENDANCE
                 </td>
             </tr>
             <tr>
-                <td colspan="8" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>INSTITUTO: PUEBLA ANZURES</b></td>
-                <td colspan="15" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
+                <td colspan="8" style="border:1px solid #000;border-left:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>INSTITUTO: PUEBLA ANZURES</b></td>
+                <td colspan="15" style="border:1px solid #000;border-right:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
             </tr>
             <tr>
-                <td colspan="6" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
-                <td colspan="6" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>CURSO:</b> ${grupo.celdaOriginal}</td>
-                <td colspan="11" style="border:1px solid #000;padding:2.5pt 4pt;font-size:7.5pt;"><b>HORARIO:</b> ${horarioTextoCompleto}</td>
+                <td colspan="6" style="border:1px solid #000;border-left:none;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
+                <td colspan="6" style="border:1px solid #000;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>CURSO:</b> ${grupo.celdaOriginal}</td>
+                <td colspan="11" style="border:1px solid #000;border-right:none;border-bottom:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>HORARIO:</b> ${horarioTextoCompleto}</td>
             </tr>`;
         wrapper.appendChild(enc);
 
         // ---- Tabla de asistencia ----
         const table = document.createElement('table');
-        table.style.cssText = 'width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:7pt;';
+        table.style.cssText = 'width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:7pt;border:2.5px solid #000;';
 
-        // Fila de semanas
+        // Fila de semanas (con línea gruesa de separación entre semanas)
         let rowSem = '<tr>';
         rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;width:18pt;" rowspan="2">#</th>';
         rowSem += '<th style="border:1px solid #000;padding:2pt 4pt;min-width:140pt;text-align:left;" rowspan="2">NAME</th>';
-        rowSem += '<th style="border:1px solid #000;padding:2pt;text-align:center;min-width:65pt;" rowspan="2">ID / PHONE</th>';
+        rowSem += '<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;min-width:65pt;" rowspan="2">ID / PHONE</th>';
         for (let s = 1; s <= NUM_SEMANAS; s++) {
-            rowSem += `<th style="border:1px solid #000;padding:2pt;text-align:center;" colspan="${DIAS.length}">WEEK ${s}</th>`;
+            rowSem += `<th style="border:1px solid #000;border-right:2.5px solid #000;padding:2pt;text-align:center;" colspan="${DIAS.length}">WEEK ${s}</th>`;
         }
         rowSem += '</tr>';
 
-        // Sub-fila de días (bloqueados y no lectivos en gris suave #d4d4d8)
+        // Sub-fila de días (con línea vertical gruesa donde termina la semana)
         let rowDias = '<tr>';
         for (let s = 0; s < NUM_SEMANAS; s++) {
             DIAS.forEach((d, di) => {
                 const est = estadoCelda[di] || 'normal';
                 const bg  = (est === 'blocked' || est === 'gray') ? 'background:#d4d4d8;' : '';
-                rowDias += `<th style="border:1px solid #000;padding:1.5pt;text-align:center;width:18pt;${bg}">${d}</th>`;
+                const esFinSemana = (di === DIAS.length - 1);
+                const borderDer = esFinSemana ? 'border-right:2.5px solid #000;' : 'border-right:1px solid #000;';
+                rowDias += `<th style="border-top:1px solid #000;border-bottom:1px solid #000;border-left:1px solid #000;${borderDer}padding:1.5pt;text-align:center;width:18pt;${bg}">${d}</th>`;
             });
         }
         rowDias += '</tr>';
@@ -9213,18 +9252,20 @@
             if (al) tdNom.innerHTML = `<b>${al.nombre.toUpperCase()}</b>`;
             tr.appendChild(tdNom);
 
-            // ID + Teléfono
+            // ID + Teléfono (con borde derecho grueso antes de la semana 1)
             const tdId = document.createElement('td');
-            tdId.style.cssText = 'border:1px solid #000;padding:1pt 3pt;font-size:6.5pt;line-height:1.25;';
+            tdId.style.cssText = 'border:1px solid #000;border-right:2.5px solid #000;padding:1pt 3pt;font-size:6.5pt;line-height:1.25;';
             if (al) tdId.innerHTML = `ID:${al.idOriginal||''}${al.celular ? '<br>'+al.celular : ''}`;
             tr.appendChild(tdId);
 
-            // Celdas de asistencia (fondo gris #d4d4d8 para celdas bloqueadas o no lectivas, ahorrando tinta)
+            // Celdas de asistencia (con borde derecho grueso en el último día de cada semana)
             for (let s = 0; s < NUM_SEMANAS; s++) {
                 DIAS.forEach((d, di) => {
                     const est = estadoCelda[di] || 'normal';
                     const td  = document.createElement('td');
-                    td.style.cssText = 'border:1px solid #000;width:18pt;text-align:center;';
+                    const esFinSemana = (di === DIAS.length - 1);
+                    const borderDer = esFinSemana ? 'border-right:2.5px solid #000;' : 'border-right:1px solid #000;';
+                    td.style.cssText = `border-top:1px solid #000;border-bottom:1px solid #000;border-left:1px solid #000;${borderDer}width:18pt;text-align:center;`;
                     if (est === 'blocked' || est === 'gray') {
                         td.style.background = '#d4d4d8';
                     }
