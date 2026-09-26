@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Consulta tu Salón</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PapaParse para leer CSVs de Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- QRCode.js para generar el código QR imprimible -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .pulse-subtle {
+            animation: pulseSubtle 2.5s infinite ease-in-out;
+        }
+
+        @keyframes pulseSubtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        /* Modal estilos */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        /* Estilos de impresión para el cartel QR */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-poster, #print-poster * {
+                visibility: visible;
+            }
+            #print-poster {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-indigo-50/40 to-slate-200 min-h-screen text-slate-800 flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- BARRA SUPERIOR -->
+    <header class="w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40 py-3 px-4 shadow-sm">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/20">
+                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold text-slate-900 tracking-tight leading-none">Mi Salón Escolar</h1>
+                    <p class="text-[11px] text-slate-500 font-medium">Asignación de aulas en vivo</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+                <!-- Botón de recarga -->
+                <button onclick="recargarDatos()" title="Actualizar datos" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition active:scale-95">
+                    <i data-lucide="refresh-cw" id="icon-refresh" class="w-4 h-4"></i>
+                </button>
+                <!-- Botón Generar QR Cartel -->
+                <button onclick="abrirModalQR()" title="Generar código QR" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition active:scale-95">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="flex-1 w-full max-w-md mx-auto p-4 flex flex-col justify-center">
+
+        <!-- 1. PANTALLA: CARGANDO DATOS -->
+        <div id="vista-cargando" class="text-center py-16 space-y-4">
+            <div class="relative w-16 h-16 mx-auto">
+                <div class="w-16 h-16 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-indigo-600">
+                    <i data-lucide="map-pin" class="w-6 h-6 animate-pulse"></i>
+                </div>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-slate-800" id="lbl-cargando-titulo">Cargando información...</h2>
+                <p class="text-xs text-slate-500 mt-1" id="lbl-cargando-desc">Sincronizando con Google Sheets</p>
+            </div>
+        </div>
+
+        <!-- 2. PANTALLA: REGISTRO / PRIMERA VEZ (No tiene matrícula guardada) -->
+        <div id="vista-registro" class="hidden fade-in space-y-5">
+            <div class="text-center space-y-1.5">
+                <div class="inline-flex p-3 bg-indigo-100/80 text-indigo-700 rounded-2xl shadow-inner mb-1">
+                    <i data-lucide="scan-line" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">¡Bienvenido(a)!</h2>
+                <p class="text-xs text-slate-500 max-w-xs mx-auto">
+                    Ingresa tu matrícula solo esta primera vez. Tu celular la recordará en cada escaneo posterior.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 shadow-xl shadow-slate-200/50 space-y-4">
+                <div>
+                    <label for="input-matricula" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Matrícula o ID de Alumno
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="id-card" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="input-matricula" inputmode="text" autocomplete="off" placeholder="Ej. 12345 o MAT01"
+                            class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 placeholder-slate-400 focus:bg-white focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 text-base transition uppercase"
+                            onkeydown="if(event.key === 'Enter') buscarYGuardarMatricula()"
+                        />
+                    </div>
+                </div>
+
+                <button onclick="buscarYGuardarMatricula()" id="btn-buscar-matricula"
+                    class="w-full py-3.5 px-5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 active:scale-[0.98] transition flex items-center justify-center gap-2">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                    <span>Consultar Mi Salón</span>
+                </button>
+
+                <!-- Mensaje de error si no existe -->
+                <div id="error-matricula" class="hidden p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+                        <span>Matrícula no encontrada</span>
+                    </div>
+                    <p class="text-[11px] text-rose-600 leading-relaxed">
+                        Verifica que esté escrita correctamente. Si eres de nuevo ingreso o no apareces en la lista, por favor acércate a recepción.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Ventaja de LocalStorage -->
+            <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 text-center">
+                <p class="text-[11px] text-indigo-800 font-medium">
+                    ⚡ <strong>Rápido y automático:</strong> Las siguientes veces que escanees el código QR en la entrada, verás tu salón al instante.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. PANTALLA: RESULTADO DEL SALÓN -->
+        <div id="vista-resultado" class="hidden fade-in space-y-4">
+            
+            <!-- Saludo al Alumno -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+                <div class="space-y-0.5">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-base">👋</span>
+                        <h2 class="text-lg font-black text-slate-900 tracking-tight" id="res-nombre">¡Hola, Alumno!</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 font-semibold" id="res-matricula">Matrícula: 12345</p>
+                </div>
+                <div class="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-black text-base shrink-0" id="res-avatar-initial">
+                    A
+                </div>
+            </div>
+
+            <!-- AVISO DE PAGO PENDIENTE (Condicional) -->
+            <div id="alerta-pago-pendiente" class="hidden rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 p-3.5 text-white shadow-lg shadow-amber-500/20 border border-amber-400/40">
+                <div class="flex items-start gap-3">
+                    <div class="p-1.5 bg-white/20 rounded-lg shrink-0 mt-0.5">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="space-y-0.5">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-amber-100">Aviso importante</h4>
+                        <p class="text-xs font-bold leading-tight" id="lbl-texto-pago">
+                            El pago para tu siguiente curso está pendiente.
+                        </p>
+                        <p class="text-[10px] text-amber-100/90 leading-tight">
+                            Recuerda acudir a recepción para asegurar tu lugar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AVISO DE PAGO AL CORRIENTE (Si ya pagó) -->
+            <div id="alerta-pago-al-corriente" class="hidden rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-emerald-800 flex items-center gap-2 text-xs font-semibold">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                <span>Tu inscripción para el siguiente periodo está al corriente.</span>
+            </div>
+
+            <!-- TARJETA PRINCIPAL DEL SALÓN -->
+            <div class="rounded-3xl bg-gradient-to-br from-indigo-900 via-indigo-800 to-violet-900 text-white p-6 shadow-2xl shadow-indigo-950/20 relative overflow-hidden">
+                <!-- Decoración fondo -->
+                <div class="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -bottom-10 -left-10 w-36 h-36 bg-violet-500/20 rounded-full blur-xl pointer-events-none"></div>
+
+                <div class="relative z-10 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-[10px] font-extrabold tracking-wider uppercase text-indigo-200 border border-white/10 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            Tu aula asignada
+                        </span>
+                        
+                        <span id="badge-piso-grande" class="px-3 py-1 bg-emerald-500 text-emerald-950 font-black text-xs rounded-full shadow-md uppercase tracking-wide">
+                            Piso 1
+                        </span>
+                    </div>
+
+                    <!-- NOMBRE DEL SALÓN EN GIGANTE -->
+                    <div class="py-2 text-center">
+                        <p class="text-[11px] font-bold text-indigo-200 uppercase tracking-widest">Salón</p>
+                        <h3 class="text-4xl sm:text-5xl font-black text-white tracking-tight leading-tight uppercase drop-shadow-md" id="res-salon-nombre">
+                            LONDON
+                        </h3>
+                        <p class="text-xs text-indigo-200/90 font-medium mt-1 flex items-center justify-center gap-1.5" id="res-piso-detalle">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                            <span>Ubicado en el Primer piso</span>
+                        </p>
+                    </div>
+
+                    <!-- BOTÓN VER MAPA / CROQUIS -->
+                    <button onclick="abrirModalMapaSalones()" class="w-full py-2.5 px-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-bold text-xs rounded-xl shadow-sm transition active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="map" class="w-4 h-4"></i>
+                        <span>Ver croquis y mapa del salón</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- TARJETAS DE DETALLES: NIVEL, TEACHER, HORARIO -->
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Nivel -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center gap-1.5 text-indigo-600 mb-1">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Nivel y Curso</span>
+                    </div>
+                    <div>
+                        <p class="text-lg font-black text-slate-900 leading-tight" id="res-nivel">Nivel 1</p>
+                        <p class="text-xs text-slate-500 font-medium" id="res-programa">Adulto</p>
+                    </div>
+                </div>
+
+                <!-- Teacher -->
+                <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center gap-1.5 text-violet-600 mb-1">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Teacher</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-slate-900 leading-tight truncate" id="res-teacher">Por asignar</p>
+                        <p class="text-[10px] text-slate-400 font-medium">Docente titular</p>
+                    </div>
+                </div>
+
+                <!-- Horario (Full width) -->
+                <div class="col-span-2 bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Horario de clase</span>
+                            <p class="text-sm font-black text-slate-900" id="res-horario">08:00 AM</p>
+                            <p class="text-xs text-slate-500 font-medium" id="res-modalidad">Modalidad presencial</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCIONES ADICIONALES / CAMBIAR MATRÍCULA -->
+            <div class="pt-2 flex flex-col gap-2 text-center">
+                <button onclick="cambiarMatricula()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold py-2 px-3 rounded-lg hover:bg-slate-200/50 transition inline-flex items-center justify-center gap-1.5 mx-auto">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    <span>¿No eres tú? Cambiar matrícula</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="py-4 text-center text-slate-400 text-[11px] font-medium border-t border-slate-200/60 bg-white/40">
+        <p>Sistema Escolar • Consulta rápida de aulas</p>
+    </footer>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1: MAPA ARQUITECTÓNICO DE SALONES POR PISO                 -->
+    <!-- ================================================================= -->
+    <div id="modal-mapa-salones" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalMapaSalones()">
+        <div class="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 animate-in fade-in duration-200">
+            
+            <!-- Encabezado del Modal -->
+            <div class="bg-slate-900 text-white p-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/30 flex items-center justify-center text-indigo-400">
+                        <i data-lucide="compass" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm leading-tight text-white">Croquis de Salones</h3>
+                        <p class="text-[10px] text-slate-400">Distribución de aulas por piso</p>
+                    </div>
+                </div>
+                <button onclick="cerrarModalMapaSalones()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-lg font-bold transition">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Selector de Pisos -->
+            <div class="p-3 bg-slate-100/90 border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                <span class="text-xs font-bold text-slate-600">Piso:</span>
+                <div class="flex gap-1.5" id="piso-tab-buttons">
+                    <button onclick="seleccionarPisoMapa(1)" id="btn-tab-piso-1" class="px-3 py-1.5 rounded-xl font-black text-xs transition border">
+                        Piso 1
+                    </button>
+                    <button onclick="seleccionarPisoMapa(2)" id="btn-tab-piso-2" class="px-3 py-1.5 rounded-xl font-black text-xs transition border">
+                        Piso 2
+                    </button>
+                    <button onclick="seleccionarPisoMapa(3)" id="btn-tab-piso-3" class="px-3 py-1.5 rounded-xl font-black text-xs transition border">
+                        Piso 3
+                    </button>
+                    <button onclick="seleccionarPisoMapa(4)" id="btn-tab-piso-4" class="px-3 py-1.5 rounded-xl font-black text-xs transition border">
+                        Piso 4
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cuerpo con los SVGs -->
+            <div class="p-4 overflow-y-auto flex-1 flex flex-col justify-center items-center bg-slate-50">
+                
+                <!-- PISO 1 -->
+                <div id="vista-piso-1" class="w-full mapa-piso-item">
+                    <div class="bg-sky-50 border-2 border-sky-400 rounded-2xl p-2.5 shadow-sm text-center">
+                        <p class="text-[11px] font-black text-sky-900 font-mono mb-2 uppercase tracking-wider">
+                            Piso 1 • Planta Baja (London, Ottawa, Sydney, Atlanta, New York)
+                        </p>
+                        <svg viewBox="0 0 660 520" class="w-full h-auto drop-shadow select-none font-sans mx-auto block max-h-[50vh]">
+                            <defs>
+                                <pattern id="grid-piso-1" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#bae6fd" stroke-width="0.8" opacity="0.6"/>
+                                </pattern>
+                            </defs>
+                            <rect x="5" y="5" width="650" height="510" rx="16" fill="#f0f9ff" stroke="#0284c7" stroke-width="3"/>
+                            <rect x="10" y="10" width="640" height="500" rx="12" fill="url(#grid-piso-1)"/>
+
+                            <line x1="215" y1="98" x2="445" y2="98" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="215" y1="98" x2="215" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="215" y1="435" x2="300" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="300" y1="300" x2="300" y2="435" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="300" y1="300" x2="445" y2="300" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="445" y1="98" x2="445" y2="300" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="4 4"/>
+
+                            <text x="330" y="245" font-size="13" font-weight="900" fill="#0284c7" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                            <!-- SALÓN: LONDON -->
+                            <g id="salon-map-LONDON">
+                                <rect x="200" y="15" width="260" height="75" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="206" y="21" width="248" height="63" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">LONDON</text>
+                            </g>
+
+                            <!-- SALÓN: OTTAWA -->
+                            <g id="salon-map-OTTAWA">
+                                <rect x="25" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="30" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="115" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">OTTAWA</text>
+                            </g>
+
+                            <!-- SALÓN: SYDNEY -->
+                            <g id="salon-map-SYDNEY">
+                                <rect x="25" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="30" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="115" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">SYDNEY</text>
+                            </g>
+
+                            <!-- BAÑOS -->
+                            <g>
+                                <rect x="115" y="305" width="90" height="125" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="120" y="310" width="80" height="115" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                            </g>
+
+                            <!-- SALÓN: ATLANTA -->
+                            <g id="salon-map-ATLANTA">
+                                <rect x="455" y="105" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="460" y="110" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="545" y="154" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">ATLANTA</text>
+                            </g>
+
+                            <!-- SALÓN: NEW YORK -->
+                            <g id="salon-map-NEW-YORK">
+                                <rect x="455" y="205" width="180" height="85" rx="16" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <rect x="460" y="210" width="170" height="75" rx="12" fill="#0369a1" opacity="0.4"/>
+                                <text x="545" y="254" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">NEW YORK</text>
+                            </g>
+
+                            <!-- RECEPTION -->
+                            <g id="salon-map-RECEPTION">
+                                <rect x="340" y="450" width="230" height="52" rx="14" fill="#0284c7" stroke="#0c4a6e" stroke-width="3.5"/>
+                                <text x="455" y="482" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">RECEPCIÓN</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- PISO 2 -->
+                <div id="vista-piso-2" class="w-full mapa-piso-item hidden">
+                    <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-2.5 shadow-sm text-center">
+                        <p class="text-[11px] font-black text-amber-900 font-mono mb-2 uppercase tracking-wider">
+                            Piso 2 (Liverpool, Teachers Room)
+                        </p>
+                        <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans mx-auto block max-h-[50vh]">
+                            <defs>
+                                <pattern id="grid-piso-2" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fde68a" stroke-width="0.8" opacity="0.6"/>
+                                </pattern>
+                            </defs>
+                            <rect x="5" y="5" width="650" height="435" rx="16" fill="#fefce8" stroke="#d97706" stroke-width="3"/>
+                            <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-2)"/>
+
+                            <text x="210" y="140" font-size="13" font-weight="900" fill="#b45309" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                            <!-- TEACHER'S ROOM -->
+                            <g>
+                                <rect x="25" y="240" width="340" height="155" rx="24" fill="#92400e" stroke="#1c1917" stroke-width="4.5"/>
+                                <rect x="33" y="248" width="324" height="139" rx="18" fill="#b45309" opacity="0.4"/>
+                                <text x="195" y="325" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">TEACHER'S ROOM</text>
+                            </g>
+
+                            <!-- SALÓN: LIVERPOOL -->
+                            <g id="salon-map-LIVERPOOL">
+                                <rect x="410" y="60" width="225" height="335" rx="32" fill="#b45309" stroke="#1c1917" stroke-width="4.5"/>
+                                <rect x="419" y="69" width="207" height="317" rx="24" fill="#78350f" opacity="0.4"/>
+                                <text x="522" y="233" font-size="24" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2.5">LIVERPOOL</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- PISO 3 -->
+                <div id="vista-piso-3" class="w-full mapa-piso-item hidden">
+                    <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-2.5 shadow-sm text-center">
+                        <p class="text-[11px] font-black text-emerald-900 font-mono mb-2 uppercase tracking-wider">
+                            Piso 3 (Houston, Cambridge, San Francisco, Melbourne, Toronto)
+                        </p>
+                        <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans mx-auto block max-h-[50vh]">
+                            <defs>
+                                <pattern id="grid-piso-3" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#a7f3d0" stroke-width="0.8" opacity="0.6"/>
+                                </pattern>
+                            </defs>
+                            <rect x="5" y="5" width="650" height="435" rx="16" fill="#f0fdf4" stroke="#059669" stroke-width="3"/>
+                            <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-3)"/>
+
+                            <line x1="215" y1="98" x2="445" y2="98" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="215" y1="98" x2="215" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="215" y1="435" x2="300" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="300" y1="300" x2="300" y2="435" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="300" y1="300" x2="445" y2="300" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+                            <line x1="445" y1="98" x2="445" y2="300" stroke="#047857" stroke-width="2.5" stroke-dasharray="4 4"/>
+
+                            <text x="330" y="245" font-size="13" font-weight="900" fill="#047857" text-anchor="middle" letter-spacing="2">PASILLO PRINCIPAL</text>
+
+                            <!-- HOUSTON -->
+                            <g id="salon-map-HOUSTON">
+                                <rect x="200" y="15" width="260" height="75" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="206" y="21" width="248" height="63" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="330" y="58" font-size="18" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">HOUSTON</text>
+                            </g>
+
+                            <!-- CAMBRIDGE -->
+                            <g id="salon-map-CAMBRIDGE">
+                                <rect x="25" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="30" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="115" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">CAMBRIDGE</text>
+                            </g>
+
+                            <!-- SAN FRANCISCO -->
+                            <g id="salon-map-SAN-FRANCISCO">
+                                <rect x="25" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="30" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="115" y="254" font-size="14" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">SAN FRANCISCO</text>
+                            </g>
+
+                            <!-- BAÑOS -->
+                            <g>
+                                <rect x="115" y="305" width="90" height="125" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="120" y="310" width="80" height="115" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="160" y="373" font-size="17" font-weight="900" fill="#ffffff" text-anchor="middle" transform="rotate(-90 160 373)" letter-spacing="2">BAÑOS</text>
+                            </g>
+
+                            <!-- MELBOURNE -->
+                            <g id="salon-map-MELBOURNE">
+                                <rect x="455" y="105" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="460" y="110" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="545" y="154" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">MELBOURNE</text>
+                            </g>
+
+                            <!-- TORONTO -->
+                            <g id="salon-map-TORONTO">
+                                <rect x="455" y="205" width="180" height="85" rx="16" fill="#047857" stroke="#064e3b" stroke-width="3.5"/>
+                                <rect x="460" y="210" width="170" height="75" rx="12" fill="#065f46" opacity="0.4"/>
+                                <text x="545" y="254" font-size="16" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1.5">TORONTO</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- PISO 4 -->
+                <div id="vista-piso-4" class="w-full mapa-piso-item hidden">
+                    <div class="bg-orange-50 border-2 border-orange-400 rounded-2xl p-2.5 shadow-sm text-center">
+                        <p class="text-[11px] font-black text-orange-900 font-mono mb-2 uppercase tracking-wider">
+                            Piso 4 (Orlando, Oxford, Usos Múltiples)
+                        </p>
+                        <svg viewBox="0 0 660 445" class="w-full h-auto drop-shadow select-none font-sans mx-auto block max-h-[50vh]">
+                            <defs>
+                                <pattern id="grid-piso-4" width="20" height="20" patternUnits="userSpaceOnUse">
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fed7aa" stroke-width="0.8" opacity="0.6"/>
+                                </pattern>
+                            </defs>
+                            <rect x="5" y="5" width="650" height="435" rx="16" fill="#fff7ed" stroke="#ea580c" stroke-width="3"/>
+                            <rect x="10" y="10" width="640" height="425" rx="12" fill="url(#grid-piso-4)"/>
+
+                            <!-- ORLANDO -->
+                            <g id="salon-map-ORLANDO">
+                                <rect x="35" y="30" width="260" height="165" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
+                                <rect x="43" y="38" width="244" height="149" rx="12" fill="#9a3412" opacity="0.4"/>
+                                <text x="165" y="120" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">ORLANDO</text>
+                            </g>
+
+                            <!-- OXFORD -->
+                            <g id="salon-map-OXFORD">
+                                <rect x="35" y="225" width="260" height="170" rx="18" fill="#c2410c" stroke="#431407" stroke-width="4"/>
+                                <rect x="43" y="233" width="244" height="154" rx="12" fill="#9a3412" opacity="0.4"/>
+                                <text x="165" y="318" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">OXFORD</text>
+                            </g>
+
+                            <!-- ESPACIO DE USOS MÚLTIPLES -->
+                            <g class="select-none">
+                                <rect x="345" y="30" width="280" height="365" rx="24" fill="#ffedd5" stroke="#f97316" stroke-width="3" stroke-dasharray="6 6"/>
+                                <circle cx="485" cy="180" r="32" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+                                <text x="485" y="190" font-size="26" text-anchor="middle">✨</text>
+                                <text x="485" y="240" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">ESPACIO DE</text>
+                                <text x="485" y="263" font-size="16" font-weight="900" fill="#9a3412" text-anchor="middle" letter-spacing="1">USOS MÚLTIPLES</text>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer modal -->
+            <div class="p-3 bg-white border-t border-slate-200 text-center">
+                <button onclick="cerrarModalMapaSalones()" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition">
+                    Cerrar plano
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 2: GENERADOR E IMPRESIÓN DE CÓDIGO QR                       -->
+    <!-- ================================================================= -->
+    <div id="modal-qr" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalQR()">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200 space-y-4 animate-in fade-in">
+            <div class="flex items-center justify-between">
+                <h3 class="font-extrabold text-slate-900 text-base">Código QR para la entrada</h3>
+                <button onclick="cerrarModalQR()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+            </div>
+
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Imprime este código y colócalo en la entrada para que los alumnos lo escaneen con su celular.
+            </p>
+
+            <div class="p-4 bg-white border-2 border-indigo-100 rounded-2xl flex justify-center items-center shadow-inner">
+                <div id="qr-container"></div>
+            </div>
+
+            <div class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200 break-all font-mono" id="lbl-qr-url">
+                ...
+            </div>
+
+            <button onclick="imprimirCartelQR()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>Imprimir Cartel Listo para Pegar</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- PLANTILLA OCULTA PARA IMPRESIÓN DEL CARTEL QR -->
+    <div id="print-poster" class="hidden p-8 text-center bg-white min-h-screen flex flex-col items-center justify-center space-y-6">
+        <div class="border-4 border-slate-900 rounded-3xl p-8 max-w-lg mx-auto space-y-6">
+            <div class="space-y-2">
+                <span class="text-xs font-black uppercase tracking-widest text-indigo-600">Bienvenido a tu escuela</span>
+                <h1 class="text-4xl font-black text-slate-900 uppercase">¿Cuál es tu salón?</h1>
+                <p class="text-base text-slate-600 font-medium">Escanea este código con la cámara de tu celular:</p>
+            </div>
+
+            <div class="p-6 bg-white border-4 border-slate-900 rounded-2xl inline-block shadow-md">
+                <div id="qr-container-print"></div>
+            </div>
+
+            <div class="space-y-2 text-left bg-slate-100 p-4 rounded-xl text-slate-700 text-sm">
+                <p class="font-bold flex items-center gap-2">
+                    <span>1️⃣</span> Apunta tu cámara al código QR.
+                </p>
+                <p class="font-bold flex items-center gap-2">
+                    <span>2️⃣</span> Ingresa tu matrícula solo esta primera vez.
+                </p>
+                <p class="font-bold flex items-center gap-2">
+                    <span>3️⃣</span> ¡Listo! En tus siguientes visitas verás tu salón al instante.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        // ==================== CONFIGURACIÓN DE LINKS DE GOOGLE SHEETS ====================
+        // Mismos links usados en colab.html
+        const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
+        const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
+        const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
+
+        const LOCAL_STORAGE_KEY = 'mi_matricula_escolar';
+
+        // Estructuras de datos en memoria
+        let baseAlumnos = {};
+        let alumnosPorIdNormalizado = new Map();
+        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
+        let alumnoSeleccionado = null;
+        let datosCargados = false;
+        let qrGenerado = false;
+        let pisoActualVisual = 1;
+
+        // ==================== INICIALIZACIÓN ====================
+        window.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await iniciarApp();
+        });
+
+        async function iniciarApp() {
+            mostrarVista('vista-cargando');
+            actualizarTextoCargando('Sincronizando información...', 'Descargando lista de alumnos y salones');
+
+            try {
+                // Descargar concurrentemente datos de alumnos y salones
+                await Promise.all([cargarAlumnos(), cargarSalones()]);
+                datosCargados = true;
+
+                // Verificar si ya existe una matrícula en localStorage
+                const matriculaGuardada = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (matriculaGuardada) {
+                    const alumno = buscarAlumnoEnBase(matriculaGuardada);
+                    if (alumno) {
+                        renderizarAlumno(alumno);
+                        return;
+                    } else {
+                        // Si estaba guardada pero ya no existe en el CSV, limpiar
+                        localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    }
+                }
+
+                // Si no hay matrícula guardada, mostrar formulario de primera vez
+                mostrarVista('vista-registro');
+                setTimeout(() => {
+                    const inp = document.getElementById('input-matricula');
+                    if (inp) inp.focus();
+                }, 300);
+
+            } catch (err) {
+                console.error("Error al inicializar la app:", err);
+                mostrarErrorInicial("No se pudieron cargar los datos escolares. Por favor revisa tu conexión a internet.");
+            }
+        }
+
+        // ==================== CARGA DE ALUMNOS (Layout + Nuevo Ingreso) ====================
+        async function cargarAlumnos() {
+            baseAlumnos = {};
+            alumnosPorIdNormalizado.clear();
+
+            // 1. Layout Principal
+            try {
+                const urlLayout = LAYOUT_CSV_URL + '&t=' + Date.now();
+                const res = await fetch(urlLayout);
+                const csvText = await res.text();
+                const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
+                const filas = parsed.data;
+
+                for (let idx = 1; idx < filas.length; idx++) {
+                    const fila = filas[idx];
+                    if (fila.length < 4) continue;
+                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
+                    if (!id) continue;
+
+                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
+                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'Presencial';
+                    const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+                    
+                    let programaNombre = "ADULTO";
+                    let programaTexto = "Adulto";
+                    if (programaRaw.includes("PTEEN")) { programaNombre = "PTEEN"; programaTexto = "PTEEN"; }
+                    else if (programaRaw.includes("KIDS")) { programaNombre = "KIDS"; programaTexto = "Kids"; }
+                    else if (programaRaw.includes("TEENS")) { programaNombre = "TEENS"; programaTexto = "Teens"; }
+
+                    const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
+                    let nivelSiguiente = 1;
+                    const numeroMatch = cursoSiguienteText.match(/\d+/);
+                    if (numeroMatch) nivelSiguiente = parseInt(numeroMatch[0]);
+                    const nivelActual = Math.max(0, nivelSiguiente - 1);
+
+                    const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
+                    let modalidadCalculada = "FFI";
+                    const horarioUpper = horarioTexto.toUpperCase();
+                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
+                        modalidadCalculada = "SA";
+                    } else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) {
+                        modalidadCalculada = "DO";
+                    }
+
+                    const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
+                    const tieneR = estatusPagoRaw.toUpperCase() === 'R';
+                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+
+                    const alumno = {
+                        idOriginal: id,
+                        nombre: nombreAlumno,
+                        modalidad: modalidadTexto,
+                        programaTexto: programaTexto,
+                        programaNombre: programaNombre,
+                        nivelActual: nivelActual,
+                        horario: horarioTexto,
+                        tipoClaseCal: tipoClaseCal,
+                        tieneR: tieneR,
+                        estatusPago: estatusPagoRaw,
+                        esLayPasado: false
+                    };
+
+                    baseAlumnos[id] = alumno;
+                    const idNorm = normalizarMatricula(id);
+                    if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
+                }
+            } catch (e) {
+                console.warn("Error cargando layout principal:", e);
+            }
+
+            // 2. Layout Nuevo Ingreso (Sin pago / LayPasado)
+            try {
+                const urlNuevo = LAYOUT_NUEVO_INGRESO_CSV_URL + '&t=' + Date.now();
+                const resNuevo = await fetch(urlNuevo);
+                const csvTxtNuevo = await resNuevo.text();
+                const parsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
+                const filasNuevo = parsedNuevo.data;
+
+                for (let idx = 1; idx < filasNuevo.length; idx++) {
+                    const fila = filasNuevo[idx];
+                    if (fila.length < 4) continue;
+                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
+                    if (!id || baseAlumnos[id]) continue; // Si ya estaba, respetarlo
+
+                    const periodo = fila[1] ? String(fila[1]).trim() : '';
+                    const programaRawTemp = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+                    const cursoSiguienteTextTemp = fila[14] ? String(fila[14]).trim() : '';
+                    const esAdulto = (!programaRawTemp.includes("PTEEN") && !programaRawTemp.includes("KIDS") && !programaRawTemp.includes("TEENS"));
+                    const esCurso24 = cursoSiguienteTextTemp.match(/\d+/) && parseInt(cursoSiguienteTextTemp.match(/\d+/)[0]) === 24;
+
+                    if (!periodo.includes('2608') && !periodo.startsWith('2608') && !(esAdulto && esCurso24)) continue;
+
+                    const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
+                    const stUpper = estatusPagoRaw.toUpperCase();
+                    const esValido = stUpper === 'R' || stUpper === 'REC' || stUpper.includes('TRANSFERENCIA');
+                    if (!esValido) continue;
+
+                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
+                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'Presencial';
+                    const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
+
+                    let programaNombre = "ADULTO";
+                    let programaTexto = "Adulto";
+                    if (programaRaw.includes("PTEEN")) { programaNombre = "PTEEN"; programaTexto = "PTEEN"; }
+                    else if (programaRaw.includes("KIDS")) { programaNombre = "KIDS"; programaTexto = "Kids"; }
+                    else if (programaRaw.includes("TEENS")) { programaNombre = "TEENS"; programaTexto = "Teens"; }
+
+                    const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
+                    let nivelActual = 1;
+                    const numeroMatch = cursoSiguienteText.match(/\d+/);
+                    if (numeroMatch) nivelActual = parseInt(numeroMatch[0]);
+
+                    const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
+                    let modalidadCalculada = "FFI";
+                    const horarioUpper = horarioTexto.toUpperCase();
+                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
+                        modalidadCalculada = "SA";
+                    } else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) {
+                        modalidadCalculada = "DO";
+                    }
+
+                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
+
+                    const alumno = {
+                        idOriginal: id,
+                        nombre: nombreAlumno,
+                        modalidad: modalidadTexto,
+                        programaTexto: programaTexto,
+                        programaNombre: programaNombre,
+                        nivelActual: nivelActual,
+                        horario: horarioTexto,
+                        tipoClaseCal: tipoClaseCal,
+                        tieneR: stUpper === 'R',
+                        estatusPago: estatusPagoRaw,
+                        esLayPasado: true
+                    };
+
+                    baseAlumnos[id] = alumno;
+                    const idNorm = normalizarMatricula(id);
+                    if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
+                }
+            } catch (e) {
+                console.warn("Error cargando nuevo ingreso:", e);
+            }
+        }
+
+        // ==================== CARGA DE SALONES Y HORARIOS ====================
+        async function cargarSalones() {
+            try {
+                const urlSinCache = SALONES_CSV_URL + '&t=' + Date.now();
+                const res = await fetch(urlSinCache);
+                const txt = await res.text();
+                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
+                const filas = parsed.data;
+                if (filas.length < 3) return;
+
+                matrizSalones.salones = filas[0].map(s => String(s || '').trim());
+                matrizSalones.teachers = filas[1].map(t => String(t || '').trim());
+                matrizSalones.filas = [];
+                matrizSalones.filasSabado = [];
+
+                let esSabado = false;
+                let count1545 = 0;
+                for (let i = 2; i < filas.length; i++) {
+                    const f = filas[i];
+                    const hor = String(f[0] || '').trim().toUpperCase();
+                    if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
+                        esSabado = true;
+                        continue;
+                    }
+                    if (!hor) continue;
+
+                    let [h, m] = hor.split(':');
+                    if (!m) m = '00';
+                    let hStr = h.padStart(2, '0') + ':' + m;
+
+                    const obj = { horaFmt: hStr, celdas: f };
+                    if (!esSabado && hStr === '15:45') {
+                        if (count1545 === 0) obj.dias = 'Lunes y Miércoles';
+                        else obj.dias = 'Martes y Jueves';
+                        count1545++;
+                    }
+
+                    if (esSabado) matrizSalones.filasSabado.push(obj);
+                    else matrizSalones.filas.push(obj);
+                }
+            } catch (err) {
+                console.error('Error cargando matriz de salones:', err);
+            }
+        }
+
+        // ==================== BÚSQUEDA DEL SALÓN DEL ALUMNO ====================
+        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado, esLayPasado = false) {
+            if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
+
+            let hStr;
+            let tempHorario = String(horarioOriginal || '').toUpperCase().replace(/[\.\s]/g, '');
+
+            if (esSabado && tempHorario === 'SM') {
+                if (programaNombre === 'KIDS' || programaNombre === 'TEENS' || programaNombre === 'PTEEN') {
+                    hStr = '10:00';
+                } else {
+                    hStr = '08:00';
+                }
+            } else if (esSabado && tempHorario === 'SV') {
+                hStr = '13:30';
+            } else {
+                let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
+                if (!matchHorario) return null;
+                let hora = parseInt(matchHorario[1], 10);
+                if (tempHorario.includes('P') && hora < 12) hora += 12;
+                if (tempHorario.includes('A') && hora === 12) hora = 0;
+                hStr = hora.toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
+            }
+
+            let textoBuscar = String(nivelActual);
+            if (programaNombre === 'KIDS') textoBuscar = `KB ${nivelActual}`;
+            else if (programaNombre === 'TEENS') textoBuscar = `TN ${nivelActual}`;
+            else if (programaNombre === 'PTEEN') textoBuscar = `PT ${nivelActual}`;
+
+            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase();
+            const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
+
+            const filasCoincidentes = filasBuscar.filter(f => {
+                let m = String(f.celdas[0] || '').match(/(\d+):(\d+)/);
+                if (!m) return false;
+                let filaHStr = parseInt(m[1], 10).toString().padStart(2, '0') + ':' + m[2].substring(0, 2);
+                return filaHStr === hStr;
+            });
+
+            if (filasCoincidentes.length === 0) return null;
+
+            let matchFallback = null;
+
+            for (let fila of filasCoincidentes) {
+                for (let i = 1; i < fila.celdas.length; i++) {
+                    const celdaRaw = String(fila.celdas[i] || '').toUpperCase();
+                    const celdaBase = celdaRaw.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
+                    const tieneS = celdaRaw.includes('(S)');
+                    const tieneE = celdaRaw.includes('(E)');
+
+                    if (celdaBase === textoLimpio) {
+                        const currentTeacher = matrizSalones.teachers[i] || 'Docente por asignar';
+                        const matchObj = {
+                            salon: matrizSalones.salones[i] || 'Por asignar',
+                            teacher: currentTeacher,
+                            dias: fila.dias,
+                            horaFmt: fila.horaFmt,
+                            isSabado: esSabado
+                        };
+
+                        if (esLayPasado && tieneS) return matchObj;
+                        if (!esLayPasado && tieneE) return matchObj;
+                        if (!tieneS && !tieneE && !matchFallback) matchFallback = matchObj;
+                    }
+                }
+            }
+
+            return matchFallback;
+        }
+
+        // ==================== CÁLCULO DEL PISO SEGÚN SALÓN ====================
+        function obtenerPisoDeSalon(salonNombre) {
+            if (!salonNombre) return { texto: "Piso por definir", numero: 1 };
+            const s = String(salonNombre).toUpperCase().trim();
+            if (s.includes("LONDON") || s.includes("OTTAWA") || s.includes("SYDNEY") || s.includes("ATLANTA") || s.includes("NEW YORK") || s.includes("RECEPTION") || s.includes("RECEPCION")) {
+                return { texto: "Primer piso", numero: 1 };
+            }
+            if (s.includes("LIVERPOOL") || s.includes("VANCOUVER") || s.includes("TEACHER") || s.includes("STAFF")) {
+                return { texto: "Segundo piso", numero: 2 };
+            }
+            if (s.includes("HOUSTON") || s.includes("CAMBRIDGE") || s.includes("FRANCISCO") || s.includes("FRANSISCO") || s.includes("MELBOURNE") || s.includes("TORONTO")) {
+                return { texto: "Tercer piso", numero: 3 };
+            }
+            if (s.includes("ORLANDO") || s.includes("OXFORD")) {
+                return { texto: "Cuarto piso", numero: 4 };
+            }
+            return { texto: "Primer piso", numero: 1 };
+        }
+
+        // ==================== NORMALIZACIÓN DE MATRÍCULA ====================
+        function normalizarMatricula(val) {
+            if (!val) return "";
+            return String(val).trim().toUpperCase().replace(/^0+/, '');
+        }
+
+        function buscarAlumnoEnBase(matricula) {
+            if (!matricula) return null;
+            const matLimpia = String(matricula).trim().toUpperCase();
+            if (baseAlumnos[matLimpia]) return baseAlumnos[matLimpia];
+            const matNorm = normalizarMatricula(matLimpia);
+            if (alumnosPorIdNormalizado.has(matNorm)) return alumnosPorIdNormalizado.get(matNorm);
+            return null;
+        }
+
+        // ==================== ACCIÓN: BUSCAR Y GUARDAR MATRÍCULA ====================
+        function buscarYGuardarMatricula() {
+            const input = document.getElementById('input-matricula');
+            const valor = input ? input.value.trim() : "";
+            const errorDiv = document.getElementById('error-matricula');
+
+            if (!valor) {
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('span').innerText = 'Por favor escribe tu matrícula';
+                }
+                return;
+            }
+
+            const alumno = buscarAlumnoEnBase(valor);
+
+            if (!alumno) {
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('span').innerText = 'Matrícula no encontrada';
+                }
+                return;
+            }
+
+            // Guardar en LocalStorage para siempre
+            localStorage.setItem(LOCAL_STORAGE_KEY, alumno.idOriginal);
+
+            // Ocultar error si existía y renderizar
+            if (errorDiv) errorDiv.classList.add('hidden');
+            renderizarAlumno(alumno);
+        }
+
+        // ==================== RENDERIZAR VISTA DEL ALUMNO ====================
+        function renderizarAlumno(alumno) {
+            alumnoSeleccionado = alumno;
+
+            // 1. Datos básicos
+            document.getElementById('res-nombre').innerText = `¡Hola, ${alumno.nombre.split(' ')[0]}!`;
+            document.getElementById('res-matricula').innerText = `Matrícula: ${alumno.idOriginal}`;
+            document.getElementById('res-avatar-initial').innerText = alumno.nombre.charAt(0).toUpperCase();
+
+            document.getElementById('res-nivel').innerText = `Nivel ${alumno.nivelActual}`;
+            document.getElementById('res-programa').innerText = `Programa ${alumno.programaTexto}`;
+            document.getElementById('res-horario').innerText = alumno.horario;
+            document.getElementById('res-modalidad').innerText = `Modalidad ${alumno.modalidad}`;
+
+            // 2. Buscar Salón y Docente
+            const esSabado = (alumno.tipoClaseCal === 'sabado');
+            const salonInfo = buscarSalonYTeacher(alumno.horario, alumno.programaNombre, alumno.nivelActual, esSabado, alumno.esLayPasado);
+
+            let nombreSalon = 'Por asignar';
+            let nombreTeacher = 'Docente por asignar';
+            let diasTexto = '';
+
+            if (salonInfo) {
+                nombreSalon = salonInfo.salon;
+                nombreTeacher = salonInfo.teacher;
+                if (salonInfo.dias) {
+                    document.getElementById('res-horario').innerText = `${alumno.horario} (${salonInfo.dias})`;
+                }
+            }
+
+            const infoPiso = obtenerPisoDeSalon(nombreSalon);
+            pisoActualVisual = infoPiso.numero;
+
+            document.getElementById('res-salon-nombre').innerText = nombreSalon;
+            document.getElementById('res-teacher').innerText = nombreTeacher;
+            document.getElementById('badge-piso-grande').innerText = `Piso ${infoPiso.numero}`;
+            document.getElementById('res-piso-detalle').innerHTML = `
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                <span>Ubicado en el ${infoPiso.texto}</span>
+            `;
+
+            // 3. ESTATUS DE PAGO PENDIENTE O AL CORRIENTE
+            // Según indicación: si NO ha pagado ('R'), mostrar mensaje "El pago para tu siguiente curso está pendiente"
+            const alertaPendiente = document.getElementById('alerta-pago-pendiente');
+            const alertaAlCorriente = document.getElementById('alerta-pago-al-corriente');
+            
+            const estatus = String(alumno.estatusPago || '').trim().toUpperCase();
+            const estaPagado = (estatus === 'R' || estatus === 'REC');
+
+            if (estaPagado) {
+                alertaPendiente.classList.add('hidden');
+                alertaAlCorriente.classList.remove('hidden');
+            } else {
+                alertaAlCorriente.classList.add('hidden');
+                alertaPendiente.classList.remove('hidden');
+                document.getElementById('lbl-texto-pago').innerText = 'El pago para tu siguiente curso está pendiente.';
+            }
+
+            // Cambiar a la vista resultado
+            mostrarVista('vista-resultado');
+            lucide.createIcons();
+        }
+
+        // ==================== CAMBIAR MATRÍCULA (Reset LocalStorage) ====================
+        function cambiarMatricula() {
+            if (confirm('¿Deseas cambiar la matrícula guardada en este celular?')) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                alumnoSeleccionado = null;
+                const inp = document.getElementById('input-matricula');
+                if (inp) inp.value = '';
+                mostrarVista('vista-registro');
+                setTimeout(() => { if (inp) inp.focus(); }, 200);
+            }
+        }
+
+        // ==================== RECARGAR DATOS ====================
+        async function recargarDatos() {
+            const icon = document.getElementById('icon-refresh');
+            if (icon) icon.classList.add('animate-spin');
+            
+            await iniciarApp();
+            
+            setTimeout(() => {
+                if (icon) icon.classList.remove('animate-spin');
+            }, 500);
+        }
+
+        // ==================== GESTIÓN DE VISTAS ====================
+        function mostrarVista(vistaId) {
+            ['vista-cargando', 'vista-registro', 'vista-resultado'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === vistaId) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                }
+            });
+        }
+
+        function actualizarTextoCargando(titulo, desc) {
+            const t = document.getElementById('lbl-cargando-titulo');
+            const d = document.getElementById('lbl-cargando-desc');
+            if (t) t.innerText = titulo;
+            if (d) d.innerText = desc;
+        }
+
+        function mostrarErrorInicial(msg) {
+            actualizarTextoCargando('Hubo un inconveniente', msg);
+        }
+
+        // ==================== MODAL MAPA ARQUITECTÓNICO ====================
+        function abrirModalMapaSalones() {
+            document.getElementById('modal-mapa-salones').classList.remove('hidden');
+            seleccionarPisoMapa(pisoActualVisual);
+            lucide.createIcons();
+        }
+
+        function cerrarModalMapaSalones() {
+            document.getElementById('modal-mapa-salones').classList.add('hidden');
+        }
+
+        function seleccionarPisoMapa(numPiso) {
+            pisoActualVisual = numPiso;
+
+            // Ocultar todos los pisos y desmarcar botones
+            for (let i = 1; i <= 4; i++) {
+                const v = document.getElementById(`vista-piso-${i}`);
+                const b = document.getElementById(`btn-tab-piso-${i}`);
+                if (v) v.classList.add('hidden');
+                if (b) {
+                    b.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition border bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
+                }
+            }
+
+            // Mostrar el piso seleccionado
+            const vistaActiva = document.getElementById(`vista-piso-${numPiso}`);
+            const btnActivo = document.getElementById(`btn-tab-piso-${numPiso}`);
+            
+            if (vistaActiva) vistaActiva.classList.remove('hidden');
+            if (btnActivo) {
+                btnActivo.className = 'px-3 py-1.5 rounded-xl font-black text-xs transition border bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20';
+            }
+        }
+
+        // ==================== MODAL Y GENERACIÓN DE CÓDIGO QR ====================
+        function abrirModalQR() {
+            const modal = document.getElementById('modal-qr');
+            modal.classList.remove('hidden');
+
+            const currentUrl = window.location.href.split('#')[0];
+            document.getElementById('lbl-qr-url').innerText = currentUrl;
+
+            const qrCont = document.getElementById('qr-container');
+            const qrPrintCont = document.getElementById('qr-container-print');
+            
+            qrCont.innerHTML = '';
+            qrPrintCont.innerHTML = '';
+
+            // Generar QR para pantalla
+            new QRCode(qrCont, {
+                text: currentUrl,
+                width: 180,
+                height: 180,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Generar QR en alta resolución para imprimir
+            new QRCode(qrPrintCont, {
+                text: currentUrl,
+                width: 280,
+                height: 280,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            lucide.createIcons();
+        }
+
+        function cerrarModalQR() {
+            document.getElementById('modal-qr').classList.add('hidden');
+        }
+
+        function imprimirCartelQR() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
