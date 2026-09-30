@@ -3379,16 +3379,29 @@
                 grupos[item.programa].push({ ...item });
             });
 
+            const normalizarTexto = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
             if (typeof librosMap !== 'undefined' && librosMap.size > 0) {
                 librosMap.forEach((val, key) => {
-                    const yaExiste = CATALOGO_LIBROS_COMPLETO.some(c => c.nombre.trim().toUpperCase() === val.nombre.trim().toUpperCase());
-                    if (!yaExiste) {
-                        const prog = key.split('_')[0] || 'OTROS';
+                    const normLibro = normalizarTexto(val.nombre);
+                    const yaExisteEnCatalogo = CATALOGO_LIBROS_COMPLETO.some(c => normalizarTexto(c.nombre) === normLibro);
+                    if (!yaExisteEnCatalogo) {
+                        let prog = (key.split('_')[0] || 'OTROS').trim().toUpperCase();
+                        if (prog === 'PTEEN' || prog === 'PRETEEN' || prog === 'PTEE') prog = 'PRETEENS';
+                        else if (prog === 'TEEN' || prog === 'TEENS' || prog === 'ADULTO' || prog === 'ADULTOS' || prog === 'ADUL') prog = 'TEENS / ADULTOS';
+                        else if (prog === 'KID') prog = 'KIDS';
+
                         if (!grupos[prog]) grupos[prog] = [];
-                        grupos[prog].push({ programa: prog, nombre: val.nombre, precio: val.precio });
+                        const yaExisteEnGrupo = grupos[prog].some(item => normalizarTexto(item.nombre) === normLibro);
+                        if (!yaExisteEnGrupo) {
+                            grupos[prog].push({ programa: prog, nombre: val.nombre, precio: val.precio });
+                        }
                     }
                 });
             }
+
+            delete grupos['PTEEN'];
+            delete grupos['PTEE'];
 
             for (const [prog, items] of Object.entries(grupos)) {
                 const optGroup = document.createElement('optgroup');
@@ -6831,7 +6844,7 @@
             },
             preteens: {
                 precio: "$700",
-                programa: "PTEEN",
+                programa: "PRETEENS",
                 mostrarCefr: false,
                 filas: [
                     { nivel: "1 al 3", libro: "GAME CHANGER STARTER", bg: "#ff0000", text: "white" },
