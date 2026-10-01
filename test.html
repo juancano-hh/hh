@@ -2608,9 +2608,9 @@
             return periodosCalendario.find(p => p.periodo === codigo) || null;
         }
 
-        // ===== NUEVO: Obtener rango de fechas de pago =====
-        function obtenerRangoPago(datos, mod) {
-            if (!datos || !datos.inicio) return 'No disponible';
+        // ===== NUEVO: Obtener rango y límites de fechas de pago =====
+        function obtenerFechasLimitePago(datos, mod) {
+            if (!datos || !datos.inicio) return null;
             const ini = new Date(datos.inicio); // Usamos inicio original del CSV
             let inicioPago = new Date(ini);
             let finPago = new Date(ini);
@@ -2621,8 +2621,128 @@
                 inicioPago.setDate(inicioPago.getDate() + 28);
                 finPago.setDate(finPago.getDate() + 40);
             }
+            inicioPago.setHours(0, 0, 0, 0);
+            finPago.setHours(23, 59, 59, 999);
+            return { inicioPago, finPago };
+        }
+
+        function obtenerRangoPago(datos, mod) {
+            const limites = obtenerFechasLimitePago(datos, mod);
+            if (!limites) return 'No disponible';
             const ops = { day:'numeric', month:'short' };
-            return `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
+            return `del ${limites.inicioPago.toLocaleDateString('es-MX', ops)} al ${limites.finPago.toLocaleDateString('es-MX', ops)} de ${limites.finPago.getFullYear()}`;
+        }
+
+        // Determina si el alumno tiene actualmente su curso pagado (Estatus R / PAGADO)
+        function alumnoTieneCursoPagado(alumno) {
+            if (!alumno) return false;
+            if (alumno.tieneR === true) return true;
+            if (alumno.estatusPago) {
+                const est = alumno.estatusPago.trim().toUpperCase();
+                if (est === 'R') return true;
+            }
+            return false;
+        }
+
+        // Obtiene la información del próximo período y fechas de pago para un alumno
+        function obtenerInfoProximaFechaPago(alumno) {
+            if (!alumno || !alumno.periodoSiguiente) return null;
+            const periodoSig = alumno.periodoSiguiente;
+            const periodoAnt = calcularPeriodoAnterior(periodoSig);
+            const tienePagado = alumnoTieneCursoPagado(alumno);
+
+            if (alumno.esPrimerMes || alumno.esLayPasado) {
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                const limites = obtenerFechasLimitePago(targetDatos, '08');
+                return {
+                    periodo: periodoSig,
+                    mod: '08',
+                    datos: targetDatos,
+                    limites: limites,
+                    textoRango: obtenerRangoPago(targetDatos, '08')
+                };
+            }
+
+            if (alumno.volumen === "TERMINA") {
+                let targetPeriod = periodoSig;
+                let modStr = periodoSig ? periodoSig.substring(2, 4) : '04';
+                if (!tienePagado && periodoAnt) {
+                    targetPeriod = periodoAnt;
+                }
+                const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                const limites = obtenerFechasLimitePago(targetDatos, modStr);
+                return {
+                    periodo: targetPeriod,
+                    mod: modStr,
+                    datos: targetDatos,
+                    limites: limites,
+                    textoRango: obtenerRangoPago(targetDatos, modStr)
+                };
+            }
+
+            if (alumno.volumen && alumno.volumen.includes(" DE ")) {
+                const partesVol = alumno.volumen.split(" DE ");
+                const currentCourse = parseInt(partesVol[0].trim());
+                const totalCourses = parseInt(partesVol[1].trim());
+                if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                    const cursosRestantes = totalCourses - currentCourse;
+                    const nextPaymentPeriod = calSumarPeriodos(periodoSig, cursosRestantes);
+                    const modStr = nextPaymentPeriod ? nextPaymentPeriod.substring(2, 4) : '04';
+                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                    const limites = obtenerFechasLimitePago(nextPaymentDatos, modStr);
+                    return {
+                        periodo: nextPaymentPeriod,
+                        mod: modStr,
+                        datos: nextPaymentDatos,
+                        limites: limites,
+                        textoRango: obtenerRangoPago(nextPaymentDatos, modStr)
+                    };
+                }
+            }
+
+            // Alumno normal
+            let targetPeriod = periodoSig;
+            let modStr = periodoSig ? periodoSig.substring(2, 4) : '04';
+            if (!tienePagado && periodoAnt) {
+                targetPeriod = periodoAnt;
+            }
+            const targetDatos = obtenerDatosPeriodo(targetPeriod);
+            const limites = obtenerFechasLimitePago(targetDatos, modStr);
+            return {
+                periodo: targetPeriod,
+                mod: modStr,
+                datos: targetDatos,
+                limites: limites,
+                textoRango: obtenerRangoPago(targetDatos, modStr)
+            };
+        }
+
+        // Verifica si aplica precio con descuento/beca por adelantar pago antes de la fecha límite
+        function verificarAlumnoPagoAdelantadoConDescuento(alumno) {
+            if (!alumno) return { aplica: false, fechaLimite: null, textoRango: '' };
+
+            // Condición 1: Que tenga su curso actual pagado (estatus R / PAGADO)
+            if (!alumnoTieneCursoPagado(alumno)) {
+                return { aplica: false, fechaLimite: null, textoRango: '' };
+            }
+
+            // Condición 2: Que estemos dentro de la fecha límite (antes o hasta la fecha límite de su próxima fecha de pago)
+            const infoPago = obtenerInfoProximaFechaPago(alumno);
+            if (!infoPago || !infoPago.limites || !infoPago.limites.finPago) {
+                return { aplica: false, fechaLimite: null, textoRango: '' };
+            }
+
+            const hoy = new Date();
+            if (hoy <= infoPago.limites.finPago) {
+                return {
+                    aplica: true,
+                    fechaLimite: infoPago.limites.finPago,
+                    inicioPago: infoPago.limites.inicioPago,
+                    textoRango: infoPago.textoRango
+                };
+            }
+
+            return { aplica: false, fechaLimite: infoPago.limites.finPago, textoRango: infoPago.textoRango };
         }
 
         // ===== NUEVO: Mostrar fechas de periodo en la ficha =====
@@ -2711,6 +2831,8 @@
             const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
             const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
             
+            const tienePagado = alumnoTieneCursoPagado(alumnoActual);
+
             if (alumnoActual.volumen === "TERMINA") {
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.remove('hidden');
@@ -2718,7 +2840,7 @@
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (!alumnoActual.tieneR && periodoAnt) {
+                if (!tienePagado && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
@@ -2747,7 +2869,7 @@
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (!alumnoActual.tieneR && periodoAnt) {
+                if (!tienePagado && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
@@ -3549,10 +3671,27 @@
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             let becaBaseVigente = 0;
+            let fechaVigenciaFin = null;
+            let motivoVigencia = '';
+
             if (fechaVigenciaBecaBase) {
                 const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
-                if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
+                if (fl >= hoy) {
+                    becaBaseVigente = alumnoActual.beca;
+                    fechaVigenciaFin = fl;
+                }
             }
+
+            // Alumnos con curso actual pagado que adelantan pago antes de la fecha límite
+            const adelantoInfo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
+            if (adelantoInfo.aplica && alumnoActual.beca > 0) {
+                becaBaseVigente = alumnoActual.beca;
+                if (!fechaVigenciaFin || adelantoInfo.fechaLimite > fechaVigenciaFin) {
+                    fechaVigenciaFin = adelantoInfo.fechaLimite;
+                }
+                motivoVigencia = 'adelanto';
+            }
+
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
             
             if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
@@ -3571,9 +3710,13 @@
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`;
                 etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaBecaBase) {
-                    const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                if (fechaVigenciaFin) {
+                    const fl = fechaVigenciaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                    if (fl) {
+                        fechaTexto = (motivoVigencia === 'adelanto') 
+                            ? `Beneficio vigente hasta: ${fl} (Curso actual pagado)` 
+                            : `Beneficio vigente hasta: ${fl}`;
+                    }
                 }
             }
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
@@ -3984,8 +4127,9 @@
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             let promo = obtenerMejorPromoVigente(cantCursos);
+            const adelantoWA = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
             if (promo && promo.descuento > alumnoActual.beca) stringDescuento += ` (${promo.motivo})`;
-            else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
+            else if (alumnoActual.beca > 0 && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoWA && adelantoWA.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
             let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
@@ -6306,9 +6450,10 @@
             
             let promoMotivo = '';
             const promoInfo = obtenerMejorPromoVigente(cantCursos);
+            const adelantoRecibo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
             if (promoInfo && promoInfo.descuento > alumnoActual.beca) {
                 promoMotivo = ` - ${promoInfo.motivo}`;
-            } else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) {
+            } else if (alumnoActual.beca > 0 && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoRecibo && adelantoRecibo.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) {
                 promoMotivo = ' - Beca base';
             }
             
