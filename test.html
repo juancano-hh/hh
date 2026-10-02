@@ -2633,9 +2633,44 @@
             return `del ${limites.inicioPago.toLocaleDateString('es-MX', ops)} al ${limites.finPago.toLocaleDateString('es-MX', ops)} de ${limites.finPago.getFullYear()}`;
         }
 
+        // Determina si un alumno tiene pago por volumen activo y con cursos cubiertos
+        function alumnoTieneVolumenVigente(alumno) {
+            if (!alumno || !alumno.volumen) return false;
+            const vol = alumno.volumen.trim().toUpperCase();
+            if (vol === "TERMINA") return false;
+            if (vol.includes(" DE ")) {
+                const partes = vol.split(" DE ");
+                const cur = parseInt(partes[0].trim(), 10);
+                const tot = parseInt(partes[1].trim(), 10);
+                if (!isNaN(cur) && !isNaN(tot)) {
+                    return cur <= tot;
+                }
+            }
+            return false;
+        }
+
+        // Determina si la fecha de inicio del próximo curso ya llegó o pasó
+        function proximoCursoYaInicio(alumno) {
+            if (!alumno || !alumno.periodoSiguiente) return false;
+            const periodoProx = alumno.esLayPasado ? calSumarPeriodos(alumno.periodoSiguiente, 1) : alumno.periodoSiguiente;
+            const datosProx = obtenerDatosPeriodo(periodoProx);
+            if (!datosProx || !datosProx.inicio) return false;
+            let iniProx = new Date(datosProx.inicio);
+            if (alumno.tipoClaseCal === 'sabado') iniProx = calAjustarInicioSabado(iniProx);
+            iniProx.setHours(0, 0, 0, 0);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            return hoy >= iniProx;
+        }
+
         // Determina si el alumno tiene actualmente su curso pagado (Estatus R / PAGADO)
         function alumnoTieneCursoPagado(alumno) {
             if (!alumno) return false;
+            // Para alumnos [INI ANTERIOR]: si ya inició el próximo curso y no tienen pago por volumen,
+            // su estatus pasa a PENDIENTE (el nuevo curso no está pagado)
+            if (alumno.esLayPasado && proximoCursoYaInicio(alumno) && !alumnoTieneVolumenVigente(alumno)) {
+                return false;
+            }
             if (alumno.tieneR === true) return true;
             if (alumno.estatusPago) {
                 const est = alumno.estatusPago.trim().toUpperCase();
@@ -2789,7 +2824,32 @@
                 const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
                 const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
                 secVolumen.classList.remove('hidden');
-                lblCursosPagados.classList.add('hidden');
+
+                if (alumnoActual.volumen && alumnoActual.volumen.includes(" DE ")) {
+                    const partesVol = alumnoActual.volumen.split(" DE ");
+                    const currentCourse = parseInt(partesVol[0].trim());
+                    const totalCourses = parseInt(partesVol[1].trim());
+                    if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                        const cursosRestantes = totalCourses - currentCourse;
+                        lblCursosPagados.classList.remove('hidden');
+                        lblCursosPagados.className = "text-xs text-green-800 font-semibold";
+                        const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
+                        lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
+                    } else {
+                        lblCursosPagados.classList.remove('hidden');
+                        lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                        lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                    }
+                } else if (alumnoActual.volumen === "TERMINA") {
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-amber-700 font-semibold";
+                    lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
+                } else {
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                    lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                }
+
                 lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(datosAct, '08');
                 return;
             }
@@ -2836,6 +2896,7 @@
             if (alumnoActual.volumen === "TERMINA") {
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.className = "text-xs text-amber-700 font-semibold";
                 lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
                 
                 let targetPeriod = periodoSig;
@@ -2856,16 +2917,27 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-green-800 font-semibold";
                     const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
                     lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
-                    secVolumen.classList.add('hidden');
+                    secVolumen.classList.remove('hidden');
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                    lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                    let targetPeriod = periodoSig;
+                    let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
+                    if (!tienePagado && periodoAnt) targetPeriod = periodoAnt;
+                    const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                    lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
                 }
             } else {
-                // Estudiante normal (vacío), mostrar la próxima fecha de pago
+                // Estudiante normal (vacío), mostrar la próxima fecha de pago y anotación de no volumen
                 secVolumen.classList.remove('hidden');
-                lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
+                lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
@@ -3253,13 +3325,23 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                if (estatus === 'R') {
+                // REGLA: SOLO los alumnos que diga [INI ANTERIOR]
+                // una vez que inicie el próximo curso todos los pagados se vuelven Pendiente en su estatus,
+                // a menos que tengan pago por volumen vigente.
+                let estatusEfectivo = estatus;
+                if (alumnoActual.esLayPasado && proximoCursoYaInicio(alumnoActual)) {
+                    if (!alumnoTieneVolumenVigente(alumnoActual) && (estatus === 'R' || alumnoActual.tieneR)) {
+                        estatusEfectivo = 'PENDIENTE';
+                    }
+                }
+
+                if (estatusEfectivo === 'R') {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
-                } else if (estatus === 'PROMESA') {
+                } else if (estatusEfectivo === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
-                } else if (estatus.includes('NO CONTINUA')) {
+                } else if (estatusEfectivo.includes('NO CONTINUA')) {
                     statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
-                } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
+                } else if (estatusEfectivo.includes('SEGUIMIENTO') || estatusEfectivo === 'PENDIENTE' || estatusEfectivo === '') {
                     statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
