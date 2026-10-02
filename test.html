@@ -617,7 +617,7 @@
                 </div>
                 <div class="mt-3"></div>
                 <div class="relative pt-6 pb-1">
-                    <div id="calc-cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
+                    <div id="calc-cursos-val-bubble" class="absolute top-0 pointer-events-none -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
                         <span id="calc-cursos-val" class="bg-green-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
                         <div class="w-1.5 h-1.5 bg-green-600 rotate-45 -mt-0.5 rounded-2xs"></div>
                     </div>
@@ -814,7 +814,7 @@
                 </div>
                 <div class="mt-3"></div>
                 <div class="relative pt-6 pb-1">
-                    <div id="cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
+                    <div id="cursos-val-bubble" class="absolute top-0 pointer-events-none -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
                         <span id="cursos-val" class="bg-blue-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
                         <div class="w-1.5 h-1.5 bg-blue-600 rotate-45 -mt-0.5 rounded-2xs"></div>
                     </div>
@@ -2299,6 +2299,7 @@
         let infoLibros = { cantidad: 0, libros: [], precioOriginal: 0 };
         let librosSeleccionadosIndices = [];
         let ultimosLibrosClave = "";
+        let ultimosProductosExtraHash = "__init__";
         let descuentoManualPorcentaje = null;
 
         function cambiarDescuentoManual(val) {
@@ -3875,16 +3876,18 @@
             // 1. Determinar si el alumno tiene Beca Base vigente según su semana de descuento del calendario
             let becaBaseVigente = 0;
             let fechaVigenciaBeca = null;
+            let estaEnFechaDePago = false;
 
             if (alumnoActual.beca > 0) {
                 const infoPago = obtenerInfoProximaFechaPago(alumnoActual);
                 if (infoPago && infoPago.limites && infoPago.limites.finPago) {
                     const finSemanaDesc = new Date(infoPago.limites.finPago);
                     finSemanaDesc.setHours(23, 59, 59, 999);
+                    fechaVigenciaBeca = finSemanaDesc;
                     // Aplica beca base si hoy está dentro o antes del límite de su semana de descuento
                     if (hoy <= finSemanaDesc) {
+                        estaEnFechaDePago = true;
                         becaBaseVigente = alumnoActual.beca;
-                        fechaVigenciaBeca = finSemanaDesc;
                     }
                 }
             }
@@ -3903,13 +3906,19 @@
                 etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
                 fechaFinPromoAplicada = null; // Descuento personalizado no tiene fecha de vigencia
             } else if (promoVolumenDesc > 0 && promoVolumenDesc > becaBaseVigente) {
-                // Gana la promo de volumen por tener un descuento mayor que la beca base
+                // Gana la promo de volumen por porcentaje
                 descuentoAplicar = promoVolumenDesc;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
-                fechaFinPromoAplicada = promoVolumen.fechaFin || null;
+                // Si el alumno está dentro de su fecha de pago, su vigencia para pagar con beca/promos
+                // SIEMPRE es su fecha de pago. Si ya pasó su fecha de pago, ahora sí se toma la fecha de la hoja de volumen:
+                if (estaEnFechaDePago && fechaVigenciaBeca) {
+                    fechaFinPromoAplicada = fechaVigenciaBeca;
+                } else {
+                    fechaFinPromoAplicada = promoVolumen.fechaFin || null;
+                }
             } else if (becaBaseVigente > 0 && becaBaseVigente >= promoVolumenDesc) {
-                // Gana la beca base del alumno (o empata con la promo) por estar en su semana de descuento
+                // Gana la beca base del alumno
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
                 etiquetaPromo = "Beca asignada";
@@ -3985,11 +3994,13 @@
             // Total productos extras
             const totalExtras = productosExtra.reduce((sum, p) => sum + (parseFloat(p.precio) || 0), 0);
 
-            // Renderizar contenedor y lista de extras
+            // Renderizar contenedor y lista de extras solo si cambiaron
             const contExtras = document.getElementById('contenedor-productos-extra');
             const listaExtrasDiv = document.getElementById('lista-productos-extra');
             const badgeCantExtras = document.getElementById('badge-cant-extras');
-            if (contExtras && listaExtrasDiv) {
+            const hashExtrasActual = productosExtra.map(p => `${p.id}_${p.precio}`).join('|');
+            if (contExtras && listaExtrasDiv && hashExtrasActual !== ultimosProductosExtraHash) {
+                ultimosProductosExtraHash = hashExtrasActual;
                 if (productosExtra.length > 0) {
                     contExtras.classList.remove('hidden');
                     if (badgeCantExtras) badgeCantExtras.innerText = `${productosExtra.length} ${productosExtra.length === 1 ? 'item' : 'items'}`;
