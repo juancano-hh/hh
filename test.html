@@ -874,34 +874,35 @@
             </div>
 
             <!-- NUEVO RESUMEN SIMPLIFICADO -->
-            <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-2.5 text-xs text-gray-700 shadow-sm">
+            <div class="bg-white p-4 rounded-xl border border-gray-200 space-y-2 text-xs text-gray-700 shadow-sm">
                 <p class="font-bold text-gray-800 uppercase tracking-wider mb-2 text-[10px] text-center bg-gray-100 py-1 rounded">Resumen de Pago</p>
-                
-                <!-- Encabezado simplificado -->
-                <div class="space-y-1.5 pb-2 border-b border-gray-100">
-                    <div class="flex justify-between items-center text-gray-700">
-                        <span class="font-medium">Precio de lista unitario:</span>
-                        <span id="uni-lista" class="font-semibold text-gray-900 font-mono"></span>
-                    </div>
-                    <div class="flex justify-between items-center text-green-700">
-                        <span class="font-medium">Descuento:</span>
-                        <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1.5 py-0.5 shadow-2xs">
+                <div class="flex justify-between items-center">
+                    <span>Precio de lista unitario:</span>
+                    <span id="uni-lista" class="font-semibold text-gray-800"></span>
+                </div>
+                <div class="flex justify-between items-center text-green-700">
+                    <span class="flex items-center gap-1 font-medium">
+                        Precio por curso:
+                        <span class="inline-flex items-center bg-green-50 border border-green-300 rounded px-1 py-0.5 ml-1">
                             <input type="number" id="input-descuento-custom" min="0" max="100" step="1" 
                                    oninput="cambiarDescuentoManual(this.value)" 
                                    class="w-10 text-center font-bold text-green-900 bg-transparent focus:outline-none text-xs p-0 m-0" 
                                    title="Ingresa un porcentaje de descuento para simular la cotización">
                             <span class="text-[11px] font-bold text-green-800 ml-0.5">%</span>
                         </span>
-                        <span id="uni-desc" class="hidden"></span>
+                    </span>
+                    <span id="uni-desc" class="font-bold"></span>
+                </div>
+                <div class="space-y-1.5 text-blue-700 hidden" id="fila-beca">
+                    <div class="flex justify-between items-center">
+                        <span id="lbl-uni-beca-sin">Precio de beca (sin servicio):</span>
+                        <span id="uni-beca-sin" class="font-bold"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span id="lbl-uni-beca-con">Precio de beca (con servicio):</span>
+                        <span id="uni-beca-con" class="font-bold"></span>
                     </div>
                 </div>
-
-                <!-- Elementos de soporte para scripts existentes -->
-                <div class="hidden" id="fila-beca">
-                    <span id="lbl-uni-beca-sin"></span><span id="uni-beca-sin"></span>
-                    <span id="lbl-uni-beca-con"></span><span id="uni-beca-con"></span>
-                </div>
-
                 <!-- TABLA DE DESGLOSE DIRECTO EN RESUMEN DE PAGO -->
                 <div id="contenedor-mini-tabla-desglose" class="mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
                     <table class="w-full text-[11px] text-left">
@@ -920,37 +921,27 @@
                 <div class="space-y-1.5 pt-2 text-xs">
                     <!-- Total solo cursos -->
                     <div class="flex justify-between items-center text-gray-800 font-semibold" id="fila-tot-solo-cursos">
-                        <span id="lbl-tot-solo-cursos">Total solo cursos:</span>
+                        <span>Total solo cursos:</span>
                         <span id="tot-solo-cursos" class="font-bold text-gray-900 font-mono"></span>
                     </div>
 
-                    <!-- Cargo por servicio -->
-                    <div class="flex justify-between items-center text-purple-700 font-semibold hidden" id="fila-cargo-serv">
-                        <span id="lbl-cargo-serv">Cargo por servicio:</span>
-                        <span id="desglose-cargo-tot" class="font-bold text-purple-900 font-mono"></span>
-                        <span id="desglose-cargo-multi" class="hidden"></span>
-                    </div>
-
-                    <!-- Total libros -->
+                    <!-- Total solo de los libros -->
                     <div class="flex justify-between items-center text-indigo-900 font-semibold hidden" id="fila-tot-solo-libros">
-                        <span id="lbl-tot-solo-libros">Total libros:</span>
+                        <span id="lbl-tot-solo-libros">Total solo de los libros:</span>
                         <span id="tot-solo-libros" class="font-bold text-indigo-900 font-mono"></span>
                     </div>
 
-                    <!-- Total con libros sin servicio -->
-                    <div class="flex justify-between items-center hidden text-gray-600 font-medium" id="fila-tot-sin-serv">
-                        <span id="lbl-tot-sin-serv">Total con libros sin servicio:</span>
-                        <span id="tot-sin-serv" class="font-semibold text-gray-800 font-mono"></span>
+                    <!-- Total sin servicio (si aplica cargo por servicio) -->
+                    <div class="flex justify-between items-center hidden text-gray-500 text-[11px]" id="fila-tot-sin-serv">
+                        <span id="lbl-tot-sin-serv">Total sin servicio:</span>
+                        <span id="tot-sin-serv" class="font-medium text-gray-700 font-mono"></span>
                     </div>
                 </div>
 
                 <!-- TOTAL FINAL -->
-                <div class="pt-2 border-t border-gray-200">
-                    <div class="flex justify-between items-center text-lg">
-                        <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
-                        <span id="res-descuento-total" class="font-black text-green-950 font-mono"></span>
-                    </div>
-                    <p id="lbl-total-incluye-nota" class="text-[10px] text-gray-400 text-right mt-0.5 font-medium"></p>
+                <div class="flex justify-between items-center text-lg pt-2 border-t border-gray-200">
+                    <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
+                    <span id="res-descuento-total" class="font-black text-green-950 font-mono"></span>
                 </div>
                 <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
             </div>
@@ -4021,36 +4012,19 @@
             const elTotCur = document.getElementById('tot-cur-final');
             if (elTotCur) elTotCur.innerText = fmt.format(totalCursosConServicio);
 
-            // Total solo cursos (sin servicio)
+            // Total solo cursos
             const filaTotSoloCursos = document.getElementById('fila-tot-solo-cursos');
-            const lblTotSoloCursos = document.getElementById('lbl-tot-solo-cursos');
             const totSoloCursosEl = document.getElementById('tot-solo-cursos');
             if (filaTotSoloCursos && totSoloCursosEl) {
                 if (cantCursos > 0) {
                     filaTotSoloCursos.classList.remove('hidden');
-                    totSoloCursosEl.innerText = fmt.format(totalCursosSinServicio);
-                    if (lblTotSoloCursos) {
-                        lblTotSoloCursos.innerText = `Total solo cursos (${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}):`;
-                    }
+                    totSoloCursosEl.innerText = fmt.format(totalCursosConServicio);
                 } else {
                     filaTotSoloCursos.classList.add('hidden');
                 }
             }
 
-            // Cargo por servicio
-            if (filaCargoServ) {
-                if (extraServicio > 0 && cantCursos > 0) {
-                    filaCargoServ.classList.remove('hidden');
-                    const lblCargo = document.getElementById('lbl-cargo-serv');
-                    if (lblCargo) lblCargo.innerText = `Cargo por servicio ($90 x ${cantCursos}):`;
-                    const elCargoTot = document.getElementById('desglose-cargo-tot');
-                    if (elCargoTot) elCargoTot.innerText = fmt.format(90 * cantCursos);
-                } else {
-                    filaCargoServ.classList.add('hidden');
-                }
-            }
-
-            // Total libros
+            // Total solo de los libros
             const filaTotSoloLibros = document.getElementById('fila-tot-solo-libros');
             const lblTotSoloLibros = document.getElementById('lbl-tot-solo-libros');
             const totSoloLibrosEl = document.getElementById('tot-solo-libros');
@@ -4060,7 +4034,7 @@
                     totSoloLibrosEl.innerText = fmt.format(totalTodosLibros);
                     if (lblTotSoloLibros) {
                         const txtLibros = cantTotalLibros === 1 ? '1 libro' : `${cantTotalLibros} libros`;
-                        lblTotSoloLibros.innerText = `Total libros (${txtLibros}):`;
+                        lblTotSoloLibros.innerText = `Total solo de los libros (${txtLibros}):`;
                     }
                 } else {
                     filaTotSoloLibros.classList.add('hidden');
@@ -4070,6 +4044,8 @@
             const filaTotSinServ = document.getElementById('fila-tot-sin-serv');
             const lblTotSinServ = document.getElementById('lbl-tot-sin-serv');
             const totSinServEl = document.getElementById('tot-sin-serv');
+            
+            const filaCargoServ = document.getElementById('fila-cargo-serv');
             const lblTotalFinal = document.getElementById('lbl-total-final');
 
             const totLibSin = totalCursosSinServicio + librosFinal + totalExtras;
@@ -4086,26 +4062,32 @@
                 if (filaTotSinServ) filaTotSinServ.classList.add('hidden');
             }
 
-            if (lblTotalFinal) {
-                lblTotalFinal.innerText = "Total:";
-            }
-            const elResTotal = document.getElementById('res-descuento-total');
-            if (elResTotal) elResTotal.innerHTML = fmt.format(totalConDescuentoGeneral);
-            
-            const elNotaTotal = document.getElementById('lbl-total-incluye-nota');
-            if (elNotaTotal) {
-                if (cantCursos > 0 && totalTodosLibros > 0 && extraServicio > 0) {
-                    elNotaTotal.innerText = "Ya incluye todo: cursos, libros y servicio";
-                } else if (cantCursos > 0 && extraServicio > 0) {
-                    elNotaTotal.innerText = "Ya incluye cursos y servicio";
-                } else if (cantCursos > 0 && totalTodosLibros > 0) {
-                    elNotaTotal.innerText = "Ya incluye cursos y libros";
+            if (filaCargoServ) {
+                if (extraServicio > 0 && cantCursos > 0) {
+                    filaCargoServ.classList.remove('hidden');
+                    const elCargoMulti = document.getElementById('desglose-cargo-multi');
+                    if (elCargoMulti) elCargoMulti.innerText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
+                    const elCargoTot = document.getElementById('desglose-cargo-tot');
+                    if (elCargoTot) elCargoTot.innerText = fmt.format(90 * cantCursos);
                 } else {
-                    elNotaTotal.innerText = "";
+                    filaCargoServ.classList.add('hidden');
                 }
             }
 
-            // Tabla de desglose de cursos dentro de Resumen de Pago
+            if (lblTotalFinal) {
+                if (cantCursos === 0) {
+                    if (totalTodosLibros > 0) lblTotalFinal.innerText = "Total libros:";
+                    else lblTotalFinal.innerText = "Total a pagar:";
+                } else if (totalTodosLibros > 0) {
+                    lblTotalFinal.innerText = extraServicio > 0 ? "Total con libros CON servicio:" : "Total con libros:";
+                } else {
+                    lblTotalFinal.innerText = "Total:";
+                }
+            }
+            const elResTotal = document.getElementById('res-descuento-total');
+            if (elResTotal) elResTotal.innerHTML = fmt.format(totalConDescuentoGeneral);
+
+            // Tabla de desglose de cursos y servicio dentro de Resumen de Pago
             const bodyMiniTabla = document.getElementById('mini-tabla-desglose-body');
 
             if (bodyMiniTabla) {
@@ -4118,12 +4100,11 @@
                     itemsTotales++;
                     const subBajos = unitarioDescBajoSinServ * cursosBajos;
                     const unitBajoFmt = fmt.format(unitarioDescBajoSinServ);
-                    const unitBajoConServFmt = fmt.format(unitarioDescBajoSinServ + 90);
                     miniFilasHtml += `
                         <tr>
                             <td class="py-2 px-3">
                                 <span class="font-medium text-gray-900">Pago por ${cursosBajos} curso(s)${descStr}</span>
-                                <span class="block text-[10px] text-gray-500 font-mono">${unitBajoFmt} c/u <span class="text-blue-700 font-bold">(${unitBajoConServFmt} con servicio)</span> • Nivel 1 al 20</span>
+                                <span class="block text-[10px] text-gray-500 font-mono">${unitBajoFmt} c/u (Nivel 1 al 20)</span>
                             </td>
                             <td class="py-2 px-3 text-right font-semibold text-gray-900 align-top">${fmt.format(subBajos)}</td>
                         </tr>
@@ -4135,14 +4116,26 @@
                     itemsTotales++;
                     const subAltos = unitarioDescAltoSinServ * cursosAltos;
                     const unitAltoFmt = fmt.format(unitarioDescAltoSinServ);
-                    const unitAltoConServFmt = fmt.format(unitarioDescAltoSinServ + 90);
                     miniFilasHtml += `
                         <tr class="bg-amber-50/50">
                             <td class="py-2 px-3">
                                 <span class="font-medium text-amber-950">Pago por ${cursosAltos} curso(s) avanzado(s)${descStr}</span>
-                                <span class="block text-[10px] text-amber-800 font-mono">${unitAltoFmt} c/u <span class="text-blue-700 font-bold">(${unitAltoConServFmt} con servicio)</span> • Nivel 21+</span>
+                                <span class="block text-[10px] text-amber-700 font-mono">${unitAltoFmt} c/u (Nivel 21+)</span>
                             </td>
                             <td class="py-2 px-3 text-right font-semibold text-amber-950 align-top">${fmt.format(subAltos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 3. Cargo por servicio si aplica
+                if (extraServicio > 0 && cantCursos > 0) {
+                    itemsTotales++;
+                    miniFilasHtml += `
+                        <tr class="bg-purple-50/30">
+                            <td class="py-2 px-3">
+                                <span class="font-medium text-purple-900">Cargo por servicio ($90 x ${cantCursos})</span>
+                            </td>
+                            <td class="py-2 px-3 text-right font-semibold text-purple-900 align-top">${fmt.format(extraServicio * cantCursos)}</td>
                         </tr>
                     `;
                 }
