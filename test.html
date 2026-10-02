@@ -3906,23 +3906,22 @@
                 etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
                 fechaFinPromoAplicada = null; // Descuento personalizado no tiene fecha de vigencia
             } else if (promoVolumenDesc > 0 && promoVolumenDesc > becaBaseVigente) {
-                // Gana la promo de volumen por porcentaje
+                // Gana la promo de volumen: TOMA LA VIGENCIA DE LA PROMO ESPECÍFICA DE LA HOJA VOLUMEN
                 descuentoAplicar = promoVolumenDesc;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
-                // Si el alumno está dentro de su fecha de pago, su vigencia para pagar con beca/promos
-                // SIEMPRE es su fecha de pago. Si ya pasó su fecha de pago, ahora sí se toma la fecha de la hoja de volumen:
-                if (estaEnFechaDePago && fechaVigenciaBeca) {
-                    fechaFinPromoAplicada = fechaVigenciaBeca;
-                } else {
-                    fechaFinPromoAplicada = promoVolumen.fechaFin || null;
-                }
+                fechaFinPromoAplicada = promoVolumen.fechaFin || null;
             } else if (becaBaseVigente > 0 && becaBaseVigente >= promoVolumenDesc) {
                 // Gana la beca base del alumno
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
                 etiquetaPromo = "Beca asignada";
-                fechaFinPromoAplicada = fechaVigenciaBeca;
+                // Su beca base topada por la fecha límite del layout de volumen para nunca mostrar años lejanos (ej. 2027)
+                let fBase = fechaVigenciaBeca;
+                if (fechaLimiteMaximaVolumen && fBase && fBase > fechaLimiteMaximaVolumen) {
+                    fBase = fechaLimiteMaximaVolumen;
+                }
+                fechaFinPromoAplicada = fBase;
             } else if (promoVolumenDesc > 0) {
                 // Si la beca base ya venció pero hay promo de volumen disponible
                 descuentoAplicar = promoVolumenDesc;
