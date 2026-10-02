@@ -2718,11 +2718,6 @@
         // Determina si el alumno tiene actualmente su curso pagado (Estatus R / PAGADO)
         function alumnoTieneCursoPagado(alumno) {
             if (!alumno) return false;
-            // Para alumnos [INI ANTERIOR]: si ya inició el próximo curso y no tienen pago por volumen,
-            // su estatus pasa a PENDIENTE (el nuevo curso no está pagado)
-            if (alumno.esLayPasado && proximoCursoYaInicio(alumno) && !alumnoTieneVolumenVigente(alumno)) {
-                return false;
-            }
             if (alumno.tieneR === true) return true;
             if (alumno.estatusPago) {
                 const est = alumno.estatusPago.trim().toUpperCase();
@@ -3412,23 +3407,13 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                // REGLA: SOLO los alumnos que diga [INI ANTERIOR]
-                // una vez que inicie el próximo curso todos los pagados se vuelven Pendiente en su estatus,
-                // a menos que tengan pago por volumen vigente.
-                let estatusEfectivo = estatus;
-                if (alumnoActual.esLayPasado && proximoCursoYaInicio(alumnoActual)) {
-                    if (!alumnoTieneVolumenVigente(alumnoActual) && (estatus === 'R' || alumnoActual.tieneR)) {
-                        estatusEfectivo = 'PENDIENTE';
-                    }
-                }
-
-                if (estatusEfectivo === 'R') {
+                if (estatus === 'R' || alumnoActual.tieneR) {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
-                } else if (estatusEfectivo === 'PROMESA') {
+                } else if (estatus === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
-                } else if (estatusEfectivo.includes('NO CONTINUA')) {
+                } else if (estatus.includes('NO CONTINUA')) {
                     statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
-                } else if (estatusEfectivo.includes('SEGUIMIENTO') || estatusEfectivo === 'PENDIENTE' || estatusEfectivo === '') {
+                } else if (estatus.includes('SEGUIMIENTO') || estatus === 'PENDIENTE' || estatus === '') {
                     statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
@@ -4262,21 +4247,18 @@
                 if (nextPaymentDatos) {
                     textoCotizacion = obtenerRangoPago(nextPaymentDatos, modStr);
                 } else {
+                    // Si el periodo cae fuera de las fechas oficiales del calendario (ej. 2028 o posterior)
+                    // No inventar días ficticios: mostrar mes y año proyectados indicando que las fechas exactas están por publicarse
                     const datosBase = obtenerDatosPeriodo(targetPeriod);
                     if (datosBase && datosBase.inicio) {
                         const ini = new Date(datosBase.inicio);
                         const mesesTotal = cantCursos * (modStr === '04' ? 1 : 2);
                         ini.setMonth(ini.getMonth() + mesesTotal);
-                        let inicioPago = new Date(ini);
-                        let finPago = new Date(ini);
-                        if (modStr === '04') {
-                            finPago.setDate(finPago.getDate() + 12);
-                        } else {
-                            inicioPago.setDate(inicioPago.getDate() + 28);
-                            finPago.setDate(finPago.getDate() + 40);
-                        }
-                        const ops = { day:'numeric', month:'short' };
-                        textoCotizacion = `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
+                        const anioFuturo = ini.getFullYear();
+                        const mesFuturo = ini.toLocaleDateString('es-MX', { month: 'long' });
+                        textoCotizacion = `${mesFuturo} de ${anioFuturo} (fechas exactas por definir en calendario escolar)`;
+                    } else {
+                        textoCotizacion = 'Fechas exactas por definir en calendario escolar';
                     }
                 }
                 
