@@ -609,10 +609,13 @@
 
             <!-- Slider -->
             <div class="mb-5 px-1">
-                <div class="flex justify-between items-center mb-1">
+                <div class="flex flex-col items-center justify-center text-center">
                     <label class="text-sm font-bold text-gray-700">¿Cuántos cursos a pagar?</label>
-                    <span id="calc-lbl-nivel-destino" class="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    <div class="mt-1">
+                        <span id="calc-lbl-nivel-destino" class="inline-block text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    </div>
                 </div>
+                <div class="mt-3"></div>
                 <div class="relative pt-6 pb-1">
                     <div id="calc-cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
                         <span id="calc-cursos-val" class="bg-green-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
@@ -803,10 +806,13 @@
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
             <div>
-                <div class="flex justify-between items-center mb-1">
+                <div class="flex flex-col items-center justify-center text-center">
                     <label class="text-sm font-semibold text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
-                    <span id="lbl-nivel-destino" class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    <div class="mt-1">
+                        <span id="lbl-nivel-destino" class="inline-block text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    </div>
                 </div>
+                <div class="mt-3"></div>
                 <div class="relative pt-6 pb-1">
                     <div id="cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
                         <span id="cursos-val" class="bg-blue-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
@@ -903,10 +909,17 @@
                         <span id="uni-beca-con" class="font-bold"></span>
                     </div>
                 </div>
-                <!-- TABLA DE DESGLOSE DIRECTO EN RESUMEN DE PAGO -->
-                <div id="contenedor-mini-tabla-desglose" class="mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                    <table class="w-full text-[11px] text-left">
-                        <thead class="text-[10px] text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                <!-- TABLA DE DESGLOSE DIRECTO EN RESUMEN DE PAGO (COLAPSABLE) -->
+                <details id="contenedor-mini-tabla-desglose" class="group mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <summary class="cursor-pointer flex items-center justify-between py-2 px-3 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700 select-none transition">
+                        <span class="flex items-center gap-1.5">
+                            <span>📋</span>
+                            <span>Ver desglose de cursos y cargos</span>
+                        </span>
+                        <span class="text-[10px] text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <table class="w-full text-[11px] text-left border-t border-gray-200">
+                        <thead class="text-[10px] text-gray-500 uppercase bg-gray-50/70 border-b border-gray-200">
                             <tr>
                                 <th class="py-1.5 px-3 font-semibold">Descripción</th>
                                 <th class="py-1.5 px-3 text-right font-semibold">Importe</th>
@@ -915,19 +928,19 @@
                         <tbody id="mini-tabla-desglose-body" class="divide-y divide-gray-100 bg-white text-gray-800">
                         </tbody>
                     </table>
-                </div>
+                </details>
 
                 <!-- TOTALES DESGLOSADOS -->
                 <div class="space-y-1.5 pt-2 text-xs">
-                    <!-- Total solo cursos -->
+                    <!-- Total Cursos -->
                     <div class="flex justify-between items-center text-gray-800 font-semibold" id="fila-tot-solo-cursos">
-                        <span>Total solo cursos:</span>
+                        <span id="lbl-tot-cursos-texto">Total por 1 Curso:</span>
                         <span id="tot-solo-cursos" class="font-bold text-gray-900 font-mono"></span>
                     </div>
 
-                    <!-- Total solo de los libros -->
+                    <!-- Total libros -->
                     <div class="flex justify-between items-center text-indigo-900 font-semibold hidden" id="fila-tot-solo-libros">
-                        <span id="lbl-tot-solo-libros">Total solo de los libros:</span>
+                        <span id="lbl-tot-solo-libros">Total libros:</span>
                         <span id="tot-solo-libros" class="font-bold text-indigo-900 font-mono"></span>
                     </div>
 
@@ -940,7 +953,7 @@
 
                 <!-- TOTAL FINAL -->
                 <div class="flex justify-between items-center text-lg pt-2 border-t border-gray-200">
-                    <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
+                    <span id="lbl-total-final" class="font-bold text-gray-800">TOTAL:</span>
                     <span id="res-descuento-total" class="font-black text-green-950 font-mono"></span>
                 </div>
                 <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
@@ -2276,6 +2289,7 @@
         let promosVolumen = [];
         let textoPromocionalF1 = "";
         let fechaVigenciaBecaBase = null;
+        let fechaLimiteMaximaVolumen = null;
         let librosMap = new Map();
         let promosLibros = [];
         let alumnoActual = null;
@@ -3015,7 +3029,7 @@
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null;
+                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null; fechaLimiteMaximaVolumen = null;
                 if (filas.length > 0 && filas[0].c && filas[0].c[5] && filas[0].c[5].v) textoPromocionalF1 = String(filas[0].c[5].v).trim();
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
@@ -3028,11 +3042,27 @@
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
                     if (fechaRaw !== null && fechaFin === null) continue;
-                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) fechaVigenciaBecaBase = fechaFin;
+                    if (fechaFin) {
+                        if (!fechaLimiteMaximaVolumen || fechaFin > fechaLimiteMaximaVolumen) {
+                            fechaLimiteMaximaVolumen = fechaFin;
+                        }
+                        if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA")) {
+                            fechaVigenciaBecaBase = fechaFin;
+                        }
+                        if (cantidad === 1 && !fechaVigenciaBecaBase) {
+                            fechaVigenciaBecaBase = fechaFin;
+                        }
+                    }
                     promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                 }
+                if (!fechaVigenciaBecaBase) {
+                    const promoUno = promosVolumen.find(p => p.cantidadMinima === 1);
+                    if (promoUno && promoUno.fechaFin) {
+                        fechaVigenciaBecaBase = promoUno.fechaFin;
+                    }
+                }
                 promosVolumen.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Promos volumen cargadas:", promosVolumen.length);
+                console.log("Promos volumen cargadas:", promosVolumen.length, "Fecha límite máxima volumen:", fechaLimiteMaximaVolumen, "Fecha beca base (1 curso):", fechaVigenciaBecaBase);
             } catch (e) { console.warn("Error cargando promos volumen:", e); promosVolumen = []; }
         }
 
@@ -3076,15 +3106,34 @@
         }
 
         function obtenerMejorPromoVigente(cantidadCursos) {
-            if (!promosVolumen.length) return null;
+            if (!promosVolumen || !promosVolumen.length) return null;
             const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
             const aplicables = promosVolumen.filter(p => {
                 if (cantidadCursos < p.cantidadMinima) return false;
-                if (p.fechaFin) { const f = new Date(p.fechaFin); f.setHours(23,59,59,999); if (f < hoy) return false; }
+                if (p.fechaFin) {
+                    const f = new Date(p.fechaFin);
+                    f.setHours(23, 59, 59, 999);
+                    if (f < hoy) return false;
+                }
                 return true;
             });
             if (!aplicables.length) return null;
-            return aplicables.reduce((prev, curr) => (curr.descuento > prev.descuento) ? curr : prev);
+
+            // 1. Si existe una regla exacta para esta cantidad de cursos:
+            const exacta = aplicables.find(p => p.cantidadMinima === cantidadCursos);
+            const maxDesc = Math.max(...aplicables.map(p => p.descuento));
+
+            // Si la regla exacta tiene el descuento máximo disponible, es la preferente
+            if (exacta && exacta.descuento >= maxDesc) {
+                return exacta;
+            }
+
+            // 2. Si no hay exacta o hay un escalón con mayor descuento:
+            return aplicables.reduce((prev, curr) => {
+                if (curr.descuento > prev.descuento) return curr;
+                if (curr.descuento === prev.descuento && curr.cantidadMinima > prev.cantidadMinima) return curr;
+                return prev;
+            });
         }
 
         function aplicarDescuentoLibrosDetallado(cantidadCursos, libros, indicesActivos) {
@@ -3821,54 +3870,66 @@
             let extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             if (precioBaseBajo === 0) console.warn(`Precio no encontrado para ${llaveBaja}`);
             if (precioBaseAlto === 0) console.warn(`Precio no encontrado para ${llaveAlta}`);
-            const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
+            
+            // 1. Determinar si el alumno tiene Beca Base vigente según su semana de descuento del calendario
             let becaBaseVigente = 0;
-            let fechaVigenciaFin = null;
-            let motivoVigencia = '';
+            let fechaVigenciaBeca = null;
 
-            if (fechaVigenciaBecaBase) {
-                const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
-                if (fl >= hoy) {
-                    becaBaseVigente = alumnoActual.beca;
-                    fechaVigenciaFin = fl;
+            if (alumnoActual.beca > 0) {
+                const infoPago = obtenerInfoProximaFechaPago(alumnoActual);
+                if (infoPago && infoPago.limites && infoPago.limites.finPago) {
+                    const finSemanaDesc = new Date(infoPago.limites.finPago);
+                    finSemanaDesc.setHours(23, 59, 59, 999);
+                    // Aplica beca base si hoy está dentro o antes del límite de su semana de descuento
+                    if (hoy <= finSemanaDesc) {
+                        becaBaseVigente = alumnoActual.beca;
+                        fechaVigenciaBeca = finSemanaDesc;
+                    }
                 }
             }
 
-            // Alumnos con curso actual pagado que adelantan pago antes de la fecha límite
-            const adelantoInfo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
-            if (adelantoInfo.aplica && alumnoActual.beca > 0) {
-                becaBaseVigente = alumnoActual.beca;
-                if (!fechaVigenciaFin || adelantoInfo.fechaLimite > fechaVigenciaFin) {
-                    fechaVigenciaFin = adelantoInfo.fechaLimite;
-                }
-                motivoVigencia = 'adelanto';
-            }
+            // 2. Obtener la mejor promoción vigente de la hoja VOLUMEN para la cantidad de cursos solicitada
+            const promoVolumen = obtenerMejorPromoVigente(cantCursos);
+            const promoVolumenDesc = (promoVolumen && promoVolumen.descuento > 0) ? promoVolumen.descuento : 0;
 
+            // 3. Regla: siempre se aplica el descuento más alto disponible y vigente (no se suman)
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
+            let fechaFinPromoAplicada = null;
             
             if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
                 descuentoAplicar = descuentoManualPorcentaje / 100;
                 nombreDescuento = `Total con Descuento Personalizado (${Math.round(descuentoManualPorcentaje)}%)`;
                 etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
-            } else if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
-                descuentoAplicar = promoVolumen.descuento;
+                fechaFinPromoAplicada = null; // Descuento personalizado no tiene fecha de vigencia
+            } else if (promoVolumenDesc > 0 && promoVolumenDesc > becaBaseVigente) {
+                // Gana la promo de volumen por tener un descuento mayor que la beca base
+                descuentoAplicar = promoVolumenDesc;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
-                }
-            } else if (becaBaseVigente > 0) {
+                fechaFinPromoAplicada = promoVolumen.fechaFin || null;
+            } else if (becaBaseVigente > 0 && becaBaseVigente >= promoVolumenDesc) {
+                // Gana la beca base del alumno (o empata con la promo) por estar en su semana de descuento
                 descuentoAplicar = becaBaseVigente;
-                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`;
+                nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
                 etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaFin) {
-                    const fl = fechaVigenciaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) {
-                        fechaTexto = (motivoVigencia === 'adelanto') 
-                            ? `Beneficio vigente hasta: ${fl} (Curso actual pagado)` 
-                            : `Beneficio vigente hasta: ${fl}`;
+                fechaFinPromoAplicada = fechaVigenciaBeca;
+            } else if (promoVolumenDesc > 0) {
+                // Si la beca base ya venció pero hay promo de volumen disponible
+                descuentoAplicar = promoVolumenDesc;
+                nombreDescuento = `Total con ${promoVolumen.motivo}`;
+                etiquetaPromo = promoVolumen.motivo;
+                fechaFinPromoAplicada = promoVolumen.fechaFin || null;
+            }
+
+            // Solo mostrar fecha de vigencia si la promo/beca aplicada tiene fecha y NO ha vencido
+            if (fechaFinPromoAplicada) {
+                const fValida = new Date(fechaFinPromoAplicada);
+                fValida.setHours(23, 59, 59, 999);
+                if (fValida >= hoy) {
+                    const fl = fValida.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }).replace(',', '');
+                    if (fl && fl !== 'Invalid Date') {
+                        fechaTexto = `Beneficio vigente hasta: ${fl}`;
                     }
                 }
             }
@@ -4012,19 +4073,23 @@
             const elTotCur = document.getElementById('tot-cur-final');
             if (elTotCur) elTotCur.innerText = fmt.format(totalCursosConServicio);
 
-            // Total solo cursos
+            // Total Cursos
             const filaTotSoloCursos = document.getElementById('fila-tot-solo-cursos');
             const totSoloCursosEl = document.getElementById('tot-solo-cursos');
+            const lblTotCursosTexto = document.getElementById('lbl-tot-cursos-texto');
             if (filaTotSoloCursos && totSoloCursosEl) {
                 if (cantCursos > 0) {
                     filaTotSoloCursos.classList.remove('hidden');
                     totSoloCursosEl.innerText = fmt.format(totalCursosConServicio);
+                    if (lblTotCursosTexto) {
+                        lblTotCursosTexto.innerText = cantCursos === 1 ? 'Total por 1 Curso:' : `Total por ${cantCursos} Cursos:`;
+                    }
                 } else {
                     filaTotSoloCursos.classList.add('hidden');
                 }
             }
 
-            // Total solo de los libros
+            // Total libros
             const filaTotSoloLibros = document.getElementById('fila-tot-solo-libros');
             const lblTotSoloLibros = document.getElementById('lbl-tot-solo-libros');
             const totSoloLibrosEl = document.getElementById('tot-solo-libros');
@@ -4034,7 +4099,7 @@
                     totSoloLibrosEl.innerText = fmt.format(totalTodosLibros);
                     if (lblTotSoloLibros) {
                         const txtLibros = cantTotalLibros === 1 ? '1 libro' : `${cantTotalLibros} libros`;
-                        lblTotSoloLibros.innerText = `Total solo de los libros (${txtLibros}):`;
+                        lblTotSoloLibros.innerText = `Total libros (${txtLibros}):`;
                     }
                 } else {
                     filaTotSoloLibros.classList.add('hidden');
@@ -4054,7 +4119,7 @@
                 if (filaTotSinServ) {
                     filaTotSinServ.classList.remove('hidden');
                     let sufijoSin = "Total sin servicio:";
-                    if (totalTodosLibros > 0) sufijoSin = "Total con libros sin servicio:";
+                    if (totalTodosLibros > 0) sufijoSin = "Total cursos con libros sin servicio:";
                     if (lblTotSinServ) lblTotSinServ.innerText = sufijoSin;
                     if (totSinServEl) totSinServEl.innerText = fmt.format(totLibSin);
                 }
@@ -4077,11 +4142,9 @@
             if (lblTotalFinal) {
                 if (cantCursos === 0) {
                     if (totalTodosLibros > 0) lblTotalFinal.innerText = "Total libros:";
-                    else lblTotalFinal.innerText = "Total a pagar:";
-                } else if (totalTodosLibros > 0) {
-                    lblTotalFinal.innerText = extraServicio > 0 ? "Total con libros CON servicio:" : "Total con libros:";
+                    else lblTotalFinal.innerText = "TOTAL:";
                 } else {
-                    lblTotalFinal.innerText = "Total:";
+                    lblTotalFinal.innerText = extraServicio > 0 ? "TOTAL CON SERVICIO:" : "TOTAL:";
                 }
             }
             const elResTotal = document.getElementById('res-descuento-total');
@@ -4387,10 +4450,15 @@
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             let promo = obtenerMejorPromoVigente(cantCursos);
-            const adelantoWA = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
-            if (promo && promo.descuento > alumnoActual.beca) stringDescuento += ` (${promo.motivo})`;
-            else if (alumnoActual.beca > 0 && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoWA && adelantoWA.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) stringDescuento += " (Beca base)";
-            else stringDescuento += " Sin descuento adicional";
+            if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
+                stringDescuento += " (Personalizado)";
+            } else if (promo && promo.descuento > 0 && Math.round(promo.descuento * 100) === porcentajeDescuentoActual) {
+                stringDescuento += ` (${promo.motivo})`;
+            } else if (porcentajeDescuentoActual > 0 && alumnoActual.beca > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual) {
+                stringDescuento += " (Beca base)";
+            } else {
+                stringDescuento += " Sin descuento adicional";
+            }
             let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
                 const librosActivos = infoLibros.libros.filter((_,idx)=>librosSeleccionadosIndices.includes(idx));
@@ -6779,7 +6847,11 @@
             }
             
             const hoy = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-            const vigencia = document.getElementById('fecha-vigencia-promo').innerText || hoy;
+            const vigenciaEl = document.getElementById('fecha-vigencia-promo');
+            let vigencia = '';
+            if (vigenciaEl && !vigenciaEl.classList.contains('hidden') && vigenciaEl.innerText.trim()) {
+                vigencia = vigenciaEl.innerText.replace(/^Beneficio vigente hasta:\s*/i, '').replace(/\(Curso actual pagado\)/gi, '').trim();
+            }
 
             const inicioSiguiente = document.getElementById('lbl-inicio-siguiente').innerText || '';
             const finSiguiente = document.getElementById('lbl-fin-siguiente').innerText || '';
@@ -6829,7 +6901,7 @@
                 
                 <div class="factura-footer">
                     ${lblCotizacionFecha ? `<p style="font-size:15px; font-weight:bold; margin-bottom:15px; color:#1e40af;">Si pagas esta cotización, tu próxima fecha de pago será:<br>${lblCotizacionFecha}</p>` : ''}
-                    <p style="font-size: 14px;">Válido hasta: <strong>${vigencia}</strong></p>
+                    ${vigencia ? `<p style="font-size: 14px;">Válido hasta: <strong>${vigencia}</strong></p>` : ''}
                     <p style="margin-top: 5px;">* Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.</p>
                     <p style="font-size: 9px; margin-top: 20px; color: #999;">Contamos con 3 y 6 MSI</p>
                 </div>
