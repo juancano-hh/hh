@@ -821,15 +821,15 @@
                 <div id="lista-libros-detalle" class="space-y-2"></div>
             </div>
 
-            <!-- BOTÓN Y CONTENEDOR DE PRODUCTOS EXTRAS -->
+            <!-- BOTÓN Y CONTENEDOR DE LIBROS EXTRAS -->
             <div class="space-y-2">
                 <button type="button" onclick="abrirModalAgregarProducto()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition duration-200 shadow-sm">
-                    <span class="text-sm">➕</span> Agregar producto o libro extra
+                    <span class="text-sm">➕</span> Agregar libro extra
                 </button>
 
                 <div id="contenedor-productos-extra" class="hidden bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 space-y-2">
                     <div class="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
-                        <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">📦 Extras incluidos</span>
+                        <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">📚 Libros extras incluidos</span>
                         <span id="badge-cant-extras" class="bg-indigo-200 text-indigo-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full"></span>
                     </div>
                     <div id="lista-productos-extra" class="space-y-1.5"></div>
@@ -897,9 +897,9 @@
                     <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
                     <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
                 </div>
-                <div class="flex justify-between items-center hidden" id="fila-prod-extras">
-                    <span id="lbl-prod-extras">Productos / Libros extras:</span>
-                    <span id="desglose-prod-extras" class="font-bold text-indigo-700"></span>
+                <div class="flex justify-between items-center hidden" id="fila-libros-tot">
+                    <span id="lbl-libros-tot">Libros:</span>
+                    <span id="desglose-libros-tot" class="font-bold text-indigo-700"></span>
                 </div>
                 <hr class="my-2 border-gray-100">
                 <div class="flex justify-between items-center text-lg">
@@ -907,6 +907,30 @@
                     <span id="res-descuento-total" class="font-black text-green-950"></span>
                 </div>
                 <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
+
+                <!-- TABLA MINI DE RESUMEN Y DESGLOSE -->
+                <div id="contenedor-mini-tabla-desglose" class="mt-3 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs hidden">
+                    <div class="bg-gray-100 px-3 py-1.5 border-b border-gray-200 flex justify-between items-center">
+                        <span class="font-bold text-[10px] uppercase tracking-wider text-gray-700">📋 Desglose detallado</span>
+                        <span id="mini-tabla-badge-items" class="text-[9px] bg-white border border-gray-200 text-gray-600 font-semibold px-1.5 py-0.5 rounded"></span>
+                    </div>
+                    <table class="w-full text-[11px] text-left">
+                        <thead class="text-[10px] text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="py-1.5 px-3 font-semibold">Descripción</th>
+                                <th class="py-1.5 px-3 text-right font-semibold">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mini-tabla-desglose-body" class="divide-y divide-gray-100 bg-white text-gray-800">
+                        </tbody>
+                        <tfoot class="bg-gray-50 font-bold border-t border-gray-200 text-gray-900">
+                            <tr>
+                                <td class="py-1.5 px-3 text-gray-700">Total a cobrar:</td>
+                                <td id="mini-tabla-desglose-total" class="py-1.5 px-3 text-right text-green-700 font-bold text-xs">$0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
 
             <div id="ahorro-container" class="hidden text-right text-sm font-bold text-red-600 mt-1">
@@ -2062,23 +2086,23 @@
         </div>
     </div>
 
-    <!-- ===== MODAL AGREGAR PRODUCTO / LIBRO EXTRA ===== -->
+    <!-- ===== MODAL AGREGAR LIBRO EXTRA ===== -->
     <div id="modal-agregar-producto" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalAgregarProducto()">
         <div class="modal-box" style="max-width: 480px;">
             <div class="modal-header bg-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
                 <p class="font-bold text-base flex items-center gap-2">
-                    <span>➕</span> Agregar Producto o Libro Extra
+                    <span>➕</span> Agregar Libro Extra
                 </p>
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalAgregarProducto()">✕</button>
             </div>
             <div class="modal-body p-5 bg-white rounded-b-2xl space-y-4 text-left">
-                <!-- Selector de Modo: Libro del catálogo o Producto libre -->
+                <!-- Selector de Modo: Libro del catálogo o Libro libre -->
                 <div class="flex rounded-xl bg-gray-100 p-1 border border-gray-200">
                     <button type="button" id="tab-tipo-libro" onclick="cambiarTabProducto('libro')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white text-indigo-700 shadow-sm">
                         📚 Libro del Catálogo
                     </button>
                     <button type="button" id="tab-tipo-libre" onclick="cambiarTabProducto('libre')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900">
-                        📦 Producto Nuevo
+                        📖 Otro Libro
                     </button>
                 </div>
 
@@ -2092,11 +2116,11 @@
                     </div>
                 </div>
 
-                <!-- Panel 2: Producto libre -->
+                <!-- Panel 2: Libro libre -->
                 <div id="panel-prod-libre" class="space-y-3 hidden">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Descripción del Producto:</label>
-                        <input type="text" id="modal-prod-nombre-libre" placeholder="Ej. Cuaderno, Mochila, Reposición..." class="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Título o Nombre del Libro:</label>
+                        <input type="text" id="modal-prod-nombre-libre" placeholder="Ej. Libro nivel especial, Reposición..." class="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
                 </div>
 
@@ -3883,15 +3907,27 @@
                 }
             }
 
-            // Fila extras en resumen de pago
-            const filaProdExtras = document.getElementById('fila-prod-extras');
-            const desgloseProdExtras = document.getElementById('desglose-prod-extras');
-            if (filaProdExtras && desgloseProdExtras) {
-                if (totalExtras > 0) {
-                    filaProdExtras.classList.remove('hidden');
-                    desgloseProdExtras.innerText = fmt.format(totalExtras);
+            // Total libros normales y libros extras
+            const totalLibrosNormales = librosFinal;
+            const totalLibrosExtras = totalExtras;
+            const totalTodosLibros = totalLibrosNormales + totalLibrosExtras;
+            const cantLibrosNormales = (infoLibros && infoLibros.cantidad > 0) ? librosSeleccionadosIndices.length : 0;
+            const cantLibrosExtras = (typeof productosExtra !== 'undefined') ? productosExtra.length : 0;
+            const cantTotalLibros = cantLibrosNormales + cantLibrosExtras;
+
+            // Fila libros en resumen de pago
+            const filaLibrosTot = document.getElementById('fila-libros-tot');
+            const lblLibrosTot = document.getElementById('lbl-libros-tot');
+            const desgloseLibrosTot = document.getElementById('desglose-libros-tot');
+            if (filaLibrosTot && desgloseLibrosTot) {
+                if (totalTodosLibros > 0) {
+                    filaLibrosTot.classList.remove('hidden');
+                    desgloseLibrosTot.innerText = fmt.format(totalTodosLibros);
+                    if (lblLibrosTot) {
+                        lblLibrosTot.innerText = cantTotalLibros > 0 ? `Libros (${cantTotalLibros}):` : 'Libros:';
+                    }
                 } else {
-                    filaProdExtras.classList.add('hidden');
+                    filaLibrosTot.classList.add('hidden');
                 }
             }
 
@@ -3940,9 +3976,7 @@
             if (cantCursos > 0 && extraServicio > 0) {
                 filaTotSinServ.classList.remove('hidden');
                 let sufijoSin = "Total sin servicio:";
-                if (librosFinal > 0 && totalExtras > 0) sufijoSin = "Total con libros/extras sin servicio:";
-                else if (librosFinal > 0) sufijoSin = "Total con libro sin servicio:";
-                else if (totalExtras > 0) sufijoSin = "Total con extras sin servicio:";
+                if (totalTodosLibros > 0) sufijoSin = "Total con libros sin servicio:";
                 lblTotSinServ.innerText = sufijoSin;
                 totSinServEl.innerText = fmt.format(totLibSin);
             } else {
@@ -3958,16 +3992,118 @@
             }
 
             if (cantCursos === 0) {
-                if (librosFinal > 0 && totalExtras > 0) lblTotalFinal.innerText = "Total libros y extras:";
-                else if (librosFinal > 0) lblTotalFinal.innerText = "Total libro:";
-                else if (totalExtras > 0) lblTotalFinal.innerText = "Total extras:";
+                if (totalTodosLibros > 0) lblTotalFinal.innerText = "Total libros:";
                 else lblTotalFinal.innerText = "Total a pagar:";
-            } else if (librosFinal > 0 || totalExtras > 0) {
-                lblTotalFinal.innerText = extraServicio > 0 ? "Total con extras CON servicio:" : "Total con extras:";
+            } else if (totalTodosLibros > 0) {
+                lblTotalFinal.innerText = extraServicio > 0 ? "Total con libros CON servicio:" : "Total con libros:";
             } else {
                 lblTotalFinal.innerText = "Total:";
             }
             document.getElementById('res-descuento-total').innerHTML = fmt.format(totalConDescuentoGeneral);
+
+            // Mini tabla de resumen y desglose detallado de cobro
+            const contMiniTabla = document.getElementById('contenedor-mini-tabla-desglose');
+            const bodyMiniTabla = document.getElementById('mini-tabla-desglose-body');
+            const totalMiniTabla = document.getElementById('mini-tabla-desglose-total');
+            const badgeMiniTabla = document.getElementById('mini-tabla-badge-items');
+
+            if (contMiniTabla && bodyMiniTabla) {
+                let miniFilasHtml = '';
+                let itemsTotales = 0;
+                const descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%)` : '';
+
+                // 1. Cursos normales (Niveles 1 al 20)
+                if (cursosBajos > 0) {
+                    itemsTotales++;
+                    const subBajos = unitarioDescBajoSinServ * cursosBajos;
+                    const unitBajoFmt = fmt.format(unitarioDescBajoSinServ);
+                    miniFilasHtml += `
+                        <tr>
+                            <td class="py-1.5 px-3">
+                                <span class="font-medium text-gray-900">Pago por ${cursosBajos} curso(s)${descStr}</span>
+                                <span class="block text-[9px] text-gray-500 font-mono">${unitBajoFmt} c/u (Nivel 1 al 20)</span>
+                            </td>
+                            <td class="py-1.5 px-3 text-right font-semibold text-gray-900 align-top">${fmt.format(subBajos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 2. Cursos avanzados (Nivel 21+)
+                if (cursosAltos > 0) {
+                    itemsTotales++;
+                    const subAltos = unitarioDescAltoSinServ * cursosAltos;
+                    const unitAltoFmt = fmt.format(unitarioDescAltoSinServ);
+                    miniFilasHtml += `
+                        <tr class="bg-amber-50/50">
+                            <td class="py-1.5 px-3">
+                                <span class="font-medium text-amber-950">Pago por ${cursosAltos} curso(s) avanzado(s)${descStr}</span>
+                                <span class="block text-[9px] text-amber-700 font-mono">${unitAltoFmt} c/u (Nivel 21+)</span>
+                            </td>
+                            <td class="py-1.5 px-3 text-right font-semibold text-amber-950 align-top">${fmt.format(subAltos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 3. Cargo por servicio si aplica
+                if (extraServicio > 0 && cantCursos > 0) {
+                    itemsTotales++;
+                    miniFilasHtml += `
+                        <tr class="bg-purple-50/30">
+                            <td class="py-1.5 px-3">
+                                <span class="font-medium text-purple-900">Cargo por servicio ($90 x ${cantCursos})</span>
+                            </td>
+                            <td class="py-1.5 px-3 text-right font-semibold text-purple-900 align-top">${fmt.format(extraServicio * cantCursos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 4. Libros normales del curso
+                if (infoLibros && infoLibros.cantidad > 0) {
+                    const resultadoLibrosDetalle = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
+                    resultadoLibrosDetalle.librosConPrecio.forEach(l => {
+                        if (l.activo) {
+                            itemsTotales++;
+                            const promoText = l.tieneDescuento ? ' (Promo paquete)' : '';
+                            miniFilasHtml += `
+                                <tr class="bg-blue-50/20">
+                                    <td class="py-1.5 px-3">
+                                        <span class="font-medium text-blue-950">Libro: ${l.nombre}${promoText}</span>
+                                        <span class="block text-[9px] text-gray-500">Libro del curso (Nivel ${l.nivelCambio})</span>
+                                    </td>
+                                    <td class="py-1.5 px-3 text-right font-semibold text-blue-950 align-top">${fmt.format(l.precioFinal)}</td>
+                                </tr>
+                            `;
+                        }
+                    });
+                }
+
+                // 5. Libros extras
+                if (typeof productosExtra !== 'undefined' && productosExtra.length > 0) {
+                    productosExtra.forEach(p => {
+                        itemsTotales++;
+                        const precioExtra = parseFloat(p.precio) || 0;
+                        miniFilasHtml += `
+                            <tr class="bg-indigo-50/30">
+                                <td class="py-1.5 px-3">
+                                    <span class="font-medium text-indigo-950">Libro: ${p.nombre}</span>
+                                    <span class="block text-[9px] text-indigo-600 font-semibold">Libro extra</span>
+                                </td>
+                                <td class="py-1.5 px-3 text-right font-semibold text-indigo-950 align-top">${fmt.format(precioExtra)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                if (itemsTotales > 0) {
+                    contMiniTabla.classList.remove('hidden');
+                    bodyMiniTabla.innerHTML = miniFilasHtml;
+                    if (totalMiniTabla) totalMiniTabla.innerText = fmt.format(totalConDescuentoGeneral);
+                    if (badgeMiniTabla) badgeMiniTabla.innerText = `${itemsTotales} ${itemsTotales === 1 ? 'concepto' : 'conceptos'}`;
+                } else {
+                    contMiniTabla.classList.add('hidden');
+                    bodyMiniTabla.innerHTML = '';
+                }
+            }
 
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
             if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); document.getElementById('lbl-ahorro').innerText = fmt.format(ahorro); }
@@ -4220,7 +4356,7 @@
             } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
             let extrasTexto = "";
             if (typeof productosExtra !== 'undefined' && productosExtra.length > 0) {
-                extrasTexto = `\n• *Extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
+                extrasTexto = `\n• *Libros extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
             }
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             let nivelesTexto = cantCursos > 0 ? `${cantCursos} curso(s)` : 'Solo material / extras (0 cursos)';
