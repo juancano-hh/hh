@@ -236,6 +236,7 @@
             #print-factura:not(:empty) {
                 display: block !important;
                 width: 100%;
+                box-sizing: border-box !important;
                 font-family: sans-serif;
                 color: #000;
             }
@@ -608,11 +609,23 @@
 
             <!-- Slider -->
             <div class="mb-5 px-1">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex flex-col items-center justify-center text-center">
                     <label class="text-sm font-bold text-gray-700">¿Cuántos cursos a pagar?</label>
-                    <span id="calc-cursos-val" class="bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
+                    <div class="mt-1">
+                        <span id="calc-lbl-nivel-destino" class="inline-block text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    </div>
                 </div>
-                <input type="range" id="calc-slider" min="1" max="24" value="1" oninput="actualizarCalculadoraManual()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600">
+                <div class="mt-3"></div>
+                <div class="relative pt-6 pb-1">
+                    <div id="calc-cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
+                        <span id="calc-cursos-val" class="bg-green-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
+                        <div class="w-1.5 h-1.5 bg-green-600 rotate-45 -mt-0.5 rounded-2xs"></div>
+                    </div>
+                    <input type="range" id="calc-slider" min="1" max="24" value="1" oninput="actualizarCalculadoraManual()" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600 block">
+                </div>
+                <div class="flex justify-between items-center mt-1 text-xs">
+                    <span id="calc-lbl-rango-niveles-detalle" class="font-medium text-gray-600"></span>
+                </div>
             </div>
 
             <!-- Resumen -->
@@ -793,12 +806,24 @@
 
         <div id="seccion-calculos" class="hidden mt-6 space-y-4 border-t pt-4">
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="text-sm font-medium text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
-                    <span id="cursos-val" class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">1</span>
+                <div class="flex flex-col items-center justify-center text-center">
+                    <label class="text-sm font-semibold text-gray-700">¿Cuántos niveles/cursos vas a pagar?</label>
+                    <div class="mt-1">
+                        <span id="lbl-nivel-destino" class="inline-block text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full shadow-2xs"></span>
+                    </div>
                 </div>
-                <input type="range" id="cursos-slider" min="0" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                <p id="lbl-max-permitido" class="text-[10px] text-gray-400 mt-1 text-right"></p>
+                <div class="mt-3"></div>
+                <div class="relative pt-6 pb-1">
+                    <div id="cursos-val-bubble" class="absolute top-0 pointer-events-none transition-all duration-75 ease-out -translate-x-1/2 flex flex-col items-center z-10" style="left: 0%;">
+                        <span id="cursos-val" class="bg-blue-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap">1 curso</span>
+                        <div class="w-1.5 h-1.5 bg-blue-600 rotate-45 -mt-0.5 rounded-2xs"></div>
+                    </div>
+                    <input type="range" id="cursos-slider" min="0" max="24" value="1" oninput="descuentoManualPorcentaje = null; actualizarCalculos();" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 block">
+                </div>
+                <div class="flex justify-between items-center mt-1 text-xs">
+                    <span id="lbl-rango-niveles-detalle" class="font-medium text-gray-600"></span>
+                    <p id="lbl-max-permitido" class="text-[10px] text-gray-400"></p>
+                </div>
             </div>
 
             <div id="info-promo-adicional" class="hidden text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2 text-yellow-800 text-center font-medium"></div>
@@ -821,15 +846,15 @@
                 <div id="lista-libros-detalle" class="space-y-2"></div>
             </div>
 
-            <!-- BOTÓN Y CONTENEDOR DE PRODUCTOS EXTRAS -->
+            <!-- BOTÓN Y CONTENEDOR DE LIBROS EXTRAS -->
             <div class="space-y-2">
                 <button type="button" onclick="abrirModalAgregarProducto()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition duration-200 shadow-sm">
-                    <span class="text-sm">➕</span> Agregar producto o libro extra
+                    <span class="text-sm">➕</span> Agregar libro extra
                 </button>
 
                 <div id="contenedor-productos-extra" class="hidden bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 space-y-2">
                     <div class="flex items-center justify-between border-b border-indigo-200/60 pb-1.5">
-                        <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">📦 Extras incluidos</span>
+                        <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">📚 Libros extras incluidos</span>
                         <span id="badge-cant-extras" class="bg-indigo-200 text-indigo-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full"></span>
                     </div>
                     <div id="lista-productos-extra" class="space-y-1.5"></div>
@@ -884,27 +909,52 @@
                         <span id="uni-beca-con" class="font-bold"></span>
                     </div>
                 </div>
-                <hr class="my-2 border-gray-100">
-                <div class="flex justify-between items-center">
-                    <span>Total cursos:</span>
-                    <span id="tot-cur-final" class="font-bold text-gray-800"></span>
+                <!-- TABLA DE DESGLOSE DIRECTO EN RESUMEN DE PAGO (COLAPSABLE) -->
+                <details id="contenedor-mini-tabla-desglose" class="group mt-2 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                    <summary class="cursor-pointer flex items-center justify-between py-2 px-3 bg-gray-50 hover:bg-gray-100 text-[11px] font-semibold text-gray-700 select-none transition">
+                        <span class="flex items-center gap-1.5">
+                            <span>📋</span>
+                            <span>Ver desglose de cursos y cargos</span>
+                        </span>
+                        <span class="text-[10px] text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <table class="w-full text-[11px] text-left border-t border-gray-200">
+                        <thead class="text-[10px] text-gray-500 uppercase bg-gray-50/70 border-b border-gray-200">
+                            <tr>
+                                <th class="py-1.5 px-3 font-semibold">Descripción</th>
+                                <th class="py-1.5 px-3 text-right font-semibold">Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mini-tabla-desglose-body" class="divide-y divide-gray-100 bg-white text-gray-800">
+                        </tbody>
+                    </table>
+                </details>
+
+                <!-- TOTALES DESGLOSADOS -->
+                <div class="space-y-1.5 pt-2 text-xs">
+                    <!-- Total solo cursos -->
+                    <div class="flex justify-between items-center text-gray-800 font-semibold" id="fila-tot-solo-cursos">
+                        <span>Total solo cursos:</span>
+                        <span id="tot-solo-cursos" class="font-bold text-gray-900 font-mono"></span>
+                    </div>
+
+                    <!-- Total solo de los libros -->
+                    <div class="flex justify-between items-center text-indigo-900 font-semibold hidden" id="fila-tot-solo-libros">
+                        <span id="lbl-tot-solo-libros">Total solo de los libros:</span>
+                        <span id="tot-solo-libros" class="font-bold text-indigo-900 font-mono"></span>
+                    </div>
+
+                    <!-- Total sin servicio (si aplica cargo por servicio) -->
+                    <div class="flex justify-between items-center hidden text-gray-500 text-[11px]" id="fila-tot-sin-serv">
+                        <span id="lbl-tot-sin-serv">Total sin servicio:</span>
+                        <span id="tot-sin-serv" class="font-medium text-gray-700 font-mono"></span>
+                    </div>
                 </div>
-                <div class="flex justify-between items-center hidden" id="fila-tot-sin-serv">
-                    <span id="lbl-tot-sin-serv">Total sin servicio:</span>
-                    <span id="tot-sin-serv" class="font-bold text-gray-800"></span>
-                </div>
-                <div class="flex justify-between items-center hidden" id="fila-cargo-serv">
-                    <span>Cargo por servicios (<span id="desglose-cargo-multi"></span>):</span>
-                    <span id="desglose-cargo-tot" class="font-bold text-purple-600"></span>
-                </div>
-                <div class="flex justify-between items-center hidden" id="fila-prod-extras">
-                    <span id="lbl-prod-extras">Productos / Libros extras:</span>
-                    <span id="desglose-prod-extras" class="font-bold text-indigo-700"></span>
-                </div>
-                <hr class="my-2 border-gray-100">
-                <div class="flex justify-between items-center text-lg">
+
+                <!-- TOTAL FINAL -->
+                <div class="flex justify-between items-center text-lg pt-2 border-t border-gray-200">
                     <span id="lbl-total-final" class="font-bold text-gray-800">Total:</span>
-                    <span id="res-descuento-total" class="font-black text-green-950"></span>
+                    <span id="res-descuento-total" class="font-black text-green-950 font-mono"></span>
                 </div>
                 <p id="fecha-vigencia-promo" class="text-[10px] text-center text-green-700 font-semibold mt-1 hidden"></p>
             </div>
@@ -1879,6 +1929,10 @@
                 <div class="mt-4 space-y-2 border-t pt-3">
                     <p class="font-bold mb-2">Información a incluir:</p>
                     <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="chk-const-logo" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
+                        <span>Logotipo Harmon Hall (superior izquierda)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="chk-const-modalidad" checked class="w-4 h-4 text-purple-600 rounded cursor-pointer">
                         <span>Modalidad (sabatino, dominical, entre semana...)</span>
                     </label>
@@ -2058,23 +2112,23 @@
         </div>
     </div>
 
-    <!-- ===== MODAL AGREGAR PRODUCTO / LIBRO EXTRA ===== -->
+    <!-- ===== MODAL AGREGAR LIBRO EXTRA ===== -->
     <div id="modal-agregar-producto" class="modal-overlay hidden" onclick="if(event.target===this) cerrarModalAgregarProducto()">
         <div class="modal-box" style="max-width: 480px;">
             <div class="modal-header bg-indigo-600 text-white p-4 flex justify-between items-center rounded-t-2xl">
                 <p class="font-bold text-base flex items-center gap-2">
-                    <span>➕</span> Agregar Producto o Libro Extra
+                    <span>➕</span> Agregar Libro Extra
                 </p>
                 <button class="text-white hover:text-gray-200 text-xl font-bold" onclick="cerrarModalAgregarProducto()">✕</button>
             </div>
             <div class="modal-body p-5 bg-white rounded-b-2xl space-y-4 text-left">
-                <!-- Selector de Modo: Libro del catálogo o Producto libre -->
+                <!-- Selector de Modo: Libro del catálogo o Libro libre -->
                 <div class="flex rounded-xl bg-gray-100 p-1 border border-gray-200">
                     <button type="button" id="tab-tipo-libro" onclick="cambiarTabProducto('libro')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-white text-indigo-700 shadow-sm">
                         📚 Libro del Catálogo
                     </button>
                     <button type="button" id="tab-tipo-libre" onclick="cambiarTabProducto('libre')" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900">
-                        📦 Producto Nuevo
+                        📖 Otro Libro
                     </button>
                 </div>
 
@@ -2088,11 +2142,11 @@
                     </div>
                 </div>
 
-                <!-- Panel 2: Producto libre -->
+                <!-- Panel 2: Libro libre -->
                 <div id="panel-prod-libre" class="space-y-3 hidden">
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-1">Descripción del Producto:</label>
-                        <input type="text" id="modal-prod-nombre-libre" placeholder="Ej. Cuaderno, Mochila, Reposición..." class="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Título o Nombre del Libro:</label>
+                        <input type="text" id="modal-prod-nombre-libre" placeholder="Ej. Libro nivel especial, Reposición..." class="w-full p-2.5 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                     </div>
                 </div>
 
@@ -2235,6 +2289,7 @@
         let promosVolumen = [];
         let textoPromocionalF1 = "";
         let fechaVigenciaBecaBase = null;
+        let fechaLimiteMaximaVolumen = null;
         let librosMap = new Map();
         let promosLibros = [];
         let alumnoActual = null;
@@ -2604,9 +2659,9 @@
             return periodosCalendario.find(p => p.periodo === codigo) || null;
         }
 
-        // ===== NUEVO: Obtener rango de fechas de pago =====
-        function obtenerRangoPago(datos, mod) {
-            if (!datos || !datos.inicio) return 'No disponible';
+        // ===== NUEVO: Obtener rango y límites de fechas de pago =====
+        function obtenerFechasLimitePago(datos, mod) {
+            if (!datos || !datos.inicio) return null;
             const ini = new Date(datos.inicio); // Usamos inicio original del CSV
             let inicioPago = new Date(ini);
             let finPago = new Date(ini);
@@ -2617,8 +2672,163 @@
                 inicioPago.setDate(inicioPago.getDate() + 28);
                 finPago.setDate(finPago.getDate() + 40);
             }
+            inicioPago.setHours(0, 0, 0, 0);
+            finPago.setHours(23, 59, 59, 999);
+            return { inicioPago, finPago };
+        }
+
+        function obtenerRangoPago(datos, mod) {
+            const limites = obtenerFechasLimitePago(datos, mod);
+            if (!limites) return 'No disponible';
             const ops = { day:'numeric', month:'short' };
-            return `del ${inicioPago.toLocaleDateString('es-MX', ops)} al ${finPago.toLocaleDateString('es-MX', ops)} de ${finPago.getFullYear()}`;
+            return `del ${limites.inicioPago.toLocaleDateString('es-MX', ops)} al ${limites.finPago.toLocaleDateString('es-MX', ops)} de ${limites.finPago.getFullYear()}`;
+        }
+
+        // Determina si un alumno tiene pago por volumen activo y con cursos cubiertos
+        function alumnoTieneVolumenVigente(alumno) {
+            if (!alumno || !alumno.volumen) return false;
+            const vol = alumno.volumen.trim().toUpperCase();
+            if (vol === "TERMINA") return false;
+            if (vol.includes(" DE ")) {
+                const partes = vol.split(" DE ");
+                const cur = parseInt(partes[0].trim(), 10);
+                const tot = parseInt(partes[1].trim(), 10);
+                if (!isNaN(cur) && !isNaN(tot)) {
+                    return cur <= tot;
+                }
+            }
+            return false;
+        }
+
+        // Determina si la fecha de inicio del próximo curso ya llegó o pasó
+        function proximoCursoYaInicio(alumno) {
+            if (!alumno || !alumno.periodoSiguiente) return false;
+            const periodoProx = alumno.esLayPasado ? calSumarPeriodos(alumno.periodoSiguiente, 1) : alumno.periodoSiguiente;
+            const datosProx = obtenerDatosPeriodo(periodoProx);
+            if (!datosProx || !datosProx.inicio) return false;
+            let iniProx = new Date(datosProx.inicio);
+            if (alumno.tipoClaseCal === 'sabado') iniProx = calAjustarInicioSabado(iniProx);
+            iniProx.setHours(0, 0, 0, 0);
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            return hoy >= iniProx;
+        }
+
+        // Determina si el alumno tiene actualmente su curso pagado (Estatus R / PAGADO)
+        function alumnoTieneCursoPagado(alumno) {
+            if (!alumno) return false;
+            // Para alumnos [INI ANTERIOR]: si ya inició el próximo curso y no tienen pago por volumen,
+            // su estatus pasa a PENDIENTE (el nuevo curso no está pagado)
+            if (alumno.esLayPasado && proximoCursoYaInicio(alumno) && !alumnoTieneVolumenVigente(alumno)) {
+                return false;
+            }
+            if (alumno.tieneR === true) return true;
+            if (alumno.estatusPago) {
+                const est = alumno.estatusPago.trim().toUpperCase();
+                if (est === 'R') return true;
+            }
+            return false;
+        }
+
+        // Obtiene la información del próximo período y fechas de pago para un alumno
+        function obtenerInfoProximaFechaPago(alumno) {
+            if (!alumno || !alumno.periodoSiguiente) return null;
+            const periodoSig = alumno.periodoSiguiente;
+            const periodoAnt = calcularPeriodoAnterior(periodoSig);
+            const tienePagado = alumnoTieneCursoPagado(alumno);
+
+            if (alumno.esPrimerMes || alumno.esLayPasado) {
+                const targetDatos = obtenerDatosPeriodo(periodoSig);
+                const limites = obtenerFechasLimitePago(targetDatos, '08');
+                return {
+                    periodo: periodoSig,
+                    mod: '08',
+                    datos: targetDatos,
+                    limites: limites,
+                    textoRango: obtenerRangoPago(targetDatos, '08')
+                };
+            }
+
+            if (alumno.volumen === "TERMINA") {
+                let targetPeriod = periodoSig;
+                let modStr = periodoSig ? periodoSig.substring(2, 4) : '04';
+                if (!tienePagado && periodoAnt) {
+                    targetPeriod = periodoAnt;
+                }
+                const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                const limites = obtenerFechasLimitePago(targetDatos, modStr);
+                return {
+                    periodo: targetPeriod,
+                    mod: modStr,
+                    datos: targetDatos,
+                    limites: limites,
+                    textoRango: obtenerRangoPago(targetDatos, modStr)
+                };
+            }
+
+            if (alumno.volumen && alumno.volumen.includes(" DE ")) {
+                const partesVol = alumno.volumen.split(" DE ");
+                const currentCourse = parseInt(partesVol[0].trim());
+                const totalCourses = parseInt(partesVol[1].trim());
+                if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                    const cursosRestantes = totalCourses - currentCourse;
+                    const nextPaymentPeriod = calSumarPeriodos(periodoSig, cursosRestantes);
+                    const modStr = nextPaymentPeriod ? nextPaymentPeriod.substring(2, 4) : '04';
+                    const nextPaymentDatos = obtenerDatosPeriodo(nextPaymentPeriod);
+                    const limites = obtenerFechasLimitePago(nextPaymentDatos, modStr);
+                    return {
+                        periodo: nextPaymentPeriod,
+                        mod: modStr,
+                        datos: nextPaymentDatos,
+                        limites: limites,
+                        textoRango: obtenerRangoPago(nextPaymentDatos, modStr)
+                    };
+                }
+            }
+
+            // Alumno normal
+            let targetPeriod = periodoSig;
+            let modStr = periodoSig ? periodoSig.substring(2, 4) : '04';
+            if (!tienePagado && periodoAnt) {
+                targetPeriod = periodoAnt;
+            }
+            const targetDatos = obtenerDatosPeriodo(targetPeriod);
+            const limites = obtenerFechasLimitePago(targetDatos, modStr);
+            return {
+                periodo: targetPeriod,
+                mod: modStr,
+                datos: targetDatos,
+                limites: limites,
+                textoRango: obtenerRangoPago(targetDatos, modStr)
+            };
+        }
+
+        // Verifica si aplica precio con descuento/beca por adelantar pago antes de la fecha límite
+        function verificarAlumnoPagoAdelantadoConDescuento(alumno) {
+            if (!alumno) return { aplica: false, fechaLimite: null, textoRango: '' };
+
+            // Condición 1: Que tenga su curso actual pagado (estatus R / PAGADO)
+            if (!alumnoTieneCursoPagado(alumno)) {
+                return { aplica: false, fechaLimite: null, textoRango: '' };
+            }
+
+            // Condición 2: Que estemos dentro de la fecha límite (antes o hasta la fecha límite de su próxima fecha de pago)
+            const infoPago = obtenerInfoProximaFechaPago(alumno);
+            if (!infoPago || !infoPago.limites || !infoPago.limites.finPago) {
+                return { aplica: false, fechaLimite: null, textoRango: '' };
+            }
+
+            const hoy = new Date();
+            if (hoy <= infoPago.limites.finPago) {
+                return {
+                    aplica: true,
+                    fechaLimite: infoPago.limites.finPago,
+                    inicioPago: infoPago.limites.inicioPago,
+                    textoRango: infoPago.textoRango
+                };
+            }
+
+            return { aplica: false, fechaLimite: infoPago.limites.finPago, textoRango: infoPago.textoRango };
         }
 
         // ===== NUEVO: Mostrar fechas de periodo en la ficha =====
@@ -2665,7 +2875,32 @@
                 const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
                 const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
                 secVolumen.classList.remove('hidden');
-                lblCursosPagados.classList.add('hidden');
+
+                if (alumnoActual.volumen && alumnoActual.volumen.includes(" DE ")) {
+                    const partesVol = alumnoActual.volumen.split(" DE ");
+                    const currentCourse = parseInt(partesVol[0].trim());
+                    const totalCourses = parseInt(partesVol[1].trim());
+                    if (!isNaN(currentCourse) && !isNaN(totalCourses) && currentCourse <= totalCourses) {
+                        const cursosRestantes = totalCourses - currentCourse;
+                        lblCursosPagados.classList.remove('hidden');
+                        lblCursosPagados.className = "text-xs text-green-800 font-semibold";
+                        const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
+                        lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
+                    } else {
+                        lblCursosPagados.classList.remove('hidden');
+                        lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                        lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                    }
+                } else if (alumnoActual.volumen === "TERMINA") {
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-amber-700 font-semibold";
+                    lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
+                } else {
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                    lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                }
+
                 lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(datosAct, '08');
                 return;
             }
@@ -2707,14 +2942,17 @@
             const lblCursosPagados = document.getElementById('lbl-cursos-pagados');
             const lblProximaFecha = document.getElementById('lbl-proxima-fecha-pago');
             
+            const tienePagado = alumnoTieneCursoPagado(alumnoActual);
+
             if (alumnoActual.volumen === "TERMINA") {
                 secVolumen.classList.remove('hidden');
                 lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.className = "text-xs text-amber-700 font-semibold";
                 lblCursosPagados.innerText = "¡Tu paquete de cursos terminó!";
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (!alumnoActual.tieneR && periodoAnt) {
+                if (!tienePagado && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
@@ -2730,20 +2968,31 @@
                     
                     secVolumen.classList.remove('hidden');
                     lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-green-800 font-semibold";
                     const maxNivelPagado = alumnoActual.nivelActual + cursosRestantes + 1;
                     lblCursosPagados.innerText = `Cursos pagados: ${alumnoActual.volumen} (${maxNivelPagado})`;
                     lblProximaFecha.innerText = `Próxima fecha de pago: ${obtenerRangoPago(nextPaymentDatos, nextPaymentPeriod ? nextPaymentPeriod.substring(2,4) : '04')}`;
                 } else {
-                    secVolumen.classList.add('hidden');
+                    secVolumen.classList.remove('hidden');
+                    lblCursosPagados.classList.remove('hidden');
+                    lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                    lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
+                    let targetPeriod = periodoSig;
+                    let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
+                    if (!tienePagado && periodoAnt) targetPeriod = periodoAnt;
+                    const targetDatos = obtenerDatosPeriodo(targetPeriod);
+                    lblProximaFecha.innerText = "Próxima fecha de pago: " + obtenerRangoPago(targetDatos, modStr);
                 }
             } else {
-                // Estudiante normal (vacío), mostrar la próxima fecha de pago
+                // Estudiante normal (vacío), mostrar la próxima fecha de pago y anotación de no volumen
                 secVolumen.classList.remove('hidden');
-                lblCursosPagados.classList.add('hidden'); // Ocultar el texto de cursos pagados
+                lblCursosPagados.classList.remove('hidden');
+                lblCursosPagados.className = "text-xs text-gray-500 font-medium italic";
+                lblCursosPagados.innerText = "No tiene cursos pagados por volumen";
                 
                 let targetPeriod = periodoSig;
                 let modStr = periodoSig ? periodoSig.substring(2,4) : '04';
-                if (!alumnoActual.tieneR && periodoAnt) {
+                if (!tienePagado && periodoAnt) {
                     targetPeriod = periodoAnt;
                 }
                 const targetDatos = obtenerDatosPeriodo(targetPeriod);
@@ -2780,7 +3029,7 @@
                 const txt = await res.text();
                 const json = JSON.parse(txt.substring(47, txt.length - 2));
                 const filas = json.table.rows;
-                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null;
+                promosVolumen = []; textoPromocionalF1 = ""; fechaVigenciaBecaBase = null; fechaLimiteMaximaVolumen = null;
                 if (filas.length > 0 && filas[0].c && filas[0].c[5] && filas[0].c[5].v) textoPromocionalF1 = String(filas[0].c[5].v).trim();
                 for (let i = 0; i < filas.length; i++) {
                     const fila = filas[i];
@@ -2793,11 +3042,21 @@
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
                     if (fechaRaw !== null && fechaFin === null) continue;
-                    if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA") && fechaFin) fechaVigenciaBecaBase = fechaFin;
+                    if (fechaFin) {
+                        if (!fechaLimiteMaximaVolumen || fechaFin > fechaLimiteMaximaVolumen) {
+                            fechaLimiteMaximaVolumen = fechaFin;
+                        }
+                        if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA")) {
+                            fechaVigenciaBecaBase = fechaFin;
+                        }
+                    }
                     promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
                 }
+                if (!fechaVigenciaBecaBase && fechaLimiteMaximaVolumen) {
+                    fechaVigenciaBecaBase = fechaLimiteMaximaVolumen;
+                }
                 promosVolumen.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Promos volumen cargadas:", promosVolumen.length);
+                console.log("Promos volumen cargadas:", promosVolumen.length, "Fecha límite máxima volumen:", fechaLimiteMaximaVolumen);
             } catch (e) { console.warn("Error cargando promos volumen:", e); promosVolumen = []; }
         }
 
@@ -3127,13 +3386,23 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                if (estatus === 'R') {
+                // REGLA: SOLO los alumnos que diga [INI ANTERIOR]
+                // una vez que inicie el próximo curso todos los pagados se vuelven Pendiente en su estatus,
+                // a menos que tengan pago por volumen vigente.
+                let estatusEfectivo = estatus;
+                if (alumnoActual.esLayPasado && proximoCursoYaInicio(alumnoActual)) {
+                    if (!alumnoTieneVolumenVigente(alumnoActual) && (estatus === 'R' || alumnoActual.tieneR)) {
+                        estatusEfectivo = 'PENDIENTE';
+                    }
+                }
+
+                if (estatusEfectivo === 'R') {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
-                } else if (estatus === 'PROMESA') {
+                } else if (estatusEfectivo === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
-                } else if (estatus.includes('NO CONTINUA')) {
+                } else if (estatusEfectivo.includes('NO CONTINUA')) {
                     statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-1 rounded inline-block">❌ NO CONTINUA</span>';
-                } else if (estatus.includes('SEGUIMIENTO') || estatus === '') {
+                } else if (estatusEfectivo.includes('SEGUIMIENTO') || estatusEfectivo === 'PENDIENTE' || estatusEfectivo === '') {
                     statusBadge = '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded inline-block">⚠️ PENDIENTE</span>';
                 } else {
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
@@ -3375,16 +3644,29 @@
                 grupos[item.programa].push({ ...item });
             });
 
+            const normalizarTexto = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
             if (typeof librosMap !== 'undefined' && librosMap.size > 0) {
                 librosMap.forEach((val, key) => {
-                    const yaExiste = CATALOGO_LIBROS_COMPLETO.some(c => c.nombre.trim().toUpperCase() === val.nombre.trim().toUpperCase());
-                    if (!yaExiste) {
-                        const prog = key.split('_')[0] || 'OTROS';
+                    const normLibro = normalizarTexto(val.nombre);
+                    const yaExisteEnCatalogo = CATALOGO_LIBROS_COMPLETO.some(c => normalizarTexto(c.nombre) === normLibro);
+                    if (!yaExisteEnCatalogo) {
+                        let prog = (key.split('_')[0] || 'OTROS').trim().toUpperCase();
+                        if (prog === 'PTEEN' || prog === 'PRETEEN' || prog === 'PTEE') prog = 'PRETEENS';
+                        else if (prog === 'TEEN' || prog === 'TEENS' || prog === 'ADULTO' || prog === 'ADULTOS' || prog === 'ADUL') prog = 'TEENS / ADULTOS';
+                        else if (prog === 'KID') prog = 'KIDS';
+
                         if (!grupos[prog]) grupos[prog] = [];
-                        grupos[prog].push({ programa: prog, nombre: val.nombre, precio: val.precio });
+                        const yaExisteEnGrupo = grupos[prog].some(item => normalizarTexto(item.nombre) === normLibro);
+                        if (!yaExisteEnGrupo) {
+                            grupos[prog].push({ programa: prog, nombre: val.nombre, precio: val.precio });
+                        }
                     }
                 });
             }
+
+            delete grupos['PTEEN'];
+            delete grupos['PTEE'];
 
             for (const [prog, items] of Object.entries(grupos)) {
                 const optGroup = document.createElement('optgroup');
@@ -3511,12 +3793,46 @@
             const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 });
             const valSlider = parseInt(document.getElementById('cursos-slider').value);
             const cantCursos = isNaN(valSlider) ? 0 : Math.max(0, valSlider);
-            document.getElementById('cursos-val').innerText = cantCursos;
+            const elCursosVal = document.getElementById('cursos-val');
+            if (elCursosVal) {
+                elCursosVal.innerText = `${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
+            }
+            const sliderEl = document.getElementById('cursos-slider');
+            const bubbleEl = document.getElementById('cursos-val-bubble');
+            if (sliderEl && bubbleEl) {
+                const sMin = parseFloat(sliderEl.min) !== undefined ? parseFloat(sliderEl.min) : 0;
+                const sMax = parseFloat(sliderEl.max) || 24;
+                const sVal = parseFloat(sliderEl.value) || 0;
+                const sRange = (sMax - sMin) || 1;
+                const pct = Math.max(0, Math.min(100, ((sVal - sMin) / sRange) * 100));
+                const thumbOffset = 8 - (pct * 0.16);
+                bubbleEl.style.left = `calc(${pct}% + ${thumbOffset}px)`;
+            }
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
             const ahorroContainer = document.getElementById('ahorro-container');
             const nivelActual = alumnoActual.nivelActual;
             const primerNivel = nivelActual + 1, ultimoNivel = primerNivel + cantCursos - 1;
+            
+            // Indicador de hasta qué nivel estaría pagando
+            const elNivelDestino = document.getElementById('lbl-nivel-destino');
+            const elRangoDetalle = document.getElementById('lbl-rango-niveles-detalle');
+            if (elNivelDestino) {
+                if (cantCursos === 0) {
+                    elNivelDestino.innerText = '0 cursos';
+                } else {
+                    elNivelDestino.innerText = `🎯 Pagarías hasta Nivel ${ultimoNivel}`;
+                }
+            }
+            if (elRangoDetalle) {
+                if (cantCursos === 0) {
+                    elRangoDetalle.innerText = 'Solo libros / materiales';
+                } else if (cantCursos === 1) {
+                    elRangoDetalle.innerText = `📖 Curso a cursar: Nivel ${primerNivel}`;
+                } else {
+                    elRangoDetalle.innerText = `📖 Cursos a cursar: Niveles ${primerNivel} al ${ultimoNivel}`;
+                }
+            }
             let cursosBajos = 0, cursosAltos = 0;
             if (cantCursos > 0) {
                 for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) (nivel >= 21) ? cursosAltos++ : cursosBajos++;
@@ -3532,31 +3848,67 @@
             const promoVolumen = obtenerMejorPromoVigente(cantCursos);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             let becaBaseVigente = 0;
+            let fechaVigenciaFin = null;
+            let motivoVigencia = '';
+
+            const fechaMaxLayout = fechaLimiteMaximaVolumen || (fechaVigenciaBecaBase ? new Date(fechaVigenciaBecaBase) : null);
+
             if (fechaVigenciaBecaBase) {
                 const fl = new Date(fechaVigenciaBecaBase); fl.setHours(23,59,59,999);
-                if (fl >= hoy) becaBaseVigente = alumnoActual.beca;
+                if (fl >= hoy) {
+                    becaBaseVigente = alumnoActual.beca;
+                    fechaVigenciaFin = fl;
+                }
             }
+
+            // Alumnos con curso actual pagado que adelantan pago antes de la fecha límite
+            const adelantoInfo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
+            if (adelantoInfo.aplica && alumnoActual.beca > 0) {
+                becaBaseVigente = alumnoActual.beca;
+                let flAdelanto = adelantoInfo.fechaLimite;
+                // Si la fecha del layout de volumen existe, actúa como TOPE MÁXIMO
+                if (fechaMaxLayout && flAdelanto && flAdelanto > fechaMaxLayout) {
+                    flAdelanto = fechaMaxLayout;
+                }
+                if (!fechaVigenciaFin || (flAdelanto && flAdelanto > fechaVigenciaFin)) {
+                    fechaVigenciaFin = flAdelanto;
+                }
+                motivoVigencia = 'adelanto';
+            }
+
+            // Asegurar que fechaVigenciaFin NUNCA supere la fecha límite máxima del layout de la hoja volumen
+            if (fechaMaxLayout && fechaVigenciaFin && fechaVigenciaFin > fechaMaxLayout) {
+                fechaVigenciaFin = fechaMaxLayout;
+            }
+
             let descuentoAplicar = 0, nombreDescuento = "Total Precio de Lista", etiquetaPromo = "Sin promoción", fechaTexto = "";
             
             if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
                 descuentoAplicar = descuentoManualPorcentaje / 100;
                 nombreDescuento = `Total con Descuento Personalizado (${Math.round(descuentoManualPorcentaje)}%)`;
                 etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
+                if (fechaMaxLayout) {
+                    const fl = fechaMaxLayout.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                }
             } else if (promoVolumen && promoVolumen.descuento > 0 && promoVolumen.descuento >= becaBaseVigente) {
                 descuentoAplicar = promoVolumen.descuento;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
-                if (promoVolumen.fechaFin) {
-                    const fl = promoVolumen.fechaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                const fPromo = promoVolumen.fechaFin || fechaMaxLayout;
+                if (fPromo) {
+                    const fl = fPromo.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
                     if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
                 }
             } else if (becaBaseVigente > 0) {
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente*100)}%)`;
                 etiquetaPromo = "Beca asignada";
-                if (fechaVigenciaBecaBase) {
-                    const fl = fechaVigenciaBecaBase.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
-                    if (fl) fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                if (fechaVigenciaFin) {
+                    const fl = fechaVigenciaFin.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'}).replace(',','');
+                    if (fl) {
+                        fechaTexto = `Beneficio vigente hasta: ${fl}`;
+                    }
                 }
             }
             porcentajeDescuentoActual = Math.round(descuentoAplicar * 100);
@@ -3641,15 +3993,27 @@
                 }
             }
 
-            // Fila extras en resumen de pago
-            const filaProdExtras = document.getElementById('fila-prod-extras');
-            const desgloseProdExtras = document.getElementById('desglose-prod-extras');
-            if (filaProdExtras && desgloseProdExtras) {
-                if (totalExtras > 0) {
-                    filaProdExtras.classList.remove('hidden');
-                    desgloseProdExtras.innerText = fmt.format(totalExtras);
+            // Total libros normales y libros extras
+            const totalLibrosNormales = librosFinal;
+            const totalLibrosExtras = totalExtras;
+            const totalTodosLibros = totalLibrosNormales + totalLibrosExtras;
+            const cantLibrosNormales = (infoLibros && infoLibros.cantidad > 0) ? librosSeleccionadosIndices.length : 0;
+            const cantLibrosExtras = (typeof productosExtra !== 'undefined') ? productosExtra.length : 0;
+            const cantTotalLibros = cantLibrosNormales + cantLibrosExtras;
+
+            // Fila libros en resumen de pago
+            const filaLibrosTot = document.getElementById('fila-libros-tot');
+            const lblLibrosTot = document.getElementById('lbl-libros-tot');
+            const desgloseLibrosTot = document.getElementById('desglose-libros-tot');
+            if (filaLibrosTot && desgloseLibrosTot) {
+                if (totalTodosLibros > 0) {
+                    filaLibrosTot.classList.remove('hidden');
+                    desgloseLibrosTot.innerText = fmt.format(totalTodosLibros);
+                    if (lblLibrosTot) {
+                        lblLibrosTot.innerText = cantTotalLibros > 0 ? `Libros (${cantTotalLibros}):` : 'Libros:';
+                    }
                 } else {
-                    filaProdExtras.classList.add('hidden');
+                    filaLibrosTot.classList.add('hidden');
                 }
             }
 
@@ -3684,7 +4048,37 @@
                 filaBeca.classList.add('hidden');
             }
 
-            document.getElementById('tot-cur-final').innerText = fmt.format(totalCursosConServicio);
+            const elTotCur = document.getElementById('tot-cur-final');
+            if (elTotCur) elTotCur.innerText = fmt.format(totalCursosConServicio);
+
+            // Total solo cursos
+            const filaTotSoloCursos = document.getElementById('fila-tot-solo-cursos');
+            const totSoloCursosEl = document.getElementById('tot-solo-cursos');
+            if (filaTotSoloCursos && totSoloCursosEl) {
+                if (cantCursos > 0) {
+                    filaTotSoloCursos.classList.remove('hidden');
+                    totSoloCursosEl.innerText = fmt.format(totalCursosConServicio);
+                } else {
+                    filaTotSoloCursos.classList.add('hidden');
+                }
+            }
+
+            // Total solo de los libros
+            const filaTotSoloLibros = document.getElementById('fila-tot-solo-libros');
+            const lblTotSoloLibros = document.getElementById('lbl-tot-solo-libros');
+            const totSoloLibrosEl = document.getElementById('tot-solo-libros');
+            if (filaTotSoloLibros && totSoloLibrosEl) {
+                if (totalTodosLibros > 0) {
+                    filaTotSoloLibros.classList.remove('hidden');
+                    totSoloLibrosEl.innerText = fmt.format(totalTodosLibros);
+                    if (lblTotSoloLibros) {
+                        const txtLibros = cantTotalLibros === 1 ? '1 libro' : `${cantTotalLibros} libros`;
+                        lblTotSoloLibros.innerText = `Total solo de los libros (${txtLibros}):`;
+                    }
+                } else {
+                    filaTotSoloLibros.classList.add('hidden');
+                }
+            }
 
             const filaTotSinServ = document.getElementById('fila-tot-sin-serv');
             const lblTotSinServ = document.getElementById('lbl-tot-sin-serv');
@@ -3696,36 +4090,101 @@
             const totLibSin = totalCursosSinServicio + librosFinal + totalExtras;
             
             if (cantCursos > 0 && extraServicio > 0) {
-                filaTotSinServ.classList.remove('hidden');
-                let sufijoSin = "Total sin servicio:";
-                if (librosFinal > 0 && totalExtras > 0) sufijoSin = "Total con libros/extras sin servicio:";
-                else if (librosFinal > 0) sufijoSin = "Total con libro sin servicio:";
-                else if (totalExtras > 0) sufijoSin = "Total con extras sin servicio:";
-                lblTotSinServ.innerText = sufijoSin;
-                totSinServEl.innerText = fmt.format(totLibSin);
+                if (filaTotSinServ) {
+                    filaTotSinServ.classList.remove('hidden');
+                    let sufijoSin = "Total sin servicio:";
+                    if (totalTodosLibros > 0) sufijoSin = "Total con libros sin servicio:";
+                    if (lblTotSinServ) lblTotSinServ.innerText = sufijoSin;
+                    if (totSinServEl) totSinServEl.innerText = fmt.format(totLibSin);
+                }
             } else {
-                filaTotSinServ.classList.add('hidden');
+                if (filaTotSinServ) filaTotSinServ.classList.add('hidden');
             }
 
-            if (extraServicio > 0 && cantCursos > 0) {
-                filaCargoServ.classList.remove('hidden');
-                document.getElementById('desglose-cargo-multi').innerText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
-                document.getElementById('desglose-cargo-tot').innerText = fmt.format(90 * cantCursos);
-            } else {
-                filaCargoServ.classList.add('hidden');
+            if (filaCargoServ) {
+                if (extraServicio > 0 && cantCursos > 0) {
+                    filaCargoServ.classList.remove('hidden');
+                    const elCargoMulti = document.getElementById('desglose-cargo-multi');
+                    if (elCargoMulti) elCargoMulti.innerText = `$90 x ${cantCursos} ${cantCursos === 1 ? 'curso' : 'cursos'}`;
+                    const elCargoTot = document.getElementById('desglose-cargo-tot');
+                    if (elCargoTot) elCargoTot.innerText = fmt.format(90 * cantCursos);
+                } else {
+                    filaCargoServ.classList.add('hidden');
+                }
             }
 
-            if (cantCursos === 0) {
-                if (librosFinal > 0 && totalExtras > 0) lblTotalFinal.innerText = "Total libros y extras:";
-                else if (librosFinal > 0) lblTotalFinal.innerText = "Total libro:";
-                else if (totalExtras > 0) lblTotalFinal.innerText = "Total extras:";
-                else lblTotalFinal.innerText = "Total a pagar:";
-            } else if (librosFinal > 0 || totalExtras > 0) {
-                lblTotalFinal.innerText = extraServicio > 0 ? "Total con extras CON servicio:" : "Total con extras:";
-            } else {
-                lblTotalFinal.innerText = "Total:";
+            if (lblTotalFinal) {
+                if (cantCursos === 0) {
+                    if (totalTodosLibros > 0) lblTotalFinal.innerText = "Total libros:";
+                    else lblTotalFinal.innerText = "Total a pagar:";
+                } else if (totalTodosLibros > 0) {
+                    lblTotalFinal.innerText = extraServicio > 0 ? "Total con libros CON servicio:" : "Total con libros:";
+                } else {
+                    lblTotalFinal.innerText = "Total:";
+                }
             }
-            document.getElementById('res-descuento-total').innerHTML = fmt.format(totalConDescuentoGeneral);
+            const elResTotal = document.getElementById('res-descuento-total');
+            if (elResTotal) elResTotal.innerHTML = fmt.format(totalConDescuentoGeneral);
+
+            // Tabla de desglose de cursos y servicio dentro de Resumen de Pago
+            const bodyMiniTabla = document.getElementById('mini-tabla-desglose-body');
+
+            if (bodyMiniTabla) {
+                let miniFilasHtml = '';
+                let itemsTotales = 0;
+                const descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%)` : '';
+
+                // 1. Cursos normales (Niveles 1 al 20)
+                if (cursosBajos > 0) {
+                    itemsTotales++;
+                    const subBajos = unitarioDescBajoSinServ * cursosBajos;
+                    const unitBajoFmt = fmt.format(unitarioDescBajoSinServ);
+                    miniFilasHtml += `
+                        <tr>
+                            <td class="py-2 px-3">
+                                <span class="font-medium text-gray-900">Pago por ${cursosBajos} curso(s)${descStr}</span>
+                                <span class="block text-[10px] text-gray-500 font-mono">${unitBajoFmt} c/u (Nivel 1 al 20)</span>
+                            </td>
+                            <td class="py-2 px-3 text-right font-semibold text-gray-900 align-top">${fmt.format(subBajos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 2. Cursos avanzados (Nivel 21+)
+                if (cursosAltos > 0) {
+                    itemsTotales++;
+                    const subAltos = unitarioDescAltoSinServ * cursosAltos;
+                    const unitAltoFmt = fmt.format(unitarioDescAltoSinServ);
+                    miniFilasHtml += `
+                        <tr class="bg-amber-50/50">
+                            <td class="py-2 px-3">
+                                <span class="font-medium text-amber-950">Pago por ${cursosAltos} curso(s) avanzado(s)${descStr}</span>
+                                <span class="block text-[10px] text-amber-700 font-mono">${unitAltoFmt} c/u (Nivel 21+)</span>
+                            </td>
+                            <td class="py-2 px-3 text-right font-semibold text-amber-950 align-top">${fmt.format(subAltos)}</td>
+                        </tr>
+                    `;
+                }
+
+                // 3. Cargo por servicio si aplica
+                if (extraServicio > 0 && cantCursos > 0) {
+                    itemsTotales++;
+                    miniFilasHtml += `
+                        <tr class="bg-purple-50/30">
+                            <td class="py-2 px-3">
+                                <span class="font-medium text-purple-900">Cargo por servicio ($90 x ${cantCursos})</span>
+                            </td>
+                            <td class="py-2 px-3 text-right font-semibold text-purple-900 align-top">${fmt.format(extraServicio * cantCursos)}</td>
+                        </tr>
+                    `;
+                }
+
+                if (itemsTotales > 0) {
+                    bodyMiniTabla.innerHTML = miniFilasHtml;
+                } else {
+                    bodyMiniTabla.innerHTML = `<tr><td colspan="2" class="py-3 px-3 text-center text-gray-400 italic">Sin cursos seleccionados</td></tr>`;
+                }
+            }
 
             const ahorro = totalListaGeneral - totalConDescuentoGeneral;
             if (ahorro > 0) { ahorroContainer.classList.remove('hidden'); document.getElementById('lbl-ahorro').innerText = fmt.format(ahorro); }
@@ -3967,8 +4426,11 @@
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
             let promo = obtenerMejorPromoVigente(cantCursos);
+            const adelantoWA = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
+            const fechaMaxLayoutWA = fechaLimiteMaximaVolumen || (fechaVigenciaBecaBase ? new Date(fechaVigenciaBecaBase) : null);
+            const fechaValidaWA = !fechaMaxLayoutWA || new Date() <= fechaMaxLayoutWA;
             if (promo && promo.descuento > alumnoActual.beca) stringDescuento += ` (${promo.motivo})`;
-            else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) stringDescuento += " (Beca base)";
+            else if (alumnoActual.beca > 0 && fechaValidaWA && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoWA && adelantoWA.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) stringDescuento += " (Beca base)";
             else stringDescuento += " Sin descuento adicional";
             let librosTexto = "";
             if (infoLibros.cantidad > 0 && librosSeleccionadosIndices.length > 0) {
@@ -3977,7 +4439,7 @@
             } else if (infoLibros.cantidad > 0) { librosTexto = `\n• *Libros incluidos:* Ninguno`; }
             let extrasTexto = "";
             if (typeof productosExtra !== 'undefined' && productosExtra.length > 0) {
-                extrasTexto = `\n• *Extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
+                extrasTexto = `\n• *Libros extras incluidos:* ${productosExtra.map(p => `${p.nombre} ($${parseFloat(p.precio).toLocaleString('es-MX')})`).join(", ")}`;
             }
             const fmt = new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
             let nivelesTexto = cantCursos > 0 ? `${cantCursos} curso(s)` : 'Solo material / extras (0 cursos)';
@@ -6289,9 +6751,10 @@
             
             let promoMotivo = '';
             const promoInfo = obtenerMejorPromoVigente(cantCursos);
+            const adelantoRecibo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
             if (promoInfo && promoInfo.descuento > alumnoActual.beca) {
                 promoMotivo = ` - ${promoInfo.motivo}`;
-            } else if (alumnoActual.beca > 0 && fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) {
+            } else if (alumnoActual.beca > 0 && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoRecibo && adelantoRecibo.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) {
                 promoMotivo = ' - Beca base';
             }
             
@@ -6357,7 +6820,9 @@
             }
             
             const hoy = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-            const vigencia = document.getElementById('fecha-vigencia-promo').innerText || hoy;
+            let vigenciaRaw = (document.getElementById('fecha-vigencia-promo') ? document.getElementById('fecha-vigencia-promo').innerText : '') || hoy;
+            let vigencia = vigenciaRaw.replace(/^Beneficio vigente hasta:\s*/i, '').replace(/\(Curso actual pagado\)/gi, '').trim();
+            if (!vigencia) vigencia = hoy;
 
             const inicioSiguiente = document.getElementById('lbl-inicio-siguiente').innerText || '';
             const finSiguiente = document.getElementById('lbl-fin-siguiente').innerText || '';
@@ -6418,6 +6883,15 @@
             if (printConst) printConst.innerHTML = '';
             if (printFact) printFact.innerHTML = facturaHtml;
             
+            // Margen de 10 mm a cada lado (superior, inferior, izquierda y derecha) para la cotización
+            let cotizStyle = document.getElementById('cotizacion-print-style');
+            if (!cotizStyle) {
+                cotizStyle = document.createElement('style');
+                cotizStyle.id = 'cotizacion-print-style';
+                document.head.appendChild(cotizStyle);
+            }
+            cotizStyle.textContent = `@media print { @page { size: letter portrait !important; margin: 10mm !important; } }`;
+
             setTimeout(() => {
                 window.print();
             }, 300);
@@ -6440,6 +6914,8 @@
             document.getElementById('constancia-dirigida').value = 'A quien corresponda';
             document.getElementById('modal-constancia-opciones').classList.remove('hidden');
         }
+
+        const LOGO_HARMONHALL_CONSTANCIA = "data:image/jpeg;base64,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";
 
         function generarConstancia() {
             document.getElementById('modal-constancia-opciones').classList.add('hidden');
@@ -6506,6 +6982,7 @@
             const finActual    = document.getElementById('lbl-fin-actual').innerText    || '';
 
             // ── Leer opciones de los checkboxes ────────────────────────────────────
+            const includeLogo = document.getElementById('chk-const-logo') ? document.getElementById('chk-const-logo').checked : true;
             const includeModalidad = document.getElementById('chk-const-modalidad').checked;
             const includeHorario   = document.getElementById('chk-const-horario').checked;
             const includeCefr      = document.getElementById('chk-const-cefr').checked;
@@ -6559,8 +7036,15 @@
 
             // ── Generar el HTML de la constancia (estructura idéntica al DOCX) ──────
             const constanciaHtml = `
-                <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
-                <p class="constancia-asunto">Asunto: Constancia de estudios.<br></p>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div style="text-align: left;">
+                        ${includeLogo ? `<img src="${LOGO_HARMONHALL_CONSTANCIA}" style="height: 48px; width: auto; max-width: 250px; object-fit: contain; display: block; mix-blend-mode: multiply;" alt="Harmon Hall">` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        <p class="constancia-fecha">Puebla de Zaragoza, a ${fechaTexto}.</p>
+                        <p class="constancia-asunto">Asunto: Constancia de estudios.<br></p>
+                    </div>
+                </div>
                 <p class="constancia-salto">&nbsp;</p>
                 <p class="constancia-destinatario">${dirigidaA}.</p>
                 <p class="constancia-presente">PRESENTE.</p>
@@ -6817,7 +7301,7 @@
             },
             preteens: {
                 precio: "$700",
-                programa: "PTEEN",
+                programa: "PRETEENS",
                 mostrarCefr: false,
                 filas: [
                     { nivel: "1 al 3", libro: "GAME CHANGER STARTER", bg: "#ff0000", text: "white" },
@@ -8087,6 +8571,8 @@
             const pf = document.getElementById('print-factura');
             if (pc) pc.innerHTML = '';
             if (pf) pf.innerHTML = '';
+            const cotizStyle = document.getElementById('cotizacion-print-style');
+            if (cotizStyle) cotizStyle.textContent = '';
         });
             // ==========================================
         // DASHBOARD LOGIC
@@ -8620,7 +9106,21 @@
                 slider.value = maxCursos;
                 valSlider = maxCursos;
             }
-            document.getElementById('calc-cursos-val').innerText = valSlider;
+            const elCalcCursosVal = document.getElementById('calc-cursos-val');
+            if (elCalcCursosVal) {
+                elCalcCursosVal.innerText = `${valSlider} ${valSlider === 1 ? 'curso' : 'cursos'}`;
+            }
+            const calcSliderEl = document.getElementById('calc-slider');
+            const calcBubbleEl = document.getElementById('calc-cursos-val-bubble');
+            if (calcSliderEl && calcBubbleEl) {
+                const sMin = parseFloat(calcSliderEl.min) !== undefined ? parseFloat(calcSliderEl.min) : 1;
+                const sMax = parseFloat(calcSliderEl.max) || 24;
+                const sVal = parseFloat(calcSliderEl.value) || 1;
+                const sRange = (sMax - sMin) || 1;
+                const pct = Math.max(0, Math.min(100, ((sVal - sMin) / sRange) * 100));
+                const thumbOffset = 8 - (pct * 0.16);
+                calcBubbleEl.style.left = `calc(${pct}% + ${thumbOffset}px)`;
+            }
 
             const cantCursos = valSlider;
             const programa = document.getElementById('calc-programa').value;
@@ -8634,6 +9134,16 @@
             let cursosBajos = 0, cursosAltos = 0;
             const primerNivel = curso;
             const ultimoNivel = primerNivel + cantCursos - 1;
+            
+            const elDestinoManual = document.getElementById('calc-lbl-nivel-destino');
+            const elDetalleManual = document.getElementById('calc-lbl-rango-niveles-detalle');
+            if (elDestinoManual) {
+                elDestinoManual.innerText = `🎯 Pagarías hasta Nivel ${ultimoNivel}`;
+            }
+            if (elDetalleManual) {
+                elDetalleManual.innerText = cantCursos === 1 ? `📖 Curso a cursar: Nivel ${primerNivel}` : `📖 Cursos a cursar: Niveles ${primerNivel} al ${ultimoNivel}`;
+            }
+
             for (let nivel = primerNivel; nivel <= ultimoNivel; nivel++) {
                 (nivel >= 21) ? cursosAltos++ : cursosBajos++;
             }
