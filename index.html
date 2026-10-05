@@ -92,7 +92,8 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-1.5">
+            <!-- Botones de administración (Ocultos por defecto para los alumnos) -->
+            <div id="admin-actions" class="hidden flex items-center gap-1.5 fade-in">
                 <!-- Botón de recarga -->
                 <button onclick="recargarDatos()" title="Actualizar datos" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition active:scale-95">
                     <i data-lucide="refresh-cw" id="icon-refresh" class="w-4 h-4"></i>
@@ -738,8 +739,9 @@
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
-        // ==================== CONFIGURACIÓN DE LA MICRO-API ====================
+        // ==================== CONFIGURACIÓN ====================
         const API_SALONES_URL = 'https://script.google.com/macros/s/AKfycbz2VkRMEgDSepVBOldRrN32GZ0-UaygwcP2WzyBHV2tgEAOuzBZP3NP1HtLZ_Mm-Pcb/exec';
+        const WHATSAPP_NUMERO = '522208731288'; // Número de recepción para cotizaciones
 
         const LOCAL_STORAGE_KEY = 'mi_matricula_escolar';
         const LOCAL_STORAGE_DATA_KEY = 'mi_datos_alumno_cache';
@@ -750,9 +752,20 @@
 
         // ==================== INICIALIZACIÓN ====================
         window.addEventListener('DOMContentLoaded', async () => {
+            verificarModoAdmin();
             lucide.createIcons();
             await iniciarApp();
         });
+
+        // Activar botones de admin únicamente si entra con #admin o ?admin
+        function verificarModoAdmin() {
+            const hash = window.location.hash || '';
+            const params = new URLSearchParams(window.location.search);
+            if (hash.includes('admin') || params.has('admin')) {
+                const adm = document.getElementById('admin-actions');
+                if (adm) adm.classList.remove('hidden');
+            }
+        }
 
         async function iniciarApp(forzarRecarga = false) {
             const matriculaGuardada = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -1167,7 +1180,7 @@
             const total = document.getElementById('cotiz-val-total').innerText;
             const cursosTxt = (cantCursos === '1') ? '1 curso' : `${cantCursos} cursos`;
             const mensaje = `¡Hola! Soy ${cotizacionActual.primerNombre} (Matrícula: ${cotizacionActual.matricula}). Acabo de cotizar en el portal mi reinscripción para ${cursosTxt} por un total de ${total}. ¿Me podrían apoyar con los métodos de pago?`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+            window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(mensaje)}`, '_blank');
         }
 
         // ==================== CAMBIAR MATRÍCULA (Reset LocalStorage) ====================
