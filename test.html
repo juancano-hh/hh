@@ -2456,6 +2456,8 @@
                         if (!id) continue;
 
                         const periodo = fila[1] ? String(fila[1]).trim() : '';
+                        const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
+                        const stUpper = estatusPagoRaw.toUpperCase();
                         const programaRawTemp = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                         const cursoSiguienteTextTemp = fila[14] ? String(fila[14]).trim() : '';
                         const numMatchTemp = cursoSiguienteTextTemp.match(/\d+/);
@@ -2463,7 +2465,7 @@
 
                         // Si ya está en baseAlumnos (cargado desde el layout principal)
                         if (baseAlumnos[id]) {
-                            if (esCurso24) {
+                            if (esCurso24 && stUpper === 'R') {
                                 baseAlumnos[id].nivelActual = 24;
                                 baseAlumnos[id].cursoVisual = '24';
                                 baseAlumnos[id].esCurso24 = true;
@@ -2473,15 +2475,16 @@
 
                         // Solo se toman:
                         // 1. Alumnos de primer mes (periodo 2608XX)
-                        // 2. Alumnos cuyo curso en columna O (fila[14]) sea 24 (su último curso)
+                        // 2. Alumnos cuyo curso en columna O (fila[14]) sea 24 (su último curso) Y tengan estatus 'R'
                         const esPrimerMes2608 = periodo.includes('2608') || periodo.startsWith('2608');
                         if (!esPrimerMes2608 && !esCurso24) continue;
 
-                        // Filtrar estatus en Columna C (fila[2]): R, REC, Transferencia Llega o Transferencia Sale (para curso 24 siempre es válido)
-                        const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
-                        const stUpper = estatusPagoRaw.toUpperCase();
+                        // Regla estricta para curso 24: Solo mostrar los que tienen estatus 'R'
+                        if (esCurso24 && stUpper !== 'R') continue;
+
+                        // Filtrar estatus para alumnos de primer mes (2608XX): R, REC, Transferencia Llega o Transferencia Sale
                         const esValido = stUpper === 'R' || stUpper === 'REC' || stUpper.includes('TRANSFERENCIA LLEGA') || stUpper.includes('TRANSFERENCIA SALE') || stUpper.includes('TRANSF. LLEGA') || stUpper.includes('TRANSF. SALE') || stUpper.includes('TRANSFERENCIA');
-                        if (!esValido && !esCurso24) continue;
+                        if (!esCurso24 && !esValido) continue;
 
                         let tieneServicio = false;
                         const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
@@ -9527,6 +9530,12 @@
 
                 if (alumno.nivelActual !== gBase.nivelNum) continue;
                 if (alumno.programaNombre !== gBase.progNombre) continue;
+
+                // Para curso 24: Solo mostrar los que tienen estatus 'R'
+                if (alumno.nivelActual === 24) {
+                    const est = (alumno.estatusPago || '').trim().toUpperCase();
+                    if (est !== 'R' && !alumno.tieneR) continue;
+                }
 
                 const horUpp = (alumno.horario || '').toUpperCase().replace(/[\.\s]/g, '');
                 let matchH = false;
