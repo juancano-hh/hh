@@ -6,8 +6,6 @@
     <title>Consulta tu Salón</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PapaParse para leer CSVs de Google Sheets -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <!-- QRCode.js para generar el código QR imprimible -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Lucide Icons -->
@@ -646,21 +644,14 @@
 
     <!-- LÓGICA JAVASCRIPT -->
     <script>
-        // ==================== CONFIGURACIÓN DE LINKS DE GOOGLE SHEETS ====================
-        // Mismos links usados en colab.html
-        const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
-        const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
-        const SALONES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1864649190&single=true&output=csv';
+        // ==================== CONFIGURACIÓN DE LA MICRO-API ====================
+        const API_SALONES_URL = 'https://script.google.com/macros/s/AKfycbz2VkRMEgDSepVBOldRrN32GZ0-UaygwcP2WzyBHV2tgEAOuzBZP3NP1HtLZ_Mm-Pcb/exec';
 
         const LOCAL_STORAGE_KEY = 'mi_matricula_escolar';
+        const LOCAL_STORAGE_DATA_KEY = 'mi_datos_alumno_cache';
+        const LOCAL_STORAGE_DATE_KEY = 'mi_fecha_cache';
 
-        // Estructuras de datos en memoria
-        let baseAlumnos = {};
-        let alumnosPorIdNormalizado = new Map();
-        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
         let alumnoSeleccionado = null;
-        let datosCargados = false;
-        let qrGenerado = false;
         let pisoActualVisual = 1;
 
         // ==================== INICIALIZACIÓN ====================
@@ -669,339 +660,81 @@
             await iniciarApp();
         });
 
-        async function iniciarApp() {
-            mostrarVista('vista-cargando');
-            actualizarTextoCargando('Sincronizando información...', 'Descargando lista de alumnos y salones');
+        async function iniciarApp(forzarRecarga = false) {
+            const matriculaGuardada = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-            try {
-                // Descargar concurrentemente datos de alumnos y salones
-                await Promise.all([cargarAlumnos(), cargarSalones()]);
-                datosCargados = true;
-
-                // Verificar si ya existe una matrícula en localStorage
-                const matriculaGuardada = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (matriculaGuardada) {
-                    const alumno = buscarAlumnoEnBase(matriculaGuardada);
-                    if (alumno) {
-                        renderizarAlumno(alumno);
-                        return;
-                    } else {
-                        // Si estaba guardada pero ya no existe en el CSV, limpiar
-                        localStorage.removeItem(LOCAL_STORAGE_KEY);
-                    }
-                }
-
-                // Si no hay matrícula guardada, mostrar formulario de primera vez
+            // Si no hay matrícula guardada, ir directo al formulario de registro
+            if (!matriculaGuardada) {
                 mostrarVista('vista-registro');
                 setTimeout(() => {
                     const inp = document.getElementById('input-matricula');
                     if (inp) inp.focus();
                 }, 300);
-
-            } catch (err) {
-                console.error("Error al inicializar la app:", err);
-                mostrarErrorInicial("No se pudieron cargar los datos escolares. Por favor revisa tu conexión a internet.");
+                return;
             }
-        }
 
-        // ==================== CARGA DE ALUMNOS (Layout + Nuevo Ingreso) ====================
-        async function cargarAlumnos() {
-            baseAlumnos = {};
-            alumnosPorIdNormalizado.clear();
+            // Si hay matrícula guardada, revisar si tenemos caché fresco de hoy (si no es forzarRecarga)
+            const hoy = new Date().toDateString();
+            const fechaCache = localStorage.getItem(LOCAL_STORAGE_DATE_KEY);
+            const datosCache = localStorage.getItem(LOCAL_STORAGE_DATA_KEY);
 
-            // 1. Layout Principal
-            try {
-                const urlLayout = LAYOUT_CSV_URL + '&t=' + Date.now();
-                const res = await fetch(urlLayout);
-                const csvText = await res.text();
-                const parsed = Papa.parse(csvText, { header: false, skipEmptyLines: true });
-                const filas = parsed.data;
-
-                for (let idx = 1; idx < filas.length; idx++) {
-                    const fila = filas[idx];
-                    if (fila.length < 4) continue;
-                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
-                    if (!id) continue;
-
-                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
-                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'Presencial';
-                    const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
-                    
-                    let programaNombre = "ADULTO";
-                    let programaTexto = "Adulto";
-                    if (programaRaw.includes("PTEEN")) { programaNombre = "PTEEN"; programaTexto = "PTEEN"; }
-                    else if (programaRaw.includes("KIDS")) { programaNombre = "KIDS"; programaTexto = "Kids"; }
-                    else if (programaRaw.includes("TEENS")) { programaNombre = "TEENS"; programaTexto = "Teens"; }
-
-                    const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
-                    let nivelSiguiente = 1;
-                    const numeroMatch = cursoSiguienteText.match(/\d+/);
-                    if (numeroMatch) nivelSiguiente = parseInt(numeroMatch[0]);
-                    const nivelActual = Math.max(0, nivelSiguiente - 1);
-
-                    const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
-                    let modalidadCalculada = "FFI";
-                    const horarioUpper = horarioTexto.toUpperCase();
-                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
-                        modalidadCalculada = "SA";
-                    } else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) {
-                        modalidadCalculada = "DO";
-                    }
-
-                    const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
-                    const tieneR = estatusPagoRaw.toUpperCase() === 'R';
-                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
-
-                    const alumno = {
-                        idOriginal: id,
-                        nombre: nombreAlumno,
-                        modalidad: modalidadTexto,
-                        programaTexto: programaTexto,
-                        programaNombre: programaNombre,
-                        nivelActual: nivelActual,
-                        horario: horarioTexto,
-                        tipoClaseCal: tipoClaseCal,
-                        tieneR: tieneR,
-                        estatusPago: estatusPagoRaw,
-                        esLayPasado: false
-                    };
-
-                    baseAlumnos[id] = alumno;
-                    const idNorm = normalizarMatricula(id);
-                    if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
+            if (!forzarRecarga && fechaCache === hoy && datosCache) {
+                try {
+                    const alumno = JSON.parse(datosCache);
+                    renderizarAlumno(alumno);
+                    return;
+                } catch (e) {
+                    console.warn("Error leyendo caché local:", e);
                 }
-            } catch (e) {
-                console.warn("Error cargando layout principal:", e);
             }
 
-            // 2. Layout Nuevo Ingreso (Sin pago / LayPasado)
+            // Si no hay caché o se forzó recarga, consultar a la Micro-API
+            mostrarVista('vista-cargando');
+            actualizarTextoCargando('Consultando tu salón...', 'Verificando con el sistema escolar');
+
             try {
-                const urlNuevo = LAYOUT_NUEVO_INGRESO_CSV_URL + '&t=' + Date.now();
-                const resNuevo = await fetch(urlNuevo);
-                const csvTxtNuevo = await resNuevo.text();
-                const parsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
-                const filasNuevo = parsedNuevo.data;
-
-                for (let idx = 1; idx < filasNuevo.length; idx++) {
-                    const fila = filasNuevo[idx];
-                    if (fila.length < 4) continue;
-                    const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
-                    if (!id || baseAlumnos[id]) continue; // Si ya estaba, respetarlo
-
-                    const periodo = fila[1] ? String(fila[1]).trim() : '';
-                    const programaRawTemp = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
-                    const cursoSiguienteTextTemp = fila[14] ? String(fila[14]).trim() : '';
-                    const esAdulto = (!programaRawTemp.includes("PTEEN") && !programaRawTemp.includes("KIDS") && !programaRawTemp.includes("TEENS"));
-                    const esCurso24 = cursoSiguienteTextTemp.match(/\d+/) && parseInt(cursoSiguienteTextTemp.match(/\d+/)[0]) === 24;
-
-                    if (!periodo.includes('2608') && !periodo.startsWith('2608') && !(esAdulto && esCurso24)) continue;
-
-                    const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
-                    const stUpper = estatusPagoRaw.toUpperCase();
-                    const esValido = stUpper === 'R' || stUpper === 'REC' || stUpper.includes('TRANSFERENCIA');
-                    if (!esValido) continue;
-
-                    const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
-                    const modalidadTexto = fila[10] ? String(fila[10]).trim() : 'Presencial';
-                    const programaRaw = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
-
-                    let programaNombre = "ADULTO";
-                    let programaTexto = "Adulto";
-                    if (programaRaw.includes("PTEEN")) { programaNombre = "PTEEN"; programaTexto = "PTEEN"; }
-                    else if (programaRaw.includes("KIDS")) { programaNombre = "KIDS"; programaTexto = "Kids"; }
-                    else if (programaRaw.includes("TEENS")) { programaNombre = "TEENS"; programaTexto = "Teens"; }
-
-                    const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
-                    let nivelActual = 1;
-                    const numeroMatch = cursoSiguienteText.match(/\d+/);
-                    if (numeroMatch) nivelActual = parseInt(numeroMatch[0]);
-
-                    const horarioTexto = fila[15] ? String(fila[15]).trim() : 'Sin horario';
-                    let modalidadCalculada = "FFI";
-                    const horarioUpper = horarioTexto.toUpperCase();
-                    if (horarioUpper.includes("SA") || horarioUpper.includes("SM") || horarioUpper.includes("SV")) {
-                        modalidadCalculada = "SA";
-                    } else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) {
-                        modalidadCalculada = "DO";
-                    }
-
-                    const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
-
-                    const alumno = {
-                        idOriginal: id,
-                        nombre: nombreAlumno,
-                        modalidad: modalidadTexto,
-                        programaTexto: programaTexto,
-                        programaNombre: programaNombre,
-                        nivelActual: nivelActual,
-                        horario: horarioTexto,
-                        tipoClaseCal: tipoClaseCal,
-                        tieneR: stUpper === 'R',
-                        estatusPago: estatusPagoRaw,
-                        esLayPasado: true
-                    };
-
-                    baseAlumnos[id] = alumno;
-                    const idNorm = normalizarMatricula(id);
-                    if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
-                }
-            } catch (e) {
-                console.warn("Error cargando nuevo ingreso:", e);
-            }
-        }
-
-        // ==================== CARGA DE SALONES Y HORARIOS ====================
-        async function cargarSalones() {
-            try {
-                const urlSinCache = SALONES_CSV_URL + '&t=' + Date.now();
-                const res = await fetch(urlSinCache);
-                const txt = await res.text();
-                const parsed = Papa.parse(txt, { header: false, skipEmptyLines: true });
-                const filas = parsed.data;
-                if (filas.length < 3) return;
-
-                matrizSalones.salones = filas[0].map(s => String(s || '').trim());
-                matrizSalones.teachers = filas[1].map(t => String(t || '').trim());
-                matrizSalones.filas = [];
-                matrizSalones.filasSabado = [];
-
-                let esSabado = false;
-                let count1545 = 0;
-                for (let i = 2; i < filas.length; i++) {
-                    const f = filas[i];
-                    const hor = String(f[0] || '').trim().toUpperCase();
-                    if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
-                        esSabado = true;
-                        continue;
-                    }
-                    if (!hor) continue;
-
-                    let [h, m] = hor.split(':');
-                    if (!m) m = '00';
-                    let hStr = h.padStart(2, '0') + ':' + m;
-
-                    const obj = { horaFmt: hStr, celdas: f };
-                    if (!esSabado && hStr === '15:45') {
-                        if (count1545 === 0) obj.dias = 'Lunes y Miércoles';
-                        else obj.dias = 'Martes y Jueves';
-                        count1545++;
-                    }
-
-                    if (esSabado) matrizSalones.filasSabado.push(obj);
-                    else matrizSalones.filas.push(obj);
-                }
-            } catch (err) {
-                console.error('Error cargando matriz de salones:', err);
-            }
-        }
-
-        // ==================== BÚSQUEDA DEL SALÓN DEL ALUMNO ====================
-        function buscarSalonYTeacher(horarioOriginal, programaNombre, nivelActual, esSabado, esLayPasado = false) {
-            if (!matrizSalones.salones || matrizSalones.salones.length === 0) return null;
-
-            let hStr;
-            let tempHorario = String(horarioOriginal || '').toUpperCase().replace(/[\.\s]/g, '');
-
-            if (esSabado && tempHorario === 'SM') {
-                if (programaNombre === 'KIDS' || programaNombre === 'TEENS' || programaNombre === 'PTEEN') {
-                    hStr = '10:00';
+                const alumno = await consultarAPI(matriculaGuardada);
+                if (alumno) {
+                    // Guardar en caché de hoy
+                    localStorage.setItem(LOCAL_STORAGE_DATA_KEY, JSON.stringify(alumno));
+                    localStorage.setItem(LOCAL_STORAGE_DATE_KEY, hoy);
+                    renderizarAlumno(alumno);
                 } else {
-                    hStr = '08:00';
+                    // Si ya no existe en la base, limpiar
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    localStorage.removeItem(LOCAL_STORAGE_DATA_KEY);
+                    mostrarVista('vista-registro');
                 }
-            } else if (esSabado && tempHorario === 'SV') {
-                hStr = '13:30';
-            } else {
-                let matchHorario = String(horarioOriginal).match(/(\d+):(\d+)/);
-                if (!matchHorario) return null;
-                let hora = parseInt(matchHorario[1], 10);
-                if (tempHorario.includes('P') && hora < 12) hora += 12;
-                if (tempHorario.includes('A') && hora === 12) hora = 0;
-                hStr = hora.toString().padStart(2, '0') + ':' + matchHorario[2].substring(0, 2);
-            }
-
-            let textoBuscar = String(nivelActual);
-            if (programaNombre === 'KIDS') textoBuscar = `KB ${nivelActual}`;
-            else if (programaNombre === 'TEENS') textoBuscar = `TN ${nivelActual}`;
-            else if (programaNombre === 'PTEEN') textoBuscar = `PT ${nivelActual}`;
-
-            const textoLimpio = textoBuscar.replace(/\s+/g, '').toUpperCase();
-            const filasBuscar = esSabado ? matrizSalones.filasSabado : matrizSalones.filas;
-
-            const filasCoincidentes = filasBuscar.filter(f => {
-                let m = String(f.celdas[0] || '').match(/(\d+):(\d+)/);
-                if (!m) return false;
-                let filaHStr = parseInt(m[1], 10).toString().padStart(2, '0') + ':' + m[2].substring(0, 2);
-                return filaHStr === hStr;
-            });
-
-            if (filasCoincidentes.length === 0) return null;
-
-            let matchFallback = null;
-
-            for (let fila of filasCoincidentes) {
-                for (let i = 1; i < fila.celdas.length; i++) {
-                    const celdaRaw = String(fila.celdas[i] || '').toUpperCase();
-                    const celdaBase = celdaRaw.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
-                    const tieneS = celdaRaw.includes('(S)');
-                    const tieneE = celdaRaw.includes('(E)');
-
-                    if (celdaBase === textoLimpio) {
-                        const currentTeacher = matrizSalones.teachers[i] || 'Docente por asignar';
-                        const matchObj = {
-                            salon: matrizSalones.salones[i] || 'Por asignar',
-                            teacher: currentTeacher,
-                            dias: fila.dias,
-                            horaFmt: fila.horaFmt,
-                            isSabado: esSabado
-                        };
-
-                        if (esLayPasado && tieneS) return matchObj;
-                        if (!esLayPasado && tieneE) return matchObj;
-                        if (!tieneS && !tieneE && !matchFallback) matchFallback = matchObj;
-                    }
+            } catch (err) {
+                console.error("Error al consultar la API:", err);
+                // Si falla la red pero teníamos caché anterior, mostrarlo como respaldo
+                if (datosCache) {
+                    try {
+                        const alumnoResp = JSON.parse(datosCache);
+                        renderizarAlumno(alumnoResp);
+                        return;
+                    } catch (_) {}
                 }
+                mostrarErrorInicial("No pudimos conectar con el servidor. Revisa tu conexión a internet.");
             }
-
-            return matchFallback;
         }
 
-        // ==================== CÁLCULO DEL PISO SEGÚN SALÓN ====================
-        function obtenerPisoDeSalon(salonNombre) {
-            if (!salonNombre) return { texto: "Piso por definir", numero: 1 };
-            const s = String(salonNombre).toUpperCase().trim();
-            if (s.includes("LONDON") || s.includes("OTTAWA") || s.includes("SYDNEY") || s.includes("ATLANTA") || s.includes("NEW YORK") || s.includes("RECEPTION") || s.includes("RECEPCION")) {
-                return { texto: "Primer piso", numero: 1 };
+        // ==================== CONSULTAR API ====================
+        async function consultarAPI(matricula) {
+            const url = `${API_SALONES_URL}?matricula=${encodeURIComponent(matricula)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const json = await res.json();
+            if (json && json.encontrado && json.data) {
+                return json.data;
             }
-            if (s.includes("LIVERPOOL") || s.includes("VANCOUVER") || s.includes("TEACHER") || s.includes("STAFF")) {
-                return { texto: "Segundo piso", numero: 2 };
-            }
-            if (s.includes("HOUSTON") || s.includes("CAMBRIDGE") || s.includes("FRANCISCO") || s.includes("FRANSISCO") || s.includes("MELBOURNE") || s.includes("TORONTO")) {
-                return { texto: "Tercer piso", numero: 3 };
-            }
-            if (s.includes("ORLANDO") || s.includes("OXFORD")) {
-                return { texto: "Cuarto piso", numero: 4 };
-            }
-            return { texto: "Primer piso", numero: 1 };
-        }
-
-        // ==================== NORMALIZACIÓN DE MATRÍCULA ====================
-        function normalizarMatricula(val) {
-            if (!val) return "";
-            return String(val).trim().toUpperCase().replace(/^0+/, '');
-        }
-
-        function buscarAlumnoEnBase(matricula) {
-            if (!matricula) return null;
-            const matLimpia = String(matricula).trim().toUpperCase();
-            if (baseAlumnos[matLimpia]) return baseAlumnos[matLimpia];
-            const matNorm = normalizarMatricula(matLimpia);
-            if (alumnosPorIdNormalizado.has(matNorm)) return alumnosPorIdNormalizado.get(matNorm);
             return null;
         }
 
         // ==================== ACCIÓN: BUSCAR Y GUARDAR MATRÍCULA ====================
-        function buscarYGuardarMatricula() {
+        async function buscarYGuardarMatricula() {
             const input = document.getElementById('input-matricula');
+            const btn = document.getElementById('btn-buscar-matricula');
             const valor = input ? input.value.trim() : "";
             const errorDiv = document.getElementById('error-matricula');
 
@@ -1013,22 +746,45 @@
                 return;
             }
 
-            const alumno = buscarAlumnoEnBase(valor);
-
-            if (!alumno) {
-                if (errorDiv) {
-                    errorDiv.classList.remove('hidden');
-                    errorDiv.querySelector('span').innerText = 'Matrícula no encontrada';
-                }
-                return;
+            // Ocultar error previo y poner botón en estado de carga
+            if (errorDiv) errorDiv.classList.add('hidden');
+            const textoOriginalBtn = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div><span>Buscando tu salón...</span>`;
             }
 
-            // Guardar en LocalStorage para siempre
-            localStorage.setItem(LOCAL_STORAGE_KEY, alumno.idOriginal);
+            try {
+                const alumno = await consultarAPI(valor);
 
-            // Ocultar error si existía y renderizar
-            if (errorDiv) errorDiv.classList.add('hidden');
-            renderizarAlumno(alumno);
+                if (!alumno) {
+                    if (errorDiv) {
+                        errorDiv.classList.remove('hidden');
+                        errorDiv.querySelector('span').innerText = 'Matrícula no encontrada';
+                    }
+                    return;
+                }
+
+                // Guardar en LocalStorage para siempre
+                localStorage.setItem(LOCAL_STORAGE_KEY, alumno.matricula);
+                localStorage.setItem(LOCAL_STORAGE_DATA_KEY, JSON.stringify(alumno));
+                localStorage.setItem(LOCAL_STORAGE_DATE_KEY, new Date().toDateString());
+
+                renderizarAlumno(alumno);
+
+            } catch (err) {
+                console.error("Error al buscar matrícula:", err);
+                if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.querySelector('span').innerText = 'Error de conexión. Intenta de nuevo.';
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = textoOriginalBtn;
+                    lucide.createIcons();
+                }
+            }
         }
 
         // ==================== RENDERIZAR VISTA DEL ALUMNO ====================
@@ -1036,51 +792,37 @@
             alumnoSeleccionado = alumno;
 
             // 1. Datos básicos
-            document.getElementById('res-nombre').innerText = `¡Hola, ${alumno.nombre.split(' ')[0]}!`;
-            document.getElementById('res-matricula').innerText = `Matrícula: ${alumno.idOriginal}`;
-            document.getElementById('res-avatar-initial').innerText = alumno.nombre.charAt(0).toUpperCase();
+            const nombreMostrar = alumno.primerNombre || alumno.nombre.split(' ')[0] || 'Alumno';
+            document.getElementById('res-nombre').innerText = `¡Hola, ${nombreMostrar}!`;
+            document.getElementById('res-matricula').innerText = `Matrícula: ${alumno.matricula}`;
+            document.getElementById('res-avatar-initial').innerText = (alumno.nombre || 'A').charAt(0).toUpperCase();
 
             document.getElementById('res-nivel').innerText = `Nivel ${alumno.nivelActual}`;
             document.getElementById('res-programa').innerText = `Programa ${alumno.programaTexto}`;
             document.getElementById('res-horario').innerText = alumno.horario;
             document.getElementById('res-modalidad').innerText = `Modalidad ${alumno.modalidad}`;
 
-            // 2. Buscar Salón y Docente
-            const esSabado = (alumno.tipoClaseCal === 'sabado');
-            const salonInfo = buscarSalonYTeacher(alumno.horario, alumno.programaNombre, alumno.nivelActual, esSabado, alumno.esLayPasado);
+            // 2. Salón y Docente
+            const nombreSalon = alumno.salon || 'Por asignar';
+            const nombreTeacher = alumno.teacher || 'Docente por asignar';
+            const numPiso = alumno.pisoNumero || 1;
+            const txtPiso = alumno.pisoTexto || 'Primer piso';
 
-            let nombreSalon = 'Por asignar';
-            let nombreTeacher = 'Docente por asignar';
-            let diasTexto = '';
-
-            if (salonInfo) {
-                nombreSalon = salonInfo.salon;
-                nombreTeacher = salonInfo.teacher;
-                if (salonInfo.dias) {
-                    document.getElementById('res-horario').innerText = `${alumno.horario} (${salonInfo.dias})`;
-                }
-            }
-
-            const infoPiso = obtenerPisoDeSalon(nombreSalon);
-            pisoActualVisual = infoPiso.numero;
+            pisoActualVisual = numPiso;
 
             document.getElementById('res-salon-nombre').innerText = nombreSalon;
             document.getElementById('res-teacher').innerText = nombreTeacher;
-            document.getElementById('badge-piso-grande').innerText = `Piso ${infoPiso.numero}`;
+            document.getElementById('badge-piso-grande').innerText = `Piso ${numPiso}`;
             document.getElementById('res-piso-detalle').innerHTML = `
                 <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                <span>Ubicado en el ${infoPiso.texto}</span>
+                <span>Ubicado en el ${txtPiso}</span>
             `;
 
-            // 3. ESTATUS DE PAGO PENDIENTE O AL CORRIENTE
-            // Según indicación: si NO ha pagado ('R'), mostrar mensaje "El pago para tu siguiente curso está pendiente"
+            // 3. Estatus de Pago
             const alertaPendiente = document.getElementById('alerta-pago-pendiente');
             const alertaAlCorriente = document.getElementById('alerta-pago-al-corriente');
-            
-            const estatus = String(alumno.estatusPago || '').trim().toUpperCase();
-            const estaPagado = (estatus === 'R' || estatus === 'REC');
 
-            if (estaPagado) {
+            if (alumno.alCorriente) {
                 alertaPendiente.classList.add('hidden');
                 alertaAlCorriente.classList.remove('hidden');
             } else {
@@ -1098,6 +840,8 @@
         function cambiarMatricula() {
             if (confirm('¿Deseas cambiar la matrícula guardada en este celular?')) {
                 localStorage.removeItem(LOCAL_STORAGE_KEY);
+                localStorage.removeItem(LOCAL_STORAGE_DATA_KEY);
+                localStorage.removeItem(LOCAL_STORAGE_DATE_KEY);
                 alumnoSeleccionado = null;
                 const inp = document.getElementById('input-matricula');
                 if (inp) inp.value = '';
@@ -1111,7 +855,7 @@
             const icon = document.getElementById('icon-refresh');
             if (icon) icon.classList.add('animate-spin');
             
-            await iniciarApp();
+            await iniciarApp(true);
             
             setTimeout(() => {
                 if (icon) icon.classList.remove('animate-spin');
