@@ -2356,7 +2356,7 @@
         async function cargarAlumnos() {
             try {
                 // 1. Cargar alumnos del Layout Principal
-                const response = await fetch(LAYOUT_CSV_URL);
+                const response = await fetch(LAYOUT_CSV_URL + (LAYOUT_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                 const csvText = await response.text();
                 const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
                 const filas = result.data;
@@ -2445,7 +2445,7 @@
 
                 // 2. Cargar alumnos de la Hoja de Primer Mes / Sin Pago (2608XX - LAYPASADO)
                 try {
-                    const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL);
+                    const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL + (LAYOUT_NUEVO_INGRESO_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                     const csvTxtNuevo = await resNuevo.text();
                     const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
                     const filasNuevo = resParsedNuevo.data;
@@ -2573,7 +2573,7 @@
 
                 // 3. Cargar alumnos de la Hoja de Ventas (Nuevos Ingresos)
                 try {
-                    const resVentas = await fetch(HOJA_VENTAS_NUEVOS_CSV_URL);
+                    const resVentas = await fetch(HOJA_VENTAS_NUEVOS_CSV_URL + (HOJA_VENTAS_NUEVOS_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                     const csvTxtVentas = await resVentas.text();
                     const resParsedVentas = Papa.parse(csvTxtVentas, { header: false, skipEmptyLines: true });
                     const filasVentas = resParsedVentas.data;
@@ -2608,19 +2608,21 @@
 
                         const esPresencial = progClean.includes('TEENSP') || progClean.includes('PRETEENSP') || 
                                              progClean.includes('PTEENSP') || progClean.includes('KIDSP') || 
-                                             progClean.includes('TOEFP') || progClean.includes('TOEFLP');
+                                             progClean.includes('TOEFP') || progClean.includes('TOEFLP') ||
+                                             progClean.endsWith('P');
 
-                        if (progClean.includes('TEENS') || progClean.includes('TEEN')) {
-                            programaNombre = "TEENS";
-                            programaTexto = "Teens";
-                            programaCalculado = "08";
-                            codigoClaseLayout = esPresencial ? "TEEP" : "TEEL";
-                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
-                        } else if (progClean.includes('PRETEENS') || progClean.includes('PTEEN')) {
+                        // Importante: Evaluar PRETEENS / PTEEN antes de TEENS para evitar falsos positivos
+                        if (progClean.includes('PRETEENS') || progClean.includes('PTEEN') || progClean.includes('PRETEEN')) {
                             programaNombre = "PTEEN";
                             programaTexto = "PTEEN";
                             programaCalculado = "08";
                             codigoClaseLayout = esPresencial ? "PTEP" : "PTEL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else if (progClean.includes('TEENS') || progClean.includes('TEEN')) {
+                            programaNombre = "TEENS";
+                            programaTexto = "Teens";
+                            programaCalculado = "08";
+                            codigoClaseLayout = esPresencial ? "TEEP" : "TEEL";
                             modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
                         } else if (progClean.includes('KIDS') || progClean.includes('KID')) {
                             programaNombre = "KIDS";
@@ -9836,7 +9838,7 @@
                     // Si realmente hay múltiples CRNs distintos (grupos combinados)
                     const porCrn = {};
                     for (const al of alumnosCoincidentes) {
-                        const crnVal = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : 'Sin CRN';
+                        const crnVal = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : (distinctCrns[0] || 'Sin CRN');
                         if (!porCrn[crnVal]) porCrn[crnVal] = [];
                         porCrn[crnVal].push(al);
                     }
