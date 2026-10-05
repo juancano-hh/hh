@@ -2455,23 +2455,33 @@
                         const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
                         if (!id) continue;
 
-                        // Si ya está en baseAlumnos (cargado desde el layout principal), respetarlo
-                        if (baseAlumnos[id]) continue;
-
-                        // Filtrar estrictamente solo los que son del periodo 2608XX, o Adultos de curso 24 (que suelen tener 2604XX)
                         const periodo = fila[1] ? String(fila[1]).trim() : '';
                         const programaRawTemp = fila[11] ? String(fila[11]).trim().toUpperCase() : '';
                         const cursoSiguienteTextTemp = fila[14] ? String(fila[14]).trim() : '';
-                        const esAdulto = (!programaRawTemp.includes("PTEEN") && !programaRawTemp.includes("KIDS") && !programaRawTemp.includes("TEENS"));
-                        const esCurso24 = cursoSiguienteTextTemp.match(/\d+/) && parseInt(cursoSiguienteTextTemp.match(/\d+/)[0]) === 24;
-                        
-                        if (!periodo.includes('2608') && !periodo.startsWith('2608') && !(esAdulto && esCurso24)) continue;
+                        const numMatchTemp = cursoSiguienteTextTemp.match(/\d+/);
+                        const esCurso24 = numMatchTemp && parseInt(numMatchTemp[0]) === 24;
 
-                        // Filtrar estatus en Columna C (fila[2]): R, REC, Transferencia Llega o Transferencia Sale
+                        // Si ya está en baseAlumnos (cargado desde el layout principal)
+                        if (baseAlumnos[id]) {
+                            if (esCurso24) {
+                                baseAlumnos[id].nivelActual = 24;
+                                baseAlumnos[id].cursoVisual = '24';
+                                baseAlumnos[id].esCurso24 = true;
+                            }
+                            continue;
+                        }
+
+                        // Solo se toman:
+                        // 1. Alumnos de primer mes (periodo 2608XX)
+                        // 2. Alumnos cuyo curso en columna O (fila[14]) sea 24 (su último curso)
+                        const esPrimerMes2608 = periodo.includes('2608') || periodo.startsWith('2608');
+                        if (!esPrimerMes2608 && !esCurso24) continue;
+
+                        // Filtrar estatus en Columna C (fila[2]): R, REC, Transferencia Llega o Transferencia Sale (para curso 24 siempre es válido)
                         const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                         const stUpper = estatusPagoRaw.toUpperCase();
                         const esValido = stUpper === 'R' || stUpper === 'REC' || stUpper.includes('TRANSFERENCIA LLEGA') || stUpper.includes('TRANSFERENCIA SALE') || stUpper.includes('TRANSF. LLEGA') || stUpper.includes('TRANSF. SALE') || stUpper.includes('TRANSFERENCIA');
-                        if (!esValido) continue;
+                        if (!esValido && !esCurso24) continue;
 
                         let tieneServicio = false;
                         const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
@@ -2503,7 +2513,7 @@
                         const cursoSiguienteText = fila[14] ? String(fila[14]).trim() : '';
                         let nivelActual = 1;
                         const numeroMatch = cursoSiguienteText.match(/\d+/);
-                        if (numeroMatch) nivelActual = parseInt(numeroMatch[0]); // NO SE RESTA 1 para 2608XX
+                        if (numeroMatch) nivelActual = parseInt(numeroMatch[0]); // Para alumnos de curso 24 y 2608XX no se resta 1
 
                         const textoCursoVisualizado = String(nivelActual);
 
@@ -2527,21 +2537,24 @@
                         const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
                         const crnLayout = fila[17] ? String(fila[17]).trim() : '';
 
+                        let programaCalculado = (programaNombre === "ADULTO") ? "04" : "08";
+
                         const alumno = {
                             idOriginal: id, nombre: nombreAlumno, nota: notaAlumno, correo: correoAlumno, celular: celularAlumno,
                             modalidad: modalidadTexto, programaTexto: programaTexto, programaNombre: programaNombre, programaRaw: programaRaw,
-                            prefijoMod: modalidadCalculada, programa: "08", nivelActual: nivelActual,
+                            prefijoMod: modalidadCalculada, programa: programaCalculado, nivelActual: nivelActual,
                             cursoVisual: textoCursoVisualizado, horario: horarioTexto, beca: becaVal,
                             cargoServicio: tieneServicio ? 90 : 0,
                             periodoSiguiente: periodo,
                             tipoClaseCal: tipoClaseCal,
                             volumen: volumenInfo,
-                            tieneR: false,
-                            estatusPago: estatusPagoRaw,
+                            tieneR: (stUpper === 'R' || esCurso24),
+                            estatusPago: estatusPagoRaw || (esCurso24 ? 'R' : ''),
                             codigoClase: codigoClaseLayout,
                             crn: crnLayout,
-                            esPrimerMes: true,
+                            esPrimerMes: !esCurso24,
                             esLayPasado: true,
+                            esCurso24: !!esCurso24,
                             noLeTocaPago: false
                         };
 
@@ -2549,7 +2562,7 @@
                         const idNorm = String(id).replace(/^0+/, '');
                         if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                     }
-                    console.log("Alumnos de LAYPASADO (2608XX) incorporados.");
+                    console.log("Alumnos de LAYPASADO (2608XX y Curso 24) incorporados.");
                 } catch(errNuevo) {
                     console.warn("No se pudo cargar la hoja de LAYPASADO:", errNuevo);
                 }
@@ -3419,7 +3432,7 @@
                     statusBadge = `<span class="bg-gray-100 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block uppercase">${estatusOriginal}</span>`;
                 }
 
-                if (alumnoActual.esLayPasado) {
+                if (alumnoActual.esLayPasado && !alumnoActual.esCurso24) {
                     statusBadge += ' <span class="bg-gray-200 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block ml-2 border border-gray-300">[INI ANTERIOR]</span>';
                 }
 
