@@ -2284,7 +2284,7 @@
         // Variables globales existentes
         let baseAlumnos = {};
         let alumnosPorIdNormalizado = new Map();
-        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
+        let matrizSalones = { salones: [], salonesSabado: [], filaSabado: [], teachers: [], filas: [], filasSabado: [] };
         let tablaPrecios = {};
         let promosVolumen = [];
         let textoPromocionalF1 = "";
@@ -4803,6 +4803,8 @@
 
                 matrizSalones.salones = filas[0].map(s => String(s).trim());
                 matrizSalones.teachers = filas[1].map(t => String(t).trim());
+                matrizSalones.salonesSabado = [...matrizSalones.salones];
+                matrizSalones.filaSabado = [];
                 matrizSalones.filas = [];
                 matrizSalones.filasSabado = [];
 
@@ -4813,6 +4815,13 @@
                     const hor = String(f[0] || '').trim().toUpperCase();
                     if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
                         esSabado = true;
+                        matrizSalones.filaSabado = f;
+                        for (let c = 1; c < f.length; c++) {
+                            const valSalon = String(f[c] || '').trim();
+                            if (valSalon) {
+                                matrizSalones.salonesSabado[c] = valSalon;
+                            }
+                        }
                         continue;
                     }
                     if (!hor) continue;
@@ -4892,8 +4901,12 @@
 
                     if (celdaBase === textoLimpio) {
                         const currentTeacher = matrizSalones.teachers[i] || 'No definido';
+                        const salonActual = (esSabado && matrizSalones.salonesSabado && matrizSalones.salonesSabado[i])
+                            ? matrizSalones.salonesSabado[i]
+                            : (matrizSalones.salones[i] || 'No definido');
+
                         const matchObj = {
-                            salon: matrizSalones.salones[i] || 'No definido',
+                            salon: salonActual,
                             teacher: currentTeacher,
                             dias: fila.dias,
                             colIdx: i,
@@ -7980,11 +7993,17 @@
             });
 
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
-            tbodyHtml += `
-                <tr class="bg-gray-100">
-                    <td class="font-bold border border-gray-300 py-1" colspan="${colSpan}">SABADO</td>
-                </tr>
-            `;
+            tbodyHtml += '<tr class="bg-gray-100 font-bold border border-gray-300">';
+            tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center bg-gray-200">SABADO</td>`;
+            for (let c = 1; c < colSpan; c++) {
+                const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                if (salonEsp) {
+                    tbodyHtml += `<td class="font-bold border border-amber-300 py-1 px-1 text-center bg-amber-100 text-amber-900 text-xs">🏫 ${salonEsp}</td>`;
+                } else {
+                    tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-100"></td>`;
+                }
+            }
+            tbodyHtml += '</tr>';
 
             (matrizSalones.filasSabado || []).forEach(f => {
                 tbodyHtml += '<tr>';
@@ -8172,13 +8191,20 @@
                 tbodyHtml += '</tr>';
             });
 
-            // Render separador Sabado
+            // Render separador Sabado con salones específicos si existen
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
-            tbodyHtml += `
-                <tr class="bg-gray-100">
-                    <td class="font-bold border border-gray-300 py-1" colspan="${colSpan}">SABADO</td>
-                </tr>
-            `;
+            tbodyHtml += '<tr class="bg-gray-100 font-bold border border-gray-300">';
+            tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center bg-gray-200">SABADO</td>`;
+            for (let c = 1; c < colSpan; c++) {
+                const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                let matchCell = highlightObj && highlightObj.isSabado && highlightObj.colIdx === c;
+                if (salonEsp) {
+                    tbodyHtml += `<td class="font-bold border border-amber-300 py-1 px-1 text-center bg-amber-100 text-amber-900 text-xs ${matchCell ? 'ring-2 ring-yellow-500 font-extrabold' : ''}" title="Salón en sábado para ${matrizSalones.teachers[c] || ''}">🏫 ${salonEsp}</td>`;
+                } else {
+                    tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-100 ${matchCell ? 'bg-yellow-200' : ''}"></td>`;
+                }
+            }
+            tbodyHtml += '</tr>';
 
             // Render filas Sabado
             (matrizSalones.filasSabado || []).forEach(f => {
@@ -8764,7 +8790,9 @@
                 matrizSalones.filasSabado.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let salon = (matrizSalones.salonesSabado && matrizSalones.salonesSabado[idx])
+                                ? matrizSalones.salonesSabado[idx]
+                                : (matrizSalones.salones[idx] || 'Sin Salón');
                             let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, true);
                         }
@@ -9489,7 +9517,9 @@
                 const celda = String(fila.celdas[ci] || '').trim();
                 if (!celda) continue;
 
-                const salon = matrizSalones.salones[ci] || 'Sin salon';
+                const salon = (fila.esSabado && matrizSalones.salonesSabado && matrizSalones.salonesSabado[ci])
+                    ? matrizSalones.salonesSabado[ci]
+                    : (matrizSalones.salones[ci] || 'Sin salon');
                 const celdaClean = celda.replace(/\([^)]*\)/g, '').trim();
                 let progNombre = 'ADULTO';
                 let nivelNum   = null;
