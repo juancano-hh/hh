@@ -2269,6 +2269,7 @@
         // ==================== CONFIGURACIÓN ====================
         const LAYOUT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?output=csv';
         const LAYOUT_NUEVO_INGRESO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=40200168&single=true&output=csv';
+        const HOJA_VENTAS_NUEVOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7QUJoCpUaPPDh6gDUEiHPlWG-CdLnwCZdoTVitMCHDFRcd_snpqnuPw-c7Ffj9SEDR62wgyzYUrxD/pub?gid=1626846210&single=true&output=csv';
         const SHEET_ID = '1NFixLzGwXjpSiElk7rHzb4D63tAO_XHPxqJZTJF_m4E';
         const URL_PRECIOS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=PRECIOS`;
         const URL_VOLUMEN = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=VOLUMEN`;
@@ -2284,7 +2285,7 @@
         // Variables globales existentes
         let baseAlumnos = {};
         let alumnosPorIdNormalizado = new Map();
-        let matrizSalones = { salones: [], teachers: [], filas: [], filasSabado: [] };
+        let matrizSalones = { salones: [], salonesSabado: [], filaSabado: [], teachers: [], filas: [], filasSabado: [] };
         let tablaPrecios = {};
         let promosVolumen = [];
         let textoPromocionalF1 = "";
@@ -2568,6 +2569,146 @@
                     console.log("Alumnos de LAYPASADO (2608XX y Curso 24) incorporados.");
                 } catch(errNuevo) {
                     console.warn("No se pudo cargar la hoja de LAYPASADO:", errNuevo);
+                }
+
+                // 3. Cargar alumnos de la Hoja de Ventas (Nuevos Ingresos)
+                try {
+                    const resVentas = await fetch(HOJA_VENTAS_NUEVOS_CSV_URL);
+                    const csvTxtVentas = await resVentas.text();
+                    const resParsedVentas = Papa.parse(csvTxtVentas, { header: false, skipEmptyLines: true });
+                    const filasVentas = resParsedVentas.data;
+
+                    for (let idx = 0; idx < filasVentas.length; idx++) {
+                        const fila = filasVentas[idx];
+                        if (!fila || fila.length < 4) continue;
+
+                        const nombreAlumno = fila[3] ? String(fila[3]).trim() : '';
+                        if (!nombreAlumno || nombreAlumno.toUpperCase() === 'NOMBRE') continue;
+
+                        const celRaw = fila[5] ? String(fila[5]).trim() : '';
+                        const idRaw = fila[0] ? String(fila[0]).trim().toUpperCase() : '';
+                        // Si no tiene matrícula, generamos un identificador único con su celular o índice
+                        const id = idRaw || ('NV-' + (celRaw ? celRaw.replace(/\D/g, '') : ('00' + idx)));
+
+                        const correoAlumno = fila[4] ? String(fila[4]).trim() : 'No registrado';
+                        let celularAlumno = 'No registrado';
+                        if (celRaw) {
+                            let limpio = celRaw.replace(/[\/\\|]+/g, ',').replace(/\s*,\s*/g, ', ');
+                            celularAlumno = limpio.replace(/^,|,$/g, '') || "No registrado";
+                        }
+
+                        // Programa y modalidad
+                        const progRaw = fila[2] ? String(fila[2]).trim().toUpperCase() : '';
+                        const progClean = progRaw.replace(/\s+/g, '');
+                        let programaNombre = "ADULTO";
+                        let programaTexto = "Adulto";
+                        let modalidadTexto = "PRESENCIAL";
+                        let programaCalculado = "08";
+                        let codigoClaseLayout = "ADUP";
+
+                        const esPresencial = progClean.includes('TEENSP') || progClean.includes('PRETEENSP') || 
+                                             progClean.includes('PTEENSP') || progClean.includes('KIDSP') || 
+                                             progClean.includes('TOEFP') || progClean.includes('TOEFLP');
+
+                        if (progClean.includes('TEENS') || progClean.includes('TEEN')) {
+                            programaNombre = "TEENS";
+                            programaTexto = "Teens";
+                            programaCalculado = "08";
+                            codigoClaseLayout = esPresencial ? "TEEP" : "TEEL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else if (progClean.includes('PRETEENS') || progClean.includes('PTEEN')) {
+                            programaNombre = "PTEEN";
+                            programaTexto = "PTEEN";
+                            programaCalculado = "08";
+                            codigoClaseLayout = esPresencial ? "PTEP" : "PTEL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else if (progClean.includes('KIDS') || progClean.includes('KID')) {
+                            programaNombre = "KIDS";
+                            programaTexto = "Kids";
+                            programaCalculado = "08";
+                            codigoClaseLayout = esPresencial ? "KIDP" : "KIDL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else if (progClean.includes('TOEFL') || progClean.includes('TOEF')) {
+                            programaNombre = "TOEFL";
+                            programaTexto = "TOEFL";
+                            programaCalculado = "04";
+                            codigoClaseLayout = esPresencial ? "TOEP" : "TOEL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else {
+                            programaNombre = "ADULTO";
+                            programaTexto = "Adulto";
+                            programaCalculado = "04";
+                            codigoClaseLayout = "ADUP";
+                            modalidadTexto = "PRESENCIAL";
+                        }
+
+                        // Nivel
+                        let nivelActual = 1;
+                        if (fila[7]) {
+                            const numNiv = parseInt(String(fila[7]).trim(), 10);
+                            if (!isNaN(numNiv)) nivelActual = numNiv;
+                        }
+
+                        // Horario y frecuencia
+                        const freqRaw = fila[6] ? String(fila[6]).trim() : '';
+                        const horaRaw = fila[8] ? String(fila[8]).trim() : '';
+                        const freqUp = freqRaw.toUpperCase();
+
+                        let esSabado = freqUp.includes('SAB') || horaRaw === '13:30' || horaRaw === '10:00' || horaRaw === '8:00' || horaRaw === '08:00';
+                        let tipoClaseCal = esSabado ? 'sabado' : 'entre-semana';
+                        let modalidadCalculada = esSabado ? 'SA' : 'FFI';
+
+                        let horarioTexto = horaRaw || 'Sin horario';
+                        if (freqRaw) {
+                            horarioTexto += ' ' + freqRaw;
+                        }
+
+                        // Beca o descuento (columna W / Y / T)
+                        let becaVal = 0;
+                        const textoBeca = String(fila[22] || fila[24] || fila[19] || '');
+                        const mBeca = textoBeca.match(/(\d+)\s*%/);
+                        if (mBeca) {
+                            becaVal = parseFloat(mBeca[1]) / 100;
+                        }
+
+                        const alumno = {
+                            idOriginal: id,
+                            nombre: nombreAlumno,
+                            nota: '',
+                            correo: correoAlumno,
+                            celular: celularAlumno,
+                            modalidad: modalidadTexto,
+                            programaTexto: programaTexto,
+                            programaNombre: programaNombre,
+                            programaRaw: progRaw,
+                            prefijoMod: modalidadCalculada,
+                            programa: programaCalculado,
+                            nivelActual: nivelActual,
+                            cursoVisual: String(nivelActual),
+                            horario: horarioTexto,
+                            beca: becaVal,
+                            cargoServicio: 0,
+                            periodoSiguiente: '',
+                            tipoClaseCal: tipoClaseCal,
+                            volumen: '',
+                            tieneR: false,
+                            estatusPago: '', // En blanco según instrucción
+                            codigoClase: codigoClaseLayout,
+                            crn: '',
+                            esPrimerMes: true,
+                            esLayPasado: false,
+                            esNuevoLayout: true,
+                            esHojaVentas: true,
+                            noLeTocaPago: false
+                        };
+
+                        baseAlumnos[id] = alumno;
+                        const idNorm = String(id).replace(/^0+/, '');
+                        if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
+                    }
+                    console.log("Alumnos de Hoja de Ventas (Nuevos) incorporados.");
+                } catch(errVentas) {
+                    console.warn("No se pudo cargar la hoja de Ventas:", errVentas);
                 }
 
                 console.log("Total Alumnos cargados:", Object.keys(baseAlumnos).length);
@@ -3241,7 +3382,10 @@
                 
                 li.innerHTML = `
                     <div class="flex flex-col overflow-hidden">
-                        <span class="font-bold text-gray-800 text-sm truncate uppercase">${m.nombre}</span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-gray-800 text-sm truncate uppercase">${m.nombre}</span>
+                            ${m.esNuevoLayout ? '<span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-2 py-0.5 rounded-full border border-blue-200 tracking-wider">NUEVO</span>' : ''}
+                        </div>
                         <div class="flex items-center gap-3 mt-1 text-xs text-gray-500">
                             <div class="flex items-center gap-1">
                                 <svg class="w-3 h-3 text-pink-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path></svg>
@@ -3423,7 +3567,9 @@
                 const estatus = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim().toUpperCase() : '';
                 const estatusOriginal = alumnoActual.estatusPago ? alumnoActual.estatusPago.trim() : '';
                 
-                if (estatus === 'R' || alumnoActual.tieneR) {
+                if (alumnoActual.esHojaVentas) {
+                    statusBadge = '';
+                } else if (estatus === 'R' || alumnoActual.tieneR) {
                     statusBadge = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
                 } else if (estatus === 'PROMESA') {
                     statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
@@ -3439,9 +3585,14 @@
                     statusBadge += ' <span class="bg-gray-200 text-gray-800 text-[10px] font-bold px-2 py-1 rounded inline-block ml-2 border border-gray-300">[INI ANTERIOR]</span>';
                 }
 
-                document.getElementById('lbl-estatus-pago').innerHTML = statusBadge;
-                document.getElementById('contenedor-estatus-pago').classList.remove('hidden');
-                document.getElementById('contenedor-estatus-pago').classList.add('flex');
+                if (alumnoActual.esHojaVentas || !statusBadge) {
+                    document.getElementById('lbl-estatus-pago').innerHTML = '';
+                    document.getElementById('contenedor-estatus-pago').classList.add('hidden');
+                } else {
+                    document.getElementById('lbl-estatus-pago').innerHTML = statusBadge;
+                    document.getElementById('contenedor-estatus-pago').classList.remove('hidden');
+                    document.getElementById('contenedor-estatus-pago').classList.add('flex');
+                }
 
                 document.getElementById('lbl-celular').innerText  = alumnoActual.celular;
                 const btnWhatsApp = document.getElementById('btn-whatsapp-alumno');
@@ -4803,6 +4954,8 @@
 
                 matrizSalones.salones = filas[0].map(s => String(s).trim());
                 matrizSalones.teachers = filas[1].map(t => String(t).trim());
+                matrizSalones.salonesSabado = [...matrizSalones.salones];
+                matrizSalones.filaSabado = [];
                 matrizSalones.filas = [];
                 matrizSalones.filasSabado = [];
 
@@ -4813,6 +4966,13 @@
                     const hor = String(f[0] || '').trim().toUpperCase();
                     if (hor.includes('SABADO') || hor.includes('SÁBADO')) {
                         esSabado = true;
+                        matrizSalones.filaSabado = f;
+                        for (let c = 1; c < f.length; c++) {
+                            const valSalon = String(f[c] || '').trim();
+                            if (valSalon) {
+                                matrizSalones.salonesSabado[c] = valSalon;
+                            }
+                        }
                         continue;
                     }
                     if (!hor) continue;
@@ -4881,6 +5041,8 @@
             if (filasCoincidentes.length === 0) return null;
 
             let matchFallback = null;
+            let matchS = null;
+            let matchE = null;
 
             // Buscar en las celdas de TODAS las filas que coincidan en hora
             for (let fila of filasCoincidentes) {
@@ -4892,8 +5054,12 @@
 
                     if (celdaBase === textoLimpio) {
                         const currentTeacher = matrizSalones.teachers[i] || 'No definido';
+                        const salonActual = (esSabado && matrizSalones.salonesSabado && matrizSalones.salonesSabado[i])
+                            ? matrizSalones.salonesSabado[i]
+                            : (matrizSalones.salones[i] || 'No definido');
+
                         const matchObj = {
-                            salon: matrizSalones.salones[i] || 'No definido',
+                            salon: salonActual,
                             teacher: currentTeacher,
                             dias: fila.dias,
                             colIdx: i,
@@ -4903,24 +5069,24 @@
 
                         if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
                             if (currentTeacher !== targetTeacher) continue;
+                            return matchObj;
                         }
 
-                        // Si el alumno es LAYPASADO y la celda tiene (S) -> Match exacto
-                        if (esLayPasado && tieneS) {
-                            return matchObj;
+                        // Prioridad para curso principal: siempre preferir el que tiene (S)
+                        if (tieneS && !matchS) {
+                            matchS = matchObj;
                         }
-                        // Si el alumno es LAYOUT y la celda tiene (E) -> Match exacto
-                        if (!esLayPasado && tieneE) {
-                            return matchObj;
+                        if (tieneE && !matchE) {
+                            matchE = matchObj;
                         }
-                        // Si no tiene sufijo específico, guardar como fallback
                         if (!tieneS && !tieneE && !matchFallback) {
                             matchFallback = matchObj;
                         }
                     }
                 }
             }
-            return matchFallback;
+            // Si hay 2 cursos, siempre tomar el que tiene (S) como curso principal
+            return matchS || matchFallback || matchE;
         }
 
         // ==================== HORARIOS DE RECUPERACIÓN ====================
@@ -7982,9 +8148,31 @@
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
             tbodyHtml += `
                 <tr class="bg-gray-100">
-                    <td class="font-bold border border-gray-300 py-1" colspan="${colSpan}">SABADO</td>
+                    <td class="font-bold border border-gray-300 py-1.5 text-center text-gray-800" colspan="${colSpan}">SABADO</td>
                 </tr>
             `;
+
+            let tieneSalonesSabadoRev = false;
+            for (let c = 1; c < colSpan; c++) {
+                if (matrizSalones.filaSabado && matrizSalones.filaSabado[c] && String(matrizSalones.filaSabado[c]).trim() !== '') {
+                    tieneSalonesSabadoRev = true;
+                    break;
+                }
+            }
+
+            if (tieneSalonesSabadoRev) {
+                tbodyHtml += '<tr class="bg-gray-50 text-gray-800">';
+                tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center text-gray-700 bg-gray-100">SALON</td>`;
+                for (let c = 1; c < colSpan; c++) {
+                    const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                    if (salonEsp) {
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 px-1 text-center text-gray-800 bg-gray-50">${salonEsp}</td>`;
+                    } else {
+                        tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-50"></td>`;
+                    }
+                }
+                tbodyHtml += '</tr>';
+            }
 
             (matrizSalones.filasSabado || []).forEach(f => {
                 tbodyHtml += '<tr>';
@@ -8172,13 +8360,35 @@
                 tbodyHtml += '</tr>';
             });
 
-            // Render separador Sabado
+            // Render separador Sabado con fila de salones de sabatino si existen
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
             tbodyHtml += `
-                <tr class="bg-gray-100">
-                    <td class="font-bold border border-gray-300 py-1" colspan="${colSpan}">SABADO</td>
+                <tr class="bg-gray-100 font-bold border border-gray-300">
+                    <td class="font-bold border border-gray-300 py-1.5 text-center text-gray-800" colspan="${colSpan}">SABADO</td>
                 </tr>
             `;
+
+            let tieneSalonesSabadoLayout = false;
+            for (let c = 1; c < colSpan; c++) {
+                if (matrizSalones.filaSabado && matrizSalones.filaSabado[c] && String(matrizSalones.filaSabado[c]).trim() !== '') {
+                    tieneSalonesSabadoLayout = true;
+                    break;
+                }
+            }
+
+            if (tieneSalonesSabadoLayout) {
+                tbodyHtml += '<tr class="bg-gray-50 text-gray-800 font-bold border border-gray-300">';
+                tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center text-gray-700 bg-gray-100">SALON</td>`;
+                for (let c = 1; c < colSpan; c++) {
+                    const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                    if (salonEsp) {
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 px-1 text-center text-gray-800 bg-gray-50">${salonEsp}</td>`;
+                    } else {
+                        tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-50"></td>`;
+                    }
+                }
+                tbodyHtml += '</tr>';
+            }
 
             // Render filas Sabado
             (matrizSalones.filasSabado || []).forEach(f => {
@@ -8325,7 +8535,12 @@
                 }
             }
 
-            const listaNiveles = Array.from(nivelesUnicos.values()).sort((a,b) => a.nivel - b.nivel);
+            const listaNiveles = Array.from(nivelesUnicos.values()).sort((a,b) => {
+                if (a.nivel !== b.nivel) return a.nivel - b.nivel;
+                if (a.suffix.includes('(S)') && !b.suffix.includes('(S)')) return -1;
+                if (!a.suffix.includes('(S)') && b.suffix.includes('(S)')) return 1;
+                return 0;
+            });
             listaNiveles.forEach(obj => {
                 const niv = obj.nivel;
                 const doc = obj.teacher;
@@ -8492,9 +8707,15 @@
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
                 const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
 
-                if (esSoloS && !esAlumnoLayPasado) return false;
-                if (esSoloE && esAlumnoLayPasado) return false;
-                if (esAlumnoLayPasado && !esSoloS && !esSoloE && !(progAlumnos === 'ADULTO' && parseInt(nivelVal) === 24)) return false;
+                if (esSoloS && !esAlumnoLayPasado && !a.esHojaVentas) return false;
+                if (esSoloE && (esAlumnoLayPasado || a.esHojaVentas)) return false;
+                if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloS && !esSoloE && !(progAlumnos === 'ADULTO' && parseInt(nivelVal) === 24)) return false;
+
+                if (!esSabado) {
+                    const hUp = (a.horario || '').toUpperCase();
+                    if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
+                    if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                }
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === parseInt(nivelVal) &&
@@ -8518,7 +8739,9 @@
                     const estatus = a.estatusPago ? a.estatusPago.trim().toUpperCase() : '';
                     const estatusOriginal = a.estatusPago ? a.estatusPago.trim() : '';
 
-                    if (estatus === 'R') {
+                    if (a.esNuevoLayout && (!estatus || a.esHojaVentas)) {
+                        statusStr = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✨ NUEVO</span>';
+                    } else if (estatus === 'R') {
                         statusStr = '<span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded inline-block">✅ PAGADO</span>';
                     } else if (estatus === 'PROMESA') {
                         statusStr = '<span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-1 rounded inline-block">🗓️ PROMESA</span>';
@@ -8764,7 +8987,9 @@
                 matrizSalones.filasSabado.forEach(f => {
                     f.celdas.forEach((c, idx) => {
                         if (idx > 0 && c.trim() !== '') {
-                            let salon = matrizSalones.salones[idx] || 'Sin Salón';
+                            let salon = (matrizSalones.salonesSabado && matrizSalones.salonesSabado[idx])
+                                ? matrizSalones.salonesSabado[idx]
+                                : (matrizSalones.salones[idx] || 'Sin Salón');
                             let teacher = matrizSalones.teachers[idx] || 'Sin Profesor';
                             procesarCelda(c, f, teacher, salon, true);
                         }
@@ -9435,6 +9660,11 @@
         // Limpiar opciones previas
         while (sel.options.length > 1) sel.remove(1);
 
+        const opTodos = document.createElement('option');
+        opTodos.value = 'TODOS';
+        opTodos.textContent = '🌟 TODOS LOS TEACHERS';
+        sel.appendChild(opTodos);
+
         const teachers = [...new Set(
             (matrizSalones.teachers || []).filter(t => t && t.trim() && t.trim().toUpperCase() !== 'TEACHER')
         )].sort();
@@ -9476,6 +9706,7 @@
     }
 
     function listas_obtenerGrupos(teacherNombre) {
+        const esTodos = (!teacherNombre || teacherNombre.toUpperCase() === 'TODOS');
         const gruposBase = [];
         const todasFilas = [
             ...(matrizSalones.filas || []).map(f => ({...f, esSabado: false})),
@@ -9485,11 +9716,15 @@
         for (const fila of todasFilas) {
             for (let ci = 1; ci < fila.celdas.length; ci++) {
                 const teacher = (matrizSalones.teachers[ci] || '').trim();
-                if (teacher.toUpperCase() !== teacherNombre.toUpperCase()) continue;
+                if (!teacher || teacher.toUpperCase() === 'TEACHER') continue;
+                if (!esTodos && teacher.toUpperCase() !== teacherNombre.toUpperCase()) continue;
+
                 const celda = String(fila.celdas[ci] || '').trim();
                 if (!celda) continue;
 
-                const salon = matrizSalones.salones[ci] || 'Sin salon';
+                const salon = (fila.esSabado && matrizSalones.salonesSabado && matrizSalones.salonesSabado[ci])
+                    ? matrizSalones.salonesSabado[ci]
+                    : (matrizSalones.salones[ci] || 'Sin salon');
                 const celdaClean = celda.replace(/\([^)]*\)/g, '').trim();
                 let progNombre = 'ADULTO';
                 let nivelNum   = null;
@@ -9506,12 +9741,27 @@
 
                 if (nivelNum === null) continue;
 
+                const celdaUpper = celda.toUpperCase();
+                const esSoloS = celdaUpper.includes('(S)');
+                const esSoloE = celdaUpper.includes('(E)');
+                const sufijo = esSoloS ? ' (S)' : (esSoloE ? ' (E)' : '');
+                const celdaOriginal = celdaClean + sufijo;
+
                 let dias = fila.dias || (fila.esSabado ? 'Sábados' : 'Lunes - Jueves');
 
                 gruposBase.push({
-                    salon, horaFmt: fila.horaFmt, dias, esSabado: fila.esSabado,
-                    progNombre, nivelNum, celdaOriginal: celdaClean,
-                    teacher: teacher, colIdx: ci
+                    salon,
+                    horaFmt: fila.horaFmt,
+                    dias,
+                    esSabado: fila.esSabado,
+                    progNombre,
+                    nivelNum,
+                    esSoloS,
+                    esSoloE,
+                    sufijo,
+                    celdaOriginal,
+                    teacher: teacher,
+                    colIdx: ci
                 });
             }
         }
@@ -9537,24 +9787,28 @@
                     if (est !== 'R' && !alumno.tieneR) continue;
                 }
 
-                const horUpp = (alumno.horario || '').toUpperCase().replace(/[\.\s]/g, '');
-                let matchH = false;
+                // Identificación de origen: LAYPASADO vs LAYOUT según (S) y (E)
+                const esAlumnoLayPasado = (alumno.esLayPasado === true || alumno.esPrimerMes === true);
 
-                if (gBase.esSabado) {
-                    matchH = horUpp.includes('SA') || horUpp.includes('SM') || horUpp.includes('SV');
-                } else if (alumno.prefijoMod === 'DO') {
-                    matchH = false;
-                } else {
-                    const mH = (alumno.horario || '').match(/(\d+):(\d+)/);
-                    if (mH) {
-                        let hA = parseInt(mH[1]);
-                        if (horUpp.includes('P') && hA < 12) hA += 12;
-                        if (horUpp.includes('A') && hA === 12) hA = 0;
-                        const hFmtA = hA.toString().padStart(2, '0') + ':' + mH[2].substring(0, 2);
-                        matchH = (hFmtA === gBase.horaFmt);
-                    }
+                if (gBase.esSoloS && !esAlumnoLayPasado && !alumno.esHojaVentas) continue;
+                if (gBase.esSoloE && (esAlumnoLayPasado || alumno.esHojaVentas)) continue;
+                if (esAlumnoLayPasado && !alumno.esHojaVentas && !gBase.esSoloS && !gBase.esSoloE && !(gBase.progNombre === 'ADULTO' && gBase.nivelNum === 24)) continue;
+
+                // Modalidad Sabatino vs Entre semana
+                const esSabadoAlumno = (alumno.tipoClaseCal === 'sabado');
+                if (gBase.esSabado !== esSabadoAlumno) continue;
+
+                // Si el grupo es específico de días entre semana (LyM vs MyJ):
+                if (!gBase.esSabado) {
+                    const hUp = (alumno.horario || '').toUpperCase();
+                    if (gBase.dias === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) continue;
+                    if (gBase.dias === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) continue;
                 }
+
+                // Coincidencia de horario exacto usando la lógica estándar de horCoincide
+                let matchH = horCoincide(alumno.horario, gBase.horaFmt, gBase.progNombre, gBase.esSabado);
                 if (!matchH) continue;
+
                 alumnosCoincidentes.push(alumno);
             }
 
@@ -9600,6 +9854,7 @@
         }
 
         listaFinal.sort((a, b) => {
+            if (esTodos && a.teacher !== b.teacher) return a.teacher.localeCompare(b.teacher);
             if (a.esSabado !== b.esSabado) return a.esSabado ? 1 : -1;
             if (a.horaFmt < b.horaFmt) return -1;
             if (a.horaFmt > b.horaFmt) return 1;
@@ -9624,8 +9879,10 @@
         sinDiv.classList.add('hidden');
         wrapper.classList.remove('hidden');
 
-        document.getElementById('listas-titulo-grupos').textContent =
-            `${listasTeacherActual} — ${listasGruposActuales.length} grupo(s)`;
+        const titulo = (listasTeacherActual === 'TODOS')
+            ? `Todos los Teachers — ${listasGruposActuales.length} grupo(s)`
+            : `${listasTeacherActual} — ${listasGruposActuales.length} grupo(s)`;
+        document.getElementById('listas-titulo-grupos').textContent = titulo;
 
         container.innerHTML = '';
         listasGruposActuales.forEach((g, idx) => {
@@ -9647,17 +9904,22 @@
                 ? `<span style="font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#f3e8ff;color:#7e22ce;border:1px solid #e9d5ff;">CRN: ${g.crn}</span>`
                 : '';
 
+            const badgeSufijo = g.sufijo
+                ? `<span style="font-size:0.68rem;font-weight:800;padding:2px 8px;border-radius:20px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;">${g.sufijo.trim()}</span>`
+                : '';
+
             const card = document.createElement('div');
             card.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);';
             card.innerHTML = `
                 <div style="flex:1;min-width:0;">
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
-                        <span style="font-weight:900;color:#111827;font-size:1.05rem;">${g.progNombre} ${g.nivelNum}</span>
+                        <span style="font-weight:900;color:#111827;font-size:1.05rem;">${g.progNombre} ${g.nivelNum}${g.sufijo || ''}</span>
                         <span style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;${modColor}">${modLabel}</span>
+                        ${badgeSufijo}
                         ${badgeCrn}
                     </div>
                     <p style="font-size:0.82rem;font-weight:600;color:#4b5563;margin:0 0 4px 0;">
-                        ${g.horaFmt} &nbsp;·&nbsp; ${diasEtiqueta}
+                        ${g.horaFmt} &nbsp;·&nbsp; ${diasEtiqueta} &nbsp;·&nbsp; <span style="color:#0284c7;font-weight:700;">Prof. ${g.teacher}</span> &nbsp;·&nbsp; <span>Salón: <b>${g.salon}</b></span>
                     </p>
                     <p style="font-size:0.75rem;color:#6b7280;margin:0;font-weight:500;">${g.alumnos.length} alumno(s)</p>
                 </div>
@@ -9847,7 +10109,7 @@
             </tr>
             <tr>
                 <td colspan="8" style="border:1px solid #000;border-left:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>INSTITUTO: PUEBLA ANZURES</b></td>
-                <td colspan="17" style="border:1px solid #000;border-right:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROFESOR: ${(grupo.teacher||listasTeacherActual||'').toUpperCase()}</b></td>
+                <td colspan="17" style="border:1px solid #000;border-right:none;padding:2.5pt 5pt;font-size:7.5pt;"><b>PROFESOR:</b> ${(grupo.teacher||listasTeacherActual||'').toUpperCase()} &nbsp;&nbsp;|&nbsp;&nbsp; <b>SALÓN:</b> ${(grupo.salon || 'N/A').toUpperCase()}</td>
             </tr>
             <tr>
                 <td colspan="4" style="border:1px solid #000;border-left:none;border-bottom:none;padding:2.5pt 4pt;font-size:7.5pt;"><b>PROGRAMA:</b> ${grupo.progNombre}</td>
