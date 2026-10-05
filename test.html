@@ -7993,17 +7993,33 @@
             });
 
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
-            tbodyHtml += '<tr class="bg-gray-100 font-bold border border-gray-300">';
-            tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center bg-gray-200">SABADO</td>`;
+            tbodyHtml += `
+                <tr class="bg-gray-100">
+                    <td class="font-bold border border-gray-300 py-1.5 text-center text-gray-800" colspan="${colSpan}">SABADO</td>
+                </tr>
+            `;
+
+            let tieneSalonesSabadoRev = false;
             for (let c = 1; c < colSpan; c++) {
-                const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
-                if (salonEsp) {
-                    tbodyHtml += `<td class="font-bold border border-amber-300 py-1 px-1 text-center bg-amber-100 text-amber-900 text-xs">🏫 ${salonEsp}</td>`;
-                } else {
-                    tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-100"></td>`;
+                if (matrizSalones.filaSabado && matrizSalones.filaSabado[c] && String(matrizSalones.filaSabado[c]).trim() !== '') {
+                    tieneSalonesSabadoRev = true;
+                    break;
                 }
             }
-            tbodyHtml += '</tr>';
+
+            if (tieneSalonesSabadoRev) {
+                tbodyHtml += '<tr class="bg-gray-50 text-gray-800">';
+                tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center text-gray-700 bg-gray-100">SALON</td>`;
+                for (let c = 1; c < colSpan; c++) {
+                    const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                    if (salonEsp) {
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 px-1 text-center text-gray-800 bg-gray-50">${salonEsp}</td>`;
+                    } else {
+                        tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-50"></td>`;
+                    }
+                }
+                tbodyHtml += '</tr>';
+            }
 
             (matrizSalones.filasSabado || []).forEach(f => {
                 tbodyHtml += '<tr>';
@@ -8191,20 +8207,35 @@
                 tbodyHtml += '</tr>';
             });
 
-            // Render separador Sabado con salones específicos si existen
+            // Render separador Sabado con fila de salones de sabatino si existen
             const colSpan = (matrizSalones.salones && matrizSalones.salones.length > 0) ? matrizSalones.salones.length : 9;
-            tbodyHtml += '<tr class="bg-gray-100 font-bold border border-gray-300">';
-            tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center bg-gray-200">SABADO</td>`;
+            tbodyHtml += `
+                <tr class="bg-gray-100 font-bold border border-gray-300">
+                    <td class="font-bold border border-gray-300 py-1.5 text-center text-gray-800" colspan="${colSpan}">SABADO</td>
+                </tr>
+            `;
+
+            let tieneSalonesSabadoLayout = false;
             for (let c = 1; c < colSpan; c++) {
-                const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
-                let matchCell = highlightObj && highlightObj.isSabado && highlightObj.colIdx === c;
-                if (salonEsp) {
-                    tbodyHtml += `<td class="font-bold border border-amber-300 py-1 px-1 text-center bg-amber-100 text-amber-900 text-xs ${matchCell ? 'ring-2 ring-yellow-500 font-extrabold' : ''}" title="Salón en sábado para ${matrizSalones.teachers[c] || ''}">🏫 ${salonEsp}</td>`;
-                } else {
-                    tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-100 ${matchCell ? 'bg-yellow-200' : ''}"></td>`;
+                if (matrizSalones.filaSabado && matrizSalones.filaSabado[c] && String(matrizSalones.filaSabado[c]).trim() !== '') {
+                    tieneSalonesSabadoLayout = true;
+                    break;
                 }
             }
-            tbodyHtml += '</tr>';
+
+            if (tieneSalonesSabadoLayout) {
+                tbodyHtml += '<tr class="bg-gray-50 text-gray-800 font-bold border border-gray-300">';
+                tbodyHtml += `<td class="font-bold border border-gray-300 py-1 text-center text-gray-700 bg-gray-100">SALON</td>`;
+                for (let c = 1; c < colSpan; c++) {
+                    const salonEsp = (matrizSalones.filaSabado && matrizSalones.filaSabado[c]) ? String(matrizSalones.filaSabado[c]).trim() : '';
+                    if (salonEsp) {
+                        tbodyHtml += `<td class="font-bold border border-gray-300 py-1 px-1 text-center text-gray-800 bg-gray-50">${salonEsp}</td>`;
+                    } else {
+                        tbodyHtml += `<td class="border border-gray-300 py-1 bg-gray-50"></td>`;
+                    }
+                }
+                tbodyHtml += '</tr>';
+            }
 
             // Render filas Sabado
             (matrizSalones.filasSabado || []).forEach(f => {
