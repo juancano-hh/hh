@@ -8860,13 +8860,14 @@
         }
 
         function esGrupoPresencialValido(progAlumnos, codigoClase) {
-            if (!codigoClase) return false;
+            if (!codigoClase) return true;
             const cod = codigoClase.toUpperCase();
+            if (cod.endsWith('L') || cod.includes('LINEA') || cod.includes('ONL')) return false;
             if (progAlumnos === 'ADULTO' && cod.includes('ADUP')) return true;
             if (progAlumnos === 'PTEEN' && cod.includes('PTEP')) return true;
             if (progAlumnos === 'KIDS' && cod.includes('KIDP')) return true;
             if (progAlumnos === 'TEENS' && cod.includes('TEEP')) return true;
-            return false;
+            return true;
         }
 
         function bgActualizarHorarios() {
@@ -9143,26 +9144,47 @@
 
             // CARGAR ALUMNOS
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
-                if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
-                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
+                const modUp = (a.modalidad || '').toUpperCase();
+                if (!modUp.includes('PRESENCIAL')) return false;
+
+                const progUp = (a.programaRaw || '').toUpperCase();
+                if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
+
+                const esSabadoAlumno = (a.tipoClaseCal === 'sabado');
+                if (esSabado !== esSabadoAlumno) return false;
+
+                // 1. Coincidencia directa con la misma función oficial que asigna salón/teacher (la misma de Saloneo y Ficha)
                 const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                const sObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabadoAlumno, null, esAlumnoLayPasado);
 
-                if (esSoloS && !esAlumnoLayPasado && !a.esHojaVentas) return false;
-                if (esSoloE && (esAlumnoLayPasado || a.esHojaVentas)) return false;
-                if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloS && !esSoloE && !(progAlumnos === 'ADULTO' && parseInt(nivelVal) === 24)) return false;
-
-                if (!esSabado) {
-                    const hUp = (a.horario || '').toUpperCase();
-                    if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
-                    if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                if (sObj) {
+                    if (sObj.isSabado === esSabado && sObj.horaFmt === horaTarget) {
+                        if (salonInfo && salonInfo.colIdx !== undefined && sObj.colIdx === salonInfo.colIdx) {
+                            return true;
+                        }
+                        if (sObj.salon.toUpperCase() === finalSalon.toUpperCase() &&
+                            (finalTeacher === 'No asignado' || sObj.teacher.toUpperCase() === finalTeacher.toUpperCase())) {
+                            return true;
+                        }
+                    }
                 }
 
-                return a.programaNombre === progAlumnos &&
-                       a.nivelActual === parseInt(nivelVal) &&
-                       a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
-                       esPresencialValido &&
-                       a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
-                       horCoincide(a.horario, horaTarget, progReal, esSabado);
+                // 2. Coincidencia por CRN si la clase lo define
+                if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
+
+                // 3. Coincidencia por programa, nivel y horario (respaldo)
+                if (a.programaNombre === progReal && parseInt(a.nivelActual) === parseInt(nivelVal)) {
+                    if (!esSabado) {
+                        const hUp = (a.horario || '').toUpperCase();
+                        if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
+                        if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                    }
+                    if (horCoincide(a.horario, horaTarget, progReal, esSabado)) {
+                        return true;
+                    }
+                }
+
+                return false;
             });
 
             estudiantesList.sort((a, b) => a.nombre.localeCompare(b.nombre));
