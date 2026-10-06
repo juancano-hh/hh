@@ -2356,7 +2356,7 @@
         async function cargarAlumnos() {
             try {
                 // 1. Cargar alumnos del Layout Principal
-                const response = await fetch(LAYOUT_CSV_URL);
+                const response = await fetch(LAYOUT_CSV_URL + (LAYOUT_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                 const csvText = await response.text();
                 const result = Papa.parse(csvText, { header: false, skipEmptyLines: true });
                 const filas = result.data;
@@ -2445,7 +2445,7 @@
 
                 // 2. Cargar alumnos de la Hoja de Primer Mes / Sin Pago (2608XX - LAYPASADO)
                 try {
-                    const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL);
+                    const resNuevo = await fetch(LAYOUT_NUEVO_INGRESO_CSV_URL + (LAYOUT_NUEVO_INGRESO_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                     const csvTxtNuevo = await resNuevo.text();
                     const resParsedNuevo = Papa.parse(csvTxtNuevo, { header: false, skipEmptyLines: true });
                     const filasNuevo = resParsedNuevo.data;
@@ -2573,7 +2573,7 @@
 
                 // 3. Cargar alumnos de la Hoja de Ventas (Nuevos Ingresos)
                 try {
-                    const resVentas = await fetch(HOJA_VENTAS_NUEVOS_CSV_URL);
+                    const resVentas = await fetch(HOJA_VENTAS_NUEVOS_CSV_URL + (HOJA_VENTAS_NUEVOS_CSV_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
                     const csvTxtVentas = await resVentas.text();
                     const resParsedVentas = Papa.parse(csvTxtVentas, { header: false, skipEmptyLines: true });
                     const filasVentas = resParsedVentas.data;
@@ -2608,19 +2608,21 @@
 
                         const esPresencial = progClean.includes('TEENSP') || progClean.includes('PRETEENSP') || 
                                              progClean.includes('PTEENSP') || progClean.includes('KIDSP') || 
-                                             progClean.includes('TOEFP') || progClean.includes('TOEFLP');
+                                             progClean.includes('TOEFP') || progClean.includes('TOEFLP') ||
+                                             progClean.endsWith('P');
 
-                        if (progClean.includes('TEENS') || progClean.includes('TEEN')) {
-                            programaNombre = "TEENS";
-                            programaTexto = "Teens";
-                            programaCalculado = "08";
-                            codigoClaseLayout = esPresencial ? "TEEP" : "TEEL";
-                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
-                        } else if (progClean.includes('PRETEENS') || progClean.includes('PTEEN')) {
+                        // Importante: Evaluar PRETEENS / PTEEN antes de TEENS para evitar falsos positivos
+                        if (progClean.includes('PRETEENS') || progClean.includes('PTEEN') || progClean.includes('PRETEEN')) {
                             programaNombre = "PTEEN";
                             programaTexto = "PTEEN";
                             programaCalculado = "08";
                             codigoClaseLayout = esPresencial ? "PTEP" : "PTEL";
+                            modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
+                        } else if (progClean.includes('TEENS') || progClean.includes('TEEN')) {
+                            programaNombre = "TEENS";
+                            programaTexto = "Teens";
+                            programaCalculado = "08";
+                            codigoClaseLayout = esPresencial ? "TEEP" : "TEEL";
                             modalidadTexto = esPresencial ? "PRESENCIAL" : "EN LINEA";
                         } else if (progClean.includes('KIDS') || progClean.includes('KID')) {
                             programaNombre = "KIDS";
@@ -4480,70 +4482,481 @@
             }
         });
 
-        function imprimirSaloneo() {
-            if (!baseAlumnos || Object.keys(baseAlumnos).length === 0) {
-                alert("Primero carga los archivos Excel.");
+        async function imprimirSaloneo() {
+            if (!matrizSalones.filas || matrizSalones.filas.length === 0) {
+                if (typeof cargarSalones === 'function') {
+                    await cargarSalones();
+                }
+            }
+            if (!matrizSalones.filas || matrizSalones.filas.length === 0) {
+                alert("No se ha podido cargar la matriz de salones. Por favor verifica la conexión a internet.");
                 return;
             }
-            
-            let data = agruparAlumnosDashboard();
-            let grupos = data.gruposArr; // Ya solo incluye presenciales
+            if (!baseAlumnos || Object.keys(baseAlumnos).length === 0) {
+                alert("Primero carga los archivos Excel de alumnos para generar el Saloneo.");
+                return;
+            }
 
-            grupos.sort((a,b) => {
-                if (a.teacherSalon < b.teacherSalon) return -1;
-                if (a.teacherSalon > b.teacherSalon) return 1;
+            let gruposSaloneo = [];
+            let alumnosAsignadosIds = new Set();
+
+            const procesarFilaSaloneo = (fila, esSabado) => {
+                if (!fila || !fila.celdas) return;
+                const horaFmt = fila.horaFmt;
+                const dias = fila.dias || (esSabado ? 'Sábados' : 'Lunes - Jueves');
+
+                for (let ci = 1; ci < fila.celdas.length; ci++) {
+                    const celdaRaw = String(fila.celdas[ci] || '').trim();
+                    if (!celdaRaw) continue;
+
+                    const teacher = (matrizSalones.teachers && matrizSalones.teachers[ci])
+                        ? String(matrizSalones.teachers[ci]).trim()
+                        : 'Sin Profesor';
+                    if (teacher.toUpperCase() === 'TEACHER') continue;
+
+                    const salon = (esSabado && matrizSalones.salonesSabado && matrizSalones.salonesSabado[ci])
+                        ? String(matrizSalones.salonesSabado[ci]).trim()
+                        : ((matrizSalones.salones && matrizSalones.salones[ci]) ? String(matrizSalones.salones[ci]).trim() : 'Sin Salón');
+
+                    const celdaUpper = celdaRaw.toUpperCase();
+                    const esSoloS = celdaUpper.includes('(S)');
+                    const esSoloE = celdaUpper.includes('(E)');
+                    const sufijo = esSoloS ? ' (S)' : (esSoloE ? ' (E)' : '');
+                    const celdaClean = celdaUpper.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
+
+                    let progNombre = '';
+                    let nivelNum = null;
+
+                    if (celdaClean.startsWith('KB')) {
+                        progNombre = 'KIDS';
+                        nivelNum = parseInt(celdaClean.replace('KB', ''));
+                    } else if (celdaClean.startsWith('TN')) {
+                        progNombre = 'TEENS';
+                        nivelNum = parseInt(celdaClean.replace('TN', ''));
+                    } else if (celdaClean.startsWith('PT')) {
+                        progNombre = 'PTEEN';
+                        nivelNum = parseInt(celdaClean.replace('PT', ''));
+                    } else if (!isNaN(celdaClean) && celdaClean !== '') {
+                        progNombre = 'ADULTO';
+                        nivelNum = parseInt(celdaClean);
+                    }
+
+                    if (nivelNum === null || isNaN(nivelNum) || nivelNum <= 0) continue;
+
+                    let progCode = progNombre;
+                    if (progNombre === 'PTEEN') progCode = 'PTEE';
+                    else if (progNombre === 'TEENS') progCode = 'TEEN';
+                    else if (progNombre === 'ADULTO') progCode = 'ADUL';
+
+                    const clase = (typeof horariosRecuperacion !== 'undefined' && Array.isArray(horariosRecuperacion))
+                        ? horariosRecuperacion.find(h => (h.subjectCode === progCode || h.subjectCode === progNombre) && h.diasLabel === dias && h.horaFmt === horaFmt && String(h.nivelFin) === String(nivelNum))
+                        : null;
+
+                    const alumnosGrupo = Object.values(baseAlumnos || {}).filter(a => {
+                        if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
+
+                        const modUp = (a.modalidad || '').toUpperCase();
+                        if (!modUp.includes('PRESENCIAL')) return false;
+
+                        const progUp = (a.programaRaw || '').toUpperCase();
+                        if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
+
+                        const esPresencialValido = esGrupoPresencialValido(progNombre, a.codigoClase);
+                        if (!esPresencialValido && a.codigoClase && !a.esHojaVentas) return false;
+
+                        if (a.programaNombre !== progNombre) return false;
+                        if (parseInt(a.nivelActual) !== parseInt(nivelNum)) return false;
+
+                        const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                        if (esSoloS && !esAlumnoLayPasado && !a.esHojaVentas) return false;
+                        if (esSoloE && (esAlumnoLayPasado || a.esHojaVentas)) return false;
+                        if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloS && !esSoloE && !(progNombre === 'ADULTO' && parseInt(nivelNum) === 24)) return false;
+
+                        const esSabadoAlumno = (a.tipoClaseCal === 'sabado');
+                        if (esSabado !== esSabadoAlumno) return false;
+
+                        if (!esSabado) {
+                            const hUp = (a.horario || '').toUpperCase();
+                            if (dias === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
+                            if (dias === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                        }
+
+                        return horCoincide(a.horario, horaFmt, progNombre, esSabado);
+                    });
+
+                    alumnosGrupo.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+                    let rCount = 0;
+                    let segCount = 0;
+                    let promCount = 0;
+                    let bajCount = 0;
+                    let alumnosList = [];
+
+                    alumnosGrupo.forEach(a => {
+                        const idA = a.idOriginal || a.id || '';
+                        if (idA) alumnosAsignadosIds.add(idA);
+
+                        let st = (a.estatusPago || '').trim().toUpperCase();
+                        let isPagado = (st === 'R' || a.tieneR);
+                        let displayEstatus = a.estatusPago ? a.estatusPago.trim() : '';
+
+                        if (a.esNuevoLayout && (!st || a.esHojaVentas)) {
+                            displayEstatus = '✨ NUEVO';
+                        } else if (isPagado) {
+                            rCount++;
+                            displayEstatus = 'R';
+                        } else if (st.includes('PROMESA')) {
+                            promCount++;
+                            displayEstatus = 'PROMESA';
+                        } else if (st.includes('BAJA') || st.includes('NO CONTINUA')) {
+                            bajCount++;
+                            displayEstatus = 'BAJA / NO CONTINUA';
+                        } else if (st.includes('SEGUIMIENTO') || !st) {
+                            segCount++;
+                            displayEstatus = st || 'PENDIENTE';
+                        } else {
+                            segCount++;
+                        }
+
+                        alumnosList.push({
+                            id: idA,
+                            nombre: a.nombre || '',
+                            estatus: displayEstatus,
+                            estatusUpper: st,
+                            isPagado: isPagado,
+                            isNuevo: a.esNuevoLayout && (!st || a.esHojaVentas)
+                        });
+                    });
+
+                    gruposSaloneo.push({
+                        teacher: teacher,
+                        salon: salon,
+                        teacherSalon: `${teacher} (${salon})`,
+                        programa: progNombre,
+                        nivelNum: nivelNum,
+                        sufijo: sufijo,
+                        nivelCodigo: celdaRaw,
+                        horario: horaFmt,
+                        dias: dias,
+                        esSabado: esSabado,
+                        colIdx: ci,
+                        crn: (clase && clase.crn) ? clase.crn : '',
+                        r: rCount,
+                        seguimiento: segCount,
+                        promesas: promCount,
+                        bajas: bajCount,
+                        total: alumnosGrupo.length,
+                        alumnosList: alumnosList
+                    });
+                }
+            };
+
+            if (matrizSalones.filas) {
+                matrizSalones.filas.forEach(f => procesarFilaSaloneo(f, false));
+            }
+            if (matrizSalones.filasSabado) {
+                matrizSalones.filasSabado.forEach(f => procesarFilaSaloneo(f, true));
+            }
+
+            gruposSaloneo.sort((a, b) => {
+                if (a.esSabado !== b.esSabado) return a.esSabado ? 1 : -1;
+                if (a.horario !== b.horario) return a.horario.localeCompare(b.horario);
+                if (a.salon !== b.salon) return a.salon.localeCompare(b.salon);
+                return a.nivelCodigo.localeCompare(b.nivelCodigo);
+            });
+
+            const sinAsignarList = Object.values(baseAlumnos || {}).filter(a => {
+                const modUp = (a.modalidad || '').toUpperCase();
+                if (!modUp.includes('PRESENCIAL')) return false;
+                const progUp = (a.programaRaw || '').toUpperCase();
+                if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
+                const idA = a.idOriginal || a.id || '';
+                return idA && !alumnosAsignadosIds.has(idA);
+            });
+            sinAsignarList.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+
+            const salonesUnicos = [...new Set(gruposSaloneo.map(g => g.salon))].sort();
+            const teachersUnicos = [...new Set(gruposSaloneo.map(g => g.teacher))].sort();
+
+            const totalGrupos = gruposSaloneo.length;
+            const totalAlumnos = gruposSaloneo.reduce((acc, g) => acc + g.total, 0);
+            const totalPagados = gruposSaloneo.reduce((acc, g) => acc + g.r, 0);
+            const totalPendientes = gruposSaloneo.reduce((acc, g) => acc + g.seguimiento + g.promesas, 0);
+            const pctGlobal = totalAlumnos > 0 ? Math.round((totalPagados / totalAlumnos) * 100) : 0;
+
+            let html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Saloneo (Estatus de Pago)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 12px; margin: 20px; color: #1f2937; background: #fff; }
+        .rep-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 2px solid #059669; padding-bottom: 10px; }
+        .rep-title { font-size: 18px; font-weight: 800; color: #065f46; margin: 0 0 3px 0; }
+        .rep-sub { font-size: 11px; color: #6b7280; margin: 0; }
+        .toolbar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+        .toolbar-inputs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .toolbar select, .toolbar input { padding: 5px 9px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #fff; }
+        .btn-print { background: #059669; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .btn-print:hover { background: #047857; }
+        .btn-close { background: #e5e7eb; color: #374151; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 11px; margin-left: 4px; }
+        .btn-close:hover { background: #d1d5db; }
+        .kpi-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+        .kpi-chip { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: #374151; }
+        .kpi-chip b { color: #059669; font-size: 12px; }
+        .grupo-box { border: 1px solid #e5e7eb; margin-bottom: 14px; border-radius: 8px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .grupo-header { font-weight: bold; background: #f8fafc; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .badge-salon { background: #6d28d9; color: #fff; padding: 2px 7px; border-radius: 5px; font-weight: 800; font-size: 10px; letter-spacing: 0.3px; }
+        .badge-horario { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+        .badge-programa { background: #0d9488; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+        .badge-crn { background: #475569; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #f1f5f9; padding: 5px 10px; text-align: left; font-size: 11px; }
+        th { background: #f8fafc; font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 700; border-bottom: 1px solid #e2e8f0; }
+        tr:last-child td { border-bottom: none; }
+        .status-r { color: #16a34a; font-weight: bold; }
+        .status-seg { color: #d97706; font-weight: bold; }
+        .status-baj { color: #dc2626; font-weight: bold; }
+        .status-prom { color: #2563eb; font-weight: bold; }
+        .status-nue { color: #7c3aed; font-weight: bold; }
+        .status-none { color: #9ca3af; font-style: italic; }
+        @media print {
+            .no-print { display: none !important; }
+            body { margin: 8px; font-size: 10px; }
+            .grupo-box { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+            th, td { padding: 4px 8px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="rep-header">
+        <div>
+            <h1 class="rep-title">🏫 Reporte de Saloneo (Estatus de Pago)</h1>
+            <p class="rep-sub">Generado el: ${new Date().toLocaleDateString()} a las ${new Date().toLocaleTimeString()} &nbsp;|&nbsp; Incluye todos los salones programados en la matriz</p>
+        </div>
+        <div class="no-print">
+            <button onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
+            <button onclick="window.close()" class="btn-close">✕ Cerrar</button>
+        </div>
+    </div>
+
+    <div class="toolbar no-print">
+        <div class="toolbar-inputs">
+            <input type="text" id="inp-busqueda" oninput="filtrarGrupos()" placeholder="🔍 Buscar por alumno, teacher, salón..." style="min-width: 200px;">
+            <select id="sel-dias" onchange="filtrarGrupos()">
+                <option value="todos">Todos los días</option>
+                <option value="entre-semana">Lunes a Jueves</option>
+                <option value="sabado">Sábados</option>
+            </select>
+            <select id="sel-salon" onchange="filtrarGrupos()">
+                <option value="">Todos los salones (${salonesUnicos.length})</option>
+                ${salonesUnicos.map(s => `<option value="${s.toLowerCase()}">${s}</option>`).join('')}
+            </select>
+            <select id="sel-teacher" onchange="filtrarGrupos()">
+                <option value="">Todos los teachers (${teachersUnicos.length})</option>
+                ${teachersUnicos.map(t => `<option value="${t.toLowerCase()}">${t}</option>`).join('')}
+            </select>
+            <select id="sel-orden" onchange="ordenarGrupos()">
+                <option value="horario_salon">Ordenar: Horario y Salón</option>
+                <option value="salon_horario">Ordenar: Salón y Horario</option>
+                <option value="teacher">Ordenar: Teacher</option>
+                <option value="alumnos_desc">Ordenar: Mayor a menor alumnos</option>
+            </select>
+        </div>
+        <div>
+            <span style="font-size: 11px; color: #065f46; font-weight: 600;">
+                Mostrando <span id="cnt-visibles">${totalGrupos}</span> grupos (<span id="cnt-alumnos-vis">${totalAlumnos}</span> alumnos)
+            </span>
+        </div>
+    </div>
+
+    <div class="kpi-bar">
+        <div class="kpi-chip">Total Salones / Grupos: <b>${totalGrupos}</b></div>
+        <div class="kpi-chip">Total Alumnos: <b>${totalAlumnos}</b></div>
+        <div class="kpi-chip">Pagados (R): <b style="color:#16a34a;">${totalPagados} (${pctGlobal}%)</b></div>
+        <div class="kpi-chip">Pendientes / Seguimiento: <b style="color:#d97706;">${totalPendientes}</b></div>
+    </div>
+
+    <div id="contenedor-grupos">`;
+
+            gruposSaloneo.forEach(g => {
+                const pctGrupo = g.total > 0 ? Math.round((g.r / g.total) * 100) : 0;
+                const searchStr = (g.salon + ' ' + g.teacher + ' ' + g.programa + ' ' + g.nivelCodigo + ' ' + g.horario + ' ' + g.dias + ' ' + g.alumnosList.map(a => a.nombre + ' ' + a.id).join(' ')).toLowerCase();
+
+                html += `
+        <div class="grupo-box"
+             data-dia="${g.esSabado ? 'sabado' : 'entre-semana'}"
+             data-salon="${g.salon.toLowerCase()}"
+             data-teacher="${g.teacher.toLowerCase()}"
+             data-horario="${g.horario}"
+             data-total="${g.total}"
+             data-pagados="${g.r}"
+             data-search="${searchStr}">
+            <div class="grupo-header">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span class="badge-salon">SALÓN: ${g.salon.toUpperCase()}</span>
+                    <span>TEACHER: <b>${g.teacher.toUpperCase()}</b></span>
+                    <span class="badge-programa">${g.programa.toUpperCase()} ${g.nivelCodigo.toUpperCase()}</span>
+                    <span class="badge-horario">${g.horario} (${g.dias.toUpperCase()})</span>
+                    ${g.crn ? `<span class="badge-crn">CRN: ${g.crn}</span>` : ''}
+                </div>
+                <div style="font-size:11px; font-weight:bold;">
+                    PAGOS: <span style="color:#16a34a;">${g.r}</span>/${g.total} (${pctGrupo}%)
+                </div>
+            </div>
+            <table>
+                ${g.alumnosList.length > 0 ? `
+                <thead>
+                    <tr>
+                        <th style="width:80px;">ID</th>
+                        <th>ALUMNO</th>
+                        <th style="width:160px;">ESTATUS PAGO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${g.alumnosList.map(a => {
+                        let stClass = 'status-none';
+                        if (a.isPagado) stClass = 'status-r';
+                        else if (a.isNuevo) stClass = 'status-nue';
+                        else if (a.estatusUpper.includes('PROMESA')) stClass = 'status-prom';
+                        else if (a.estatusUpper.includes('BAJA') || a.estatusUpper.includes('NO CONTINUA')) stClass = 'status-baj';
+                        else if (a.estatusUpper.includes('SEGUIMIENTO') || !a.estatusUpper) stClass = 'status-seg';
+
+                        return `<tr>
+                            <td style="font-family: monospace;">${a.id}</td>
+                            <td style="font-weight: 600;">${a.nombre}</td>
+                            <td class="${stClass}">${a.estatus || 'SIN ESTATUS'}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>` : `
+                <tbody>
+                    <tr><td colspan="3" style="text-align:center; color:#9ca3af; font-style:italic; padding:8px;">Sin alumnos registrados (0 alumnos)</td></tr>
+                </tbody>`}
+            </table>
+        </div>`;
+            });
+
+            if (sinAsignarList.length > 0) {
+                html += `
+        <div class="grupo-box box-sin-asignar" style="border: 2px dashed #f59e0b; margin-top: 20px;">
+            <div class="grupo-header" style="background:#fef3c7; color:#92400e;">
+                <span style="font-weight:800;">⚠️ ALUMNOS PRESENCIALES SIN SALÓN ASIGNADO (${sinAsignarList.length})</span>
+                <span style="font-size:10px;">Alumnos presenciales cuyo horario/curso no coincidió con ningún salón en la matriz</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:80px;">ID</th>
+                        <th>ALUMNO</th>
+                        <th style="width:140px;">CURSO / HORARIO</th>
+                        <th style="width:140px;">ESTATUS PAGO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sinAsignarList.map(a => {
+                        let st = (a.estatusPago || '').trim().toUpperCase();
+                        let stClass = (st === 'R' || a.tieneR) ? 'status-r' : 'status-seg';
+                        return `<tr>
+                            <td style="font-family: monospace;">${a.idOriginal || a.id}</td>
+                            <td style="font-weight: 600;">${a.nombre}</td>
+                            <td>${a.programaNombre || ''} Nivel ${a.nivelActual || ''} (${a.horario || ''})</td>
+                            <td class="${stClass}">${a.estatusPago || 'SIN ESTATUS'}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>`;
+            }
+
+            html += `
+    </div>
+
+    <script>
+        function filtrarGrupos() {
+            const q = (document.getElementById('inp-busqueda').value || '').toLowerCase().trim();
+            const dia = document.getElementById('sel-dias').value;
+            const sal = (document.getElementById('sel-salon').value || '').toLowerCase();
+            const teach = (document.getElementById('sel-teacher').value || '').toLowerCase();
+            
+            const boxes = document.querySelectorAll('.grupo-box:not(.box-sin-asignar)');
+            let visGrupos = 0;
+            let visAlumnos = 0;
+            
+            boxes.forEach(b => {
+                const bDia = b.getAttribute('data-dia');
+                const bSal = (b.getAttribute('data-salon') || '').toLowerCase();
+                const bTeach = (b.getAttribute('data-teacher') || '').toLowerCase();
+                const bSearch = (b.getAttribute('data-search') || '').toLowerCase();
+                const bTot = parseInt(b.getAttribute('data-total') || '0', 10);
+                
+                let match = true;
+                if (dia !== 'todos' && bDia !== dia) match = false;
+                if (sal && bSal !== sal) match = false;
+                if (teach && bTeach !== teach) match = false;
+                if (q && !bSearch.includes(q)) match = false;
+                
+                b.style.display = match ? '' : 'none';
+                if (match) {
+                    visGrupos++;
+                    visAlumnos += bTot;
+                }
+            });
+            
+            document.getElementById('cnt-visibles').textContent = visGrupos;
+            document.getElementById('cnt-alumnos-vis').textContent = visAlumnos;
+        }
+
+        function ordenarGrupos() {
+            const orden = document.getElementById('sel-orden').value;
+            const container = document.getElementById('contenedor-grupos');
+            const boxes = Array.from(container.querySelectorAll('.grupo-box:not(.box-sin-asignar)'));
+            
+            boxes.sort((a, b) => {
+                if (orden === 'horario_salon') {
+                    const diaA = a.getAttribute('data-dia');
+                    const diaB = b.getAttribute('data-dia');
+                    if (diaA !== diaB) return diaA === 'entre-semana' ? -1 : 1;
+                    const horA = a.getAttribute('data-horario') || '';
+                    const horB = b.getAttribute('data-horario') || '';
+                    if (horA !== horB) return horA.localeCompare(horB);
+                    return (a.getAttribute('data-salon') || '').localeCompare(b.getAttribute('data-salon') || '');
+                } else if (orden === 'salon_horario') {
+                    const salA = a.getAttribute('data-salon') || '';
+                    const salB = b.getAttribute('data-salon') || '';
+                    if (salA !== salB) return salA.localeCompare(salB);
+                    const diaA = a.getAttribute('data-dia');
+                    const diaB = b.getAttribute('data-dia');
+                    if (diaA !== diaB) return diaA === 'entre-semana' ? -1 : 1;
+                    return (a.getAttribute('data-horario') || '').localeCompare(b.getAttribute('data-horario') || '');
+                } else if (orden === 'teacher') {
+                    const tA = a.getAttribute('data-teacher') || '';
+                    const tB = b.getAttribute('data-teacher') || '';
+                    if (tA !== tB) return tA.localeCompare(tB);
+                    return (a.getAttribute('data-horario') || '').localeCompare(b.getAttribute('data-horario') || '');
+                } else if (orden === 'alumnos_desc') {
+                    const totA = parseInt(a.getAttribute('data-total') || '0', 10);
+                    const totB = parseInt(b.getAttribute('data-total') || '0', 10);
+                    return totB - totA;
+                }
                 return 0;
             });
-
-            let html = `<html><head><title>Reporte de Saloneo</title>
-            <style>
-                body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
-                .grupo-box { border: 1px solid #ddd; margin-bottom: 20px; padding: 0; page-break-inside: avoid; border-radius: 4px; overflow: hidden; }
-                .grupo-header { font-weight: bold; background: #f4f4f5; padding: 10px; border-bottom: 1px solid #ddd; font-size: 13px; display: flex; justify-content: space-between; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border-bottom: 1px solid #eee; padding: 6px 10px; text-align: left; }
-                th { background: #fafafa; font-size: 11px; text-transform: uppercase; color: #666; border-bottom: 2px solid #ddd; }
-                tr:last-child td { border-bottom: none; }
-                .status-r { color: #16a34a; font-weight: bold; }
-                .status-seg { color: #d97706; font-weight: bold; }
-                .status-baj { color: #dc2626; font-weight: bold; }
-                .status-none { color: #6b7280; font-style: italic; }
-            </style>
-            </head><body>
-            <h2 style="margin-bottom: 5px;">Reporte de Saloneo (Estatus de Pago)</h2>
-            <p style="color: #666; margin-top: 0; margin-bottom: 20px;">Generado el: ${new Date().toLocaleDateString()}</p>`;
-
-            grupos.forEach(g => {
-                html += `<div class="grupo-box">
-                    <div class="grupo-header">
-                        <span>TEACHER: ${g.teacherSalon.toUpperCase()} &nbsp;|&nbsp; PROGRAMA: ${g.nivelCodigo.toUpperCase()} &nbsp;|&nbsp; HORARIO: ${g.horario.toUpperCase()}</span>
-                        <span>PAGOS: ${g.r}/${g.total}</span>
-                    </div>
-                    <table>
-                        <thead><tr><th style="width:80px;">ID</th><th>ALUMNO</th><th style="width:150px;">ESTATUS</th></tr></thead>
-                        <tbody>`;
-                g.alumnosList.forEach(a => {
-                    let stClass = 'status-none';
-                    if (a.estatus === 'R') stClass = 'status-r';
-                    else if (a.estatus.includes('SEGUIMIENTO') || a.estatus.includes('PROMESA')) stClass = 'status-seg';
-                    else if (a.estatus.includes('BAJA') || a.estatus.includes('NO CONTINUA')) stClass = 'status-baj';
-
-                    html += `<tr>
-                        <td>${a.id}</td>
-                        <td style="font-weight: bold;">${a.nombre}</td>
-                        <td class="${stClass}">${a.estatus || 'SIN ESTATUS'}</td>
-                    </tr>`;
-                });
-                html += `</tbody></table></div>`;
-            });
-
-            html += `</body></html>`;
             
+            const boxSinAsignar = container.querySelector('.box-sin-asignar');
+            boxes.forEach(b => container.appendChild(b));
+            if (boxSinAsignar) container.appendChild(boxSinAsignar);
+        }
+    <' + '/script>
+</body>
+</html>`;
+
             let win = window.open('', '_blank');
+            if (!win) {
+                alert("El navegador bloqueó la ventana emergente. Por favor permite las ventanas emergentes para ver el Saloneo.");
+                return;
+            }
             win.document.write(html);
             win.document.close();
             win.focus();
-            // setTimeout(() => win.print(), 500); // <-- Auto-impresión desactivada
         }
 
         function abrirWhatsAppAlumno() {
@@ -9836,7 +10249,7 @@
                     // Si realmente hay múltiples CRNs distintos (grupos combinados)
                     const porCrn = {};
                     for (const al of alumnosCoincidentes) {
-                        const crnVal = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : 'Sin CRN';
+                        const crnVal = (al.crn && String(al.crn).trim()) ? String(al.crn).trim() : (distinctCrns[0] || 'Sin CRN');
                         if (!porCrn[crnVal]) porCrn[crnVal] = [];
                         porCrn[crnVal].push(al);
                     }
