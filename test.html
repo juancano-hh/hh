@@ -4498,9 +4498,9 @@
             }
 
             let gruposSaloneo = [];
-            let alumnosAsignadosIds = new Set();
+            let gruposMap = new Map();
 
-            const procesarFilaSaloneo = (fila, esSabado) => {
+            const registrarGrupoSaloneo = (fila, esSabado) => {
                 if (!fila || !fila.celdas) return;
                 const horaFmt = fila.horaFmt;
                 const dias = fila.dias || (esSabado ? 'Sábados' : 'Lunes - Jueves');
@@ -4552,83 +4552,9 @@
                         ? horariosRecuperacion.find(h => (h.subjectCode === progCode || h.subjectCode === progNombre) && h.diasLabel === dias && h.horaFmt === horaFmt && String(h.nivelFin) === String(nivelNum))
                         : null;
 
-                    const alumnosGrupo = Object.values(baseAlumnos || {}).filter(a => {
-                        if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
-
-                        const modUp = (a.modalidad || '').toUpperCase();
-                        if (!modUp.includes('PRESENCIAL')) return false;
-
-                        const progUp = (a.programaRaw || '').toUpperCase();
-                        if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
-
-                        const esPresencialValido = esGrupoPresencialValido(progNombre, a.codigoClase);
-                        if (!esPresencialValido && a.codigoClase && !a.esHojaVentas) return false;
-
-                        if (a.programaNombre !== progNombre) return false;
-                        if (parseInt(a.nivelActual) !== parseInt(nivelNum)) return false;
-
-                        const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
-                        if (esSoloS && !esAlumnoLayPasado && !a.esHojaVentas) return false;
-                        if (esSoloE && (esAlumnoLayPasado || a.esHojaVentas)) return false;
-                        if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloS && !esSoloE && !(progNombre === 'ADULTO' && parseInt(nivelNum) === 24)) return false;
-
-                        const esSabadoAlumno = (a.tipoClaseCal === 'sabado');
-                        if (esSabado !== esSabadoAlumno) return false;
-
-                        if (!esSabado) {
-                            const hUp = (a.horario || '').toUpperCase();
-                            if (dias === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
-                            if (dias === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
-                        }
-
-                        return horCoincide(a.horario, horaFmt, progNombre, esSabado);
-                    });
-
-                    alumnosGrupo.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-
-                    let rCount = 0;
-                    let segCount = 0;
-                    let promCount = 0;
-                    let bajCount = 0;
-                    let alumnosList = [];
-
-                    alumnosGrupo.forEach(a => {
-                        const idA = a.idOriginal || a.id || '';
-                        if (idA) alumnosAsignadosIds.add(idA);
-
-                        let st = (a.estatusPago || '').trim().toUpperCase();
-                        let isPagado = (st === 'R' || a.tieneR);
-                        let displayEstatus = a.estatusPago ? a.estatusPago.trim() : '';
-
-                        if (a.esNuevoLayout && (!st || a.esHojaVentas)) {
-                            displayEstatus = '✨ NUEVO';
-                        } else if (isPagado) {
-                            rCount++;
-                            displayEstatus = 'R';
-                        } else if (st.includes('PROMESA')) {
-                            promCount++;
-                            displayEstatus = 'PROMESA';
-                        } else if (st.includes('BAJA') || st.includes('NO CONTINUA')) {
-                            bajCount++;
-                            displayEstatus = 'BAJA / NO CONTINUA';
-                        } else if (st.includes('SEGUIMIENTO') || !st) {
-                            segCount++;
-                            displayEstatus = st || 'PENDIENTE';
-                        } else {
-                            segCount++;
-                        }
-
-                        alumnosList.push({
-                            id: idA,
-                            nombre: a.nombre || '',
-                            estatus: displayEstatus,
-                            estatusUpper: st,
-                            isPagado: isPagado,
-                            isNuevo: a.esNuevoLayout && (!st || a.esHojaVentas)
-                        });
-                    });
-
-                    gruposSaloneo.push({
+                    const idKey = `${horaFmt}_${esSabado ? 'sab' : 'sem'}_${dias}_${ci}`;
+                    const grupoObj = {
+                        idKey: idKey,
                         teacher: teacher,
                         salon: salon,
                         teacherSalon: `${teacher} (${salon})`,
@@ -4641,23 +4567,109 @@
                         esSabado: esSabado,
                         colIdx: ci,
                         crn: (clase && clase.crn) ? clase.crn : '',
-                        r: rCount,
-                        seguimiento: segCount,
-                        promesas: promCount,
-                        bajas: bajCount,
-                        total: alumnosGrupo.length,
-                        alumnosList: alumnosList
-                    });
+                        alumnosList: []
+                    };
+
+                    gruposSaloneo.push(grupoObj);
+                    gruposMap.set(idKey, grupoObj);
                 }
             };
 
             if (matrizSalones.filas) {
-                matrizSalones.filas.forEach(f => procesarFilaSaloneo(f, false));
+                matrizSalones.filas.forEach(f => registrarGrupoSaloneo(f, false));
             }
             if (matrizSalones.filasSabado) {
-                matrizSalones.filasSabado.forEach(f => procesarFilaSaloneo(f, true));
+                matrizSalones.filasSabado.forEach(f => registrarGrupoSaloneo(f, true));
             }
 
+            let alumnosAsignadosIds = new Set();
+            let sinAsignarList = [];
+
+            Object.values(baseAlumnos || {}).forEach(a => {
+                const modUp = (a.modalidad || '').toUpperCase();
+                if (!modUp.includes('PRESENCIAL')) return;
+
+                const progUp = (a.programaRaw || '').toUpperCase();
+                if (progUp.includes('TEACHER') || progUp.includes('TKT')) return;
+
+                const idA = a.idOriginal || a.id || '';
+                const esSabado = (a.tipoClaseCal === 'sabado');
+                const esLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+
+                // 1. Método exacto: la misma función de asignación de salón que usa la ficha del alumno
+                const salonObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabado, null, esLayPasado);
+                let grupoAsignado = null;
+
+                if (salonObj) {
+                    const diasMatch = salonObj.dias || (salonObj.isSabado ? 'Sábados' : 'Lunes - Jueves');
+                    const keyExacta = `${salonObj.horaFmt}_${salonObj.isSabado ? 'sab' : 'sem'}_${diasMatch}_${salonObj.colIdx}`;
+                    grupoAsignado = gruposMap.get(keyExacta);
+
+                    if (!grupoAsignado) {
+                        grupoAsignado = gruposSaloneo.find(g => g.isSabado === salonObj.isSabado && g.horario === salonObj.horaFmt && g.colIdx === salonObj.colIdx);
+                    }
+                    if (!grupoAsignado) {
+                        grupoAsignado = gruposSaloneo.find(g => g.isSabado === salonObj.isSabado && g.horario === salonObj.horaFmt && g.salon.toUpperCase() === salonObj.salon.toUpperCase() && g.teacher.toUpperCase() === salonObj.teacher.toUpperCase());
+                    }
+                }
+
+                // 2. Respaldo por CRN si tuviera clase asignada
+                if (!grupoAsignado && a.codigoClase) {
+                    grupoAsignado = gruposSaloneo.find(g => g.crn && String(g.crn) === String(a.codigoClase));
+                }
+
+                // 3. Respaldo por programa, nivel y horario
+                if (!grupoAsignado) {
+                    grupoAsignado = gruposSaloneo.find(g => {
+                        if (g.isSabado !== esSabado) return false;
+                        if (g.programa !== a.programaNombre) return false;
+                        if (parseInt(g.nivelNum) !== parseInt(a.nivelActual)) return false;
+                        return horCoincide(a.horario, g.horario, a.programaNombre, esSabado);
+                    });
+                }
+
+                if (grupoAsignado) {
+                    if (idA) alumnosAsignadosIds.add(idA);
+
+                    let st = (a.estatusPago || '').trim().toUpperCase();
+                    let isPagado = (st === 'R' || a.tieneR);
+                    let displayEstatus = a.estatusPago ? a.estatusPago.trim() : '';
+
+                    if (a.esNuevoLayout && (!st || a.esHojaVentas)) {
+                        displayEstatus = '✨ NUEVO';
+                    } else if (isPagado) {
+                        displayEstatus = 'R';
+                    } else if (st.includes('PROMESA')) {
+                        displayEstatus = 'PROMESA';
+                    } else if (st.includes('BAJA') || st.includes('NO CONTINUA')) {
+                        displayEstatus = 'BAJA / NO CONTINUA';
+                    } else if (st.includes('SEGUIMIENTO') || !st) {
+                        displayEstatus = st || 'PENDIENTE';
+                    }
+
+                    grupoAsignado.alumnosList.push({
+                        id: idA,
+                        nombre: a.nombre || '',
+                        estatus: displayEstatus,
+                        estatusUpper: st,
+                        isPagado: isPagado,
+                        isNuevo: a.esNuevoLayout && (!st || a.esHojaVentas)
+                    });
+                } else {
+                    sinAsignarList.push(a);
+                }
+            });
+
+            // Procesar métricas en cada grupo
+            gruposSaloneo.forEach(g => {
+                g.alumnosList.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                g.total = g.alumnosList.length;
+                g.r = g.alumnosList.filter(a => a.isPagado).length;
+                g.seguimiento = g.alumnosList.filter(a => !a.isPagado && !a.estatusUpper.includes('BAJA') && !a.estatusUpper.includes('NO CONTINUA')).length;
+                g.bajas = g.alumnosList.filter(a => a.estatusUpper.includes('BAJA') || a.estatusUpper.includes('NO CONTINUA')).length;
+            });
+
+            // Ordenamiento inicial por Horario y Salón
             gruposSaloneo.sort((a, b) => {
                 if (a.esSabado !== b.esSabado) return a.esSabado ? 1 : -1;
                 if (a.horario !== b.horario) return a.horario.localeCompare(b.horario);
@@ -4665,14 +4677,6 @@
                 return a.nivelCodigo.localeCompare(b.nivelCodigo);
             });
 
-            const sinAsignarList = Object.values(baseAlumnos || {}).filter(a => {
-                const modUp = (a.modalidad || '').toUpperCase();
-                if (!modUp.includes('PRESENCIAL')) return false;
-                const progUp = (a.programaRaw || '').toUpperCase();
-                if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
-                const idA = a.idOriginal || a.id || '';
-                return idA && !alumnosAsignadosIds.has(idA);
-            });
             sinAsignarList.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
             const salonesUnicos = [...new Set(gruposSaloneo.map(g => g.salon))].sort();
@@ -4681,7 +4685,7 @@
             const totalGrupos = gruposSaloneo.length;
             const totalAlumnos = gruposSaloneo.reduce((acc, g) => acc + g.total, 0);
             const totalPagados = gruposSaloneo.reduce((acc, g) => acc + g.r, 0);
-            const totalPendientes = gruposSaloneo.reduce((acc, g) => acc + g.seguimiento + g.promesas, 0);
+            const totalPendientes = gruposSaloneo.reduce((acc, g) => acc + g.seguimiento, 0);
             const pctGlobal = totalAlumnos > 0 ? Math.round((totalPagados / totalAlumnos) * 100) : 0;
 
             let html = `<!DOCTYPE html>
@@ -4696,7 +4700,7 @@
         .rep-sub { font-size: 11px; color: #6b7280; margin: 0; }
         .toolbar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
         .toolbar-inputs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .toolbar select, .toolbar input { padding: 5px 9px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #fff; }
+        .toolbar select, .toolbar input { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; outline: none; background: #fff; }
         .btn-print { background: #059669; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; }
         .btn-print:hover { background: #047857; }
         .btn-close { background: #e5e7eb; color: #374151; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 11px; margin-left: 4px; }
@@ -4742,7 +4746,7 @@
 
     <div class="toolbar no-print">
         <div class="toolbar-inputs">
-            <input type="text" id="inp-busqueda" oninput="filtrarGrupos()" placeholder="🔍 Buscar por alumno, teacher, salón..." style="min-width: 200px;">
+            <input type="text" id="inp-busqueda" oninput="filtrarGrupos()" placeholder="🔍 Buscar por alumno, ID, teacher, salón..." style="min-width: 220px;">
             <select id="sel-dias" onchange="filtrarGrupos()">
                 <option value="todos">Todos los días</option>
                 <option value="entre-semana">Lunes a Jueves</option>
@@ -4773,7 +4777,7 @@
     <div class="kpi-bar">
         <div class="kpi-chip">Total Salones / Grupos: <b>${totalGrupos}</b></div>
         <div class="kpi-chip">Total Alumnos: <b>${totalAlumnos}</b></div>
-        <div class="kpi-chip">Pagados (R): <b style="color:#16a34a;">${totalPagados} (${pctGlobal}%)</b></div>
+        <div class="kpi-chip">Pagados (R): <b style="color:#16a34a;" id="cnt-pagados-vis">${totalPagados} (${pctGlobal}%)</b></div>
         <div class="kpi-chip">Pendientes / Seguimiento: <b style="color:#d97706;">${totalPendientes}</b></div>
     </div>
 
@@ -4837,8 +4841,9 @@
             });
 
             if (sinAsignarList.length > 0) {
+                const searchSinAsignar = sinAsignarList.map(a => `${a.idOriginal || a.id} ${a.nombre} ${a.programaNombre || ''} ${a.horario || ''}`).join(' ').toLowerCase();
                 html += `
-        <div class="grupo-box box-sin-asignar" style="border: 2px dashed #f59e0b; margin-top: 20px;">
+        <div class="grupo-box box-sin-asignar" data-search="${searchSinAsignar}" style="border: 2px dashed #f59e0b; margin-top: 20px;">
             <div class="grupo-header" style="background:#fef3c7; color:#92400e;">
                 <span style="font-weight:800;">⚠️ ALUMNOS PRESENCIALES SIN SALÓN ASIGNADO (${sinAsignarList.length})</span>
                 <span style="font-size:10px;">Alumnos presenciales cuyo horario/curso no coincidió con ningún salón en la matriz</span>
@@ -4856,10 +4861,11 @@
                     ${sinAsignarList.map(a => {
                         let st = (a.estatusPago || '').trim().toUpperCase();
                         let stClass = (st === 'R' || a.tieneR) ? 'status-r' : 'status-seg';
+                        const nivelDisp = (a.nivelActual !== undefined && a.nivelActual !== null) ? a.nivelActual : '';
                         return `<tr>
                             <td style="font-family: monospace;">${a.idOriginal || a.id}</td>
                             <td style="font-weight: 600;">${a.nombre}</td>
-                            <td>${a.programaNombre || ''} Nivel ${a.nivelActual || ''} (${a.horario || ''})</td>
+                            <td>${a.programaNombre || ''} Nivel ${nivelDisp} (${a.horario || 'Sin horario'})</td>
                             <td class="${stClass}">${a.estatusPago || 'SIN ESTATUS'}</td>
                         </tr>`;
                     }).join('')}
@@ -4872,22 +4878,28 @@
     </div>
 
     <script>
+        function norm(t) {
+            return (t || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().trim();
+        }
+
         function filtrarGrupos() {
-            const q = (document.getElementById('inp-busqueda').value || '').toLowerCase().trim();
+            const q = norm(document.getElementById('inp-busqueda').value);
             const dia = document.getElementById('sel-dias').value;
-            const sal = (document.getElementById('sel-salon').value || '').toLowerCase();
-            const teach = (document.getElementById('sel-teacher').value || '').toLowerCase();
+            const sal = norm(document.getElementById('sel-salon').value);
+            const teach = norm(document.getElementById('sel-teacher').value);
             
             const boxes = document.querySelectorAll('.grupo-box:not(.box-sin-asignar)');
             let visGrupos = 0;
             let visAlumnos = 0;
+            let visPagados = 0;
             
             boxes.forEach(b => {
                 const bDia = b.getAttribute('data-dia');
-                const bSal = (b.getAttribute('data-salon') || '').toLowerCase();
-                const bTeach = (b.getAttribute('data-teacher') || '').toLowerCase();
-                const bSearch = (b.getAttribute('data-search') || '').toLowerCase();
+                const bSal = norm(b.getAttribute('data-salon'));
+                const bTeach = norm(b.getAttribute('data-teacher'));
+                const bSearch = norm(b.getAttribute('data-search'));
                 const bTot = parseInt(b.getAttribute('data-total') || '0', 10);
+                const bPag = parseInt(b.getAttribute('data-pagados') || '0', 10);
                 
                 let match = true;
                 if (dia !== 'todos' && bDia !== dia) match = false;
@@ -4899,11 +4911,26 @@
                 if (match) {
                     visGrupos++;
                     visAlumnos += bTot;
+                    visPagados += bPag;
                 }
             });
             
             document.getElementById('cnt-visibles').textContent = visGrupos;
             document.getElementById('cnt-alumnos-vis').textContent = visAlumnos;
+            const elPag = document.getElementById('cnt-pagados-vis');
+            if (elPag) elPag.textContent = visPagados;
+
+            const boxSin = document.querySelector('.box-sin-asignar');
+            if (boxSin) {
+                const bSearchSin = norm(boxSin.getAttribute('data-search') || '');
+                if (q) {
+                    boxSin.style.display = bSearchSin.includes(q) ? '' : 'none';
+                } else if (dia !== 'todos' || sal || teach) {
+                    boxSin.style.display = 'none';
+                } else {
+                    boxSin.style.display = '';
+                }
+            }
         }
 
         function ordenarGrupos() {
@@ -4945,7 +4972,7 @@
             boxes.forEach(b => container.appendChild(b));
             if (boxSinAsignar) container.appendChild(boxSinAsignar);
         }
-    <' + '/script>
+    ${'</' + 'script>'}
 </body>
 </html>`;
 
