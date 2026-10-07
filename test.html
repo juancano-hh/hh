@@ -3635,7 +3635,7 @@
 
                 if (alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
                     const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
-                    const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                    const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                     const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                     if (salonObj) {
                         const pisoTexto = obtenerPisoDeSalon(salonObj.salon);
@@ -4594,7 +4594,7 @@
 
                 const idA = a.idOriginal || a.id || '';
                 const esSabado = (a.tipoClaseCal === 'sabado');
-                const esLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                const esLayPasado = (a.esLayPasado === true || a.esPrimerMes === true || a.esHojaVentas === true);
 
                 // 1. Método exacto: la misma función de asignación de salón que usa la ficha del alumno
                 const salonObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabado, null, esLayPasado);
@@ -4679,6 +4679,9 @@
 
             sinAsignarList.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
+            const gruposConAlumnos = gruposSaloneo.filter(g => g.total > 0);
+            const totalGruposVacios = gruposSaloneo.length - gruposConAlumnos.length;
+
             const salonesUnicos = [...new Set(gruposSaloneo.map(g => g.salon))].sort();
             const teachersUnicos = [...new Set(gruposSaloneo.map(g => g.teacher))].sort();
 
@@ -4709,6 +4712,7 @@
         .kpi-chip { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: #374151; }
         .kpi-chip b { color: #059669; font-size: 12px; }
         .grupo-box { border: 1px solid #e5e7eb; margin-bottom: 14px; border-radius: 8px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .grupo-vacio { display: none; }
         .grupo-header { font-weight: bold; background: #f8fafc; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
         .badge-salon { background: #6d28d9; color: #fff; padding: 2px 7px; border-radius: 5px; font-weight: 800; font-size: 10px; letter-spacing: 0.3px; }
         .badge-horario { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; }
@@ -4728,6 +4732,7 @@
             .no-print { display: none !important; }
             body { margin: 8px; font-size: 10px; }
             .grupo-box { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+            .grupo-box.grupo-vacio, .grupo-box[data-total="0"] { display: none !important; }
             th, td { padding: 4px 8px; font-size: 10px; }
         }
     </style>
@@ -4766,29 +4771,35 @@
                 <option value="teacher">Ordenar: Teacher</option>
                 <option value="alumnos_desc">Ordenar: Mayor a menor alumnos</option>
             </select>
+            <label style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:#374151; cursor:pointer; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; user-select:none;">
+                <input type="checkbox" id="chk-ver-vacios" onchange="filtrarGrupos()" style="cursor:pointer; accent-color:#059669;">
+                <span>Mostrar salones vacíos (${totalGruposVacios})</span>
+            </label>
         </div>
         <div>
             <span style="font-size: 11px; color: #065f46; font-weight: 600;">
-                Mostrando <span id="cnt-visibles">${totalGrupos}</span> grupos (<span id="cnt-alumnos-vis">${totalAlumnos}</span> alumnos)
+                Mostrando <span id="cnt-visibles">${gruposConAlumnos.length}</span> grupos (<span id="cnt-alumnos-vis">${totalAlumnos}</span> alumnos)
             </span>
         </div>
     </div>
 
     <div class="kpi-bar">
-        <div class="kpi-chip">Total Salones / Grupos: <b>${totalGrupos}</b></div>
+        <div class="kpi-chip">Salones Activos: <b>${gruposConAlumnos.length}</b></div>
         <div class="kpi-chip">Total Alumnos: <b>${totalAlumnos}</b></div>
         <div class="kpi-chip">Pagados (R): <b style="color:#16a34a;" id="cnt-pagados-vis">${totalPagados} (${pctGlobal}%)</b></div>
         <div class="kpi-chip">Pendientes / Seguimiento: <b style="color:#d97706;">${totalPendientes}</b></div>
+        ${totalGruposVacios > 0 ? `<div class="kpi-chip" style="color:#6b7280;">Salones Vacíos en Matriz: <b>${totalGruposVacios}</b></div>` : ''}
     </div>
 
     <div id="contenedor-grupos">`;
 
             gruposSaloneo.forEach(g => {
+                const esVacio = g.total === 0;
                 const pctGrupo = g.total > 0 ? Math.round((g.r / g.total) * 100) : 0;
                 const searchStr = (g.salon + ' ' + g.teacher + ' ' + g.programa + ' ' + g.nivelCodigo + ' ' + g.horario + ' ' + g.dias + ' ' + g.alumnosList.map(a => a.nombre + ' ' + a.id).join(' ')).toLowerCase();
 
                 html += `
-        <div class="grupo-box"
+        <div class="grupo-box ${esVacio ? 'grupo-vacio' : ''}"
              data-dia="${g.esSabado ? 'sabado' : 'entre-semana'}"
              data-salon="${g.salon.toLowerCase()}"
              data-teacher="${g.teacher.toLowerCase()}"
@@ -4887,6 +4898,7 @@
             const dia = document.getElementById('sel-dias').value;
             const sal = norm(document.getElementById('sel-salon').value);
             const teach = norm(document.getElementById('sel-teacher').value);
+            const verVacios = document.getElementById('chk-ver-vacios') ? document.getElementById('chk-ver-vacios').checked : false;
             
             const boxes = document.querySelectorAll('.grupo-box:not(.box-sin-asignar)');
             let visGrupos = 0;
@@ -4902,6 +4914,7 @@
                 const bPag = parseInt(b.getAttribute('data-pagados') || '0', 10);
                 
                 let match = true;
+                if (!verVacios && bTot === 0) match = false;
                 if (dia !== 'todos' && bDia !== dia) match = false;
                 if (sal && bSal !== sal) match = false;
                 if (teach && bTeach !== teach) match = false;
@@ -5486,6 +5499,17 @@
 
             // Buscar en las celdas de TODAS las filas que coincidan en hora
             for (let fila of filasCoincidentes) {
+                // Si es entre semana y la fila tiene días definidos (ej. LyM vs MyJ a las 15:45), verificar coincidencia
+                if (!esSabado && fila.dias) {
+                    const hUp = String(horarioOriginal || '').toUpperCase();
+                    if (fila.dias === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) {
+                        continue;
+                    }
+                    if (fila.dias === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) {
+                        continue;
+                    }
+                }
+
                 for (let i = 1; i < fila.celdas.length; i++) {
                     const celdaRaw = String(fila.celdas[i] || '').toUpperCase();
                     const celdaBase = celdaRaw.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
@@ -5512,7 +5536,7 @@
                             return matchObj;
                         }
 
-                        // Prioridad para curso principal: siempre preferir el que tiene (S)
+                        // Prioridad para curso según si es LayPasado/nuevo ingreso vs Layout regular
                         if (tieneS && !matchS) {
                             matchS = matchObj;
                         }
@@ -5525,8 +5549,19 @@
                     }
                 }
             }
-            // Si hay 2 cursos, siempre tomar el que tiene (S) como curso principal
-            return matchS || matchFallback || matchE;
+
+            // Si se buscaba un teacher específico y no coincidió, no retornar otro
+            if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
+                return null;
+            }
+
+            // Si el alumno es de LayPasado (o primer mes / nuevo ingreso), priorizar (S)
+            // Si el alumno es del Layout regular, priorizar (E)
+            if (esLayPasado) {
+                return matchS || matchFallback || matchE;
+            } else {
+                return matchE || matchFallback || matchS;
+            }
         }
 
         // ==================== HORARIOS DE RECUPERACIÓN ====================
@@ -8683,7 +8718,7 @@
                 pisoInicial = pisoDeseado;
             } else if (alumnoActual && alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
                 const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
-                const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                 const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                 if (salonObj && salonObj.salon) {
                     const pisoTxt = obtenerPisoDeSalon(salonObj.salon);
@@ -8750,7 +8785,7 @@
             let highlightObj = null;
             if (typeof alumnoActual !== 'undefined' && alumnoActual) {
                 const esSab = (alumnoActual.tipoClaseCal === 'sabado');
-                const esLayP = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                const esLayP = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                 highlightObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSab, null, esLayP);
             }
 
@@ -9049,7 +9084,7 @@
             const esSabado = diasTarget === 'Sábados';
             const esLayPasadoBuscado = esSoloS ? true : (esSoloE ? false : false);
             
-            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
+            const salonInfo = buscarSalonYTeacher(horaTarget + ' ' + diasTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
 
             const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
             const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
@@ -9154,7 +9189,7 @@
                 if (esSabado !== esSabadoAlumno) return false;
 
                 // 1. Coincidencia directa con la misma función oficial que asigna salón/teacher (la misma de Saloneo y Ficha)
-                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true || a.esHojaVentas === true);
                 const sObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabadoAlumno, null, esAlumnoLayPasado);
 
                 if (sObj) {
@@ -9174,6 +9209,9 @@
 
                 // 3. Coincidencia por programa, nivel y horario (respaldo)
                 if (a.programaNombre === progReal && parseInt(a.nivelActual) === parseInt(nivelVal)) {
+                    if (esSoloS && !esAlumnoLayPasado) return false;
+                    if (esSoloE && esAlumnoLayPasado) return false;
+
                     if (!esSabado) {
                         const hUp = (a.horario || '').toUpperCase();
                         if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
