@@ -1667,16 +1667,19 @@
                 </div>
 
                 <!-- Ranking Profesores Section (Chart + Table) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
                     <!-- Chart -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
-                        <div class="relative h-80 w-full flex-grow">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <p class="font-bold text-gray-700 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
+                            <p class="text-xs text-gray-500 mt-1">Avance por estatus de reinscripción</p>
+                        </div>
+                        <div class="relative w-full flex-grow min-h-[360px]">
                             <canvas id="chart-teachers"></canvas>
                         </div>
                     </div>
                     <!-- Table -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                             <div>
                                 <p class="font-bold text-gray-700 text-lg">🏆 Ranking de Profesores</p>
@@ -1687,20 +1690,22 @@
                                 <select id="select-orden-profesores" onchange="renderRankingProfesores()" class="border border-gray-300 text-sm rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500 text-gray-700">
                                     <option value="percent">% de Reinscripción</option>
                                     <option value="countR">Total Reinscritos (Cantidad)</option>
+                                    <option value="bajas">Cantidad No Continúa</option>
                                     <option value="total">Cantidad Total de Alumnos</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
+                        <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-sm text-center">
-                                <thead class="bg-gray-50 border-b sticky top-0 shadow-sm z-10">
+                                <thead class="bg-gray-50 border-b">
                                     <tr class="text-gray-500 uppercase text-xs">
-                                        <th class="py-3 font-semibold">Lugar</th>
-                                        <th class="py-3 font-semibold text-left pl-2">Teacher</th>
-                                        <th class="py-3 font-semibold text-green-600">Total R</th>
-                                        <th class="py-3 font-semibold text-yellow-600">Seguimiento</th>
-                                        <th class="py-3 font-semibold">Total Alumnos</th>
-                                        <th class="py-3 font-semibold text-blue-600">% R</th>
+                                        <th class="py-2.5 px-1 font-semibold">Lugar</th>
+                                        <th class="py-2.5 px-2 font-semibold text-left">Teacher</th>
+                                        <th class="py-2.5 px-1 font-semibold text-green-600">Total R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-yellow-600">Seguimiento</th>
+                                        <th class="py-2.5 px-1 font-semibold text-red-500">No Continúa</th>
+                                        <th class="py-2.5 px-1 font-semibold">Total Alumnos</th>
+                                        <th class="py-2.5 px-1 font-semibold text-blue-600">% R</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-ranking-profesores">
@@ -1712,31 +1717,35 @@
                 </div>
 
                 <!-- Weighted Leaderboard Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
                     <!-- Weighted Chart -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4">⚖️ Desempeño Ponderado por Profesor</p>
-                        <div class="relative h-80 w-full flex-grow">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <p class="font-bold text-gray-700 text-lg">⚖️ Desempeño Ponderado por Profesor</p>
+                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
+                        </div>
+                        <div class="relative w-full flex-grow min-h-[360px]">
                             <canvas id="chart-weighted-leaderboard"></canvas>
                         </div>
                     </div>
                     <!-- Weighted Table -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col justify-between">
                         <div class="mb-4">
                             <p class="font-bold text-gray-700 text-lg">📊 Ranking Global Ponderado (% Score)</p>
                             <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
                         </div>
-                        <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
+                        <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-sm text-center text-gray-600">
-                                <thead class="bg-gray-50 border-b sticky top-0 shadow-sm z-10">
+                                <thead class="bg-gray-50 border-b">
                                     <tr class="text-gray-500 uppercase text-xs">
-                                        <th class="py-3 font-semibold">Lugar</th>
-                                        <th class="py-3 font-semibold text-left pl-2">Teacher</th>
-                                        <th class="py-3 font-semibold text-green-600">Total R</th>
-                                        <th class="py-3 font-semibold">Total Alumnos</th>
-                                        <th class="py-3 font-semibold text-blue-600">% R</th>
-                                        <th class="py-3 font-semibold text-indigo-500">Factor Vol</th>
-                                        <th class="py-3 font-semibold text-purple-700">Score Final</th>
+                                        <th class="py-2.5 px-1 font-semibold">Lugar</th>
+                                        <th class="py-2.5 px-2 font-semibold text-left">Teacher</th>
+                                        <th class="py-2.5 px-1 font-semibold text-green-600">Total R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-red-500">No Continúa</th>
+                                        <th class="py-2.5 px-1 font-semibold">Total Alumnos</th>
+                                        <th class="py-2.5 px-1 font-semibold text-blue-600">% R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-indigo-500">Factor Vol</th>
+                                        <th class="py-2.5 px-1 font-semibold text-purple-700">Score Final</th>
                                     </tr>
                                 </thead>
                                 <tbody id="weighted-leaderboard-table-body">
@@ -9556,7 +9565,7 @@
                 let pctSeg = d.total > 0 ? (d.seguimiento / d.total) * 100 : 0;
                 let pctProm = d.total > 0 ? (d.promesas / d.total) * 100 : 0;
                 let pctBaj = d.total > 0 ? (d.bajas / d.total) * 100 : 0;
-                return { name: t, r: d.r, seguimiento: d.seguimiento, total: d.total, pct: pctR, pctSeg: pctSeg, pctProm: pctProm, pctBaj: pctBaj };
+                return { name: t, r: d.r, seguimiento: d.seguimiento, promesas: d.promesas || 0, bajas: d.bajas || 0, total: d.total, pct: pctR, pctSeg: pctSeg, pctProm: pctProm, pctBaj: pctBaj };
             });
             
             // Remove 'Sin Profesor' or dummy entries if any exist, but it's fine to keep them for transparency
@@ -9564,7 +9573,7 @@
 
             dashboardTeachersData = [...teachersArr];
             renderRankingProfesores(); // Handles the first table and sorting
-            renderChartTeachers(dashboardTeachersData.sort((a, b) => b.pct - a.pct)); // Chart always shows top %R
+            renderChartTeachers([...dashboardTeachersData].sort((a, b) => b.pct - a.pct)); // Chart always shows top %R
 
             // ---------------- WEIGHTED LEADERBOARD ----------------
             let maxTotalAlumnos = 0;
@@ -9589,7 +9598,16 @@
                 else if (place === 2) place = '🥈';
                 else if (place === 3) place = '🥉';
 
-                wTbody.innerHTML += `<tr class="border-b hover:bg-purple-50 transition"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td><td class="py-2 text-indigo-500 font-bold">${(t.factorVolumen * 100).toFixed(1)}%</td><td class="py-2 text-purple-700 font-black">${t.scoreFinal.toFixed(1)}%</td></tr>`;
+                wTbody.innerHTML += `<tr class="border-b hover:bg-purple-50 transition">
+                    <td class="py-2.5 px-1 text-lg font-bold">${place}</td>
+                    <td class="py-2.5 px-2 text-left font-bold text-gray-800">${t.name}</td>
+                    <td class="py-2.5 px-1 text-green-600 font-bold">${t.r}</td>
+                    <td class="py-2.5 px-1 text-red-500 font-bold">${t.bajas || 0}</td>
+                    <td class="py-2.5 px-1 font-bold text-gray-700">${t.total}</td>
+                    <td class="py-2.5 px-1 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td>
+                    <td class="py-2.5 px-1 text-indigo-500 font-bold">${(t.factorVolumen * 100).toFixed(1)}%</td>
+                    <td class="py-2.5 px-1 text-purple-700 font-black text-sm">${t.scoreFinal.toFixed(1)}%</td>
+                </tr>`;
                 
                 wLabels.push(t.name);
                 wScoreData.push(t.scoreFinal.toFixed(1));
@@ -9678,7 +9696,7 @@
             const ctx = document.getElementById('chart-teachers').getContext('2d');
             if (chartTeachers) chartTeachers.destroy();
             
-            let topT = teachers.slice(0, 10);
+            let topT = teachers;
             
             chartTeachers = new Chart(ctx, {
                 type: 'bar',
@@ -9800,6 +9818,8 @@
                 arr.sort((a, b) => b.r - a.r);
             } else if (sortBy === 'total') {
                 arr.sort((a, b) => b.total - a.total);
+            } else if (sortBy === 'bajas') {
+                arr.sort((a, b) => b.bajas - a.bajas);
             }
 
             let tbodyT = document.getElementById('tbody-ranking-profesores');
@@ -9810,7 +9830,15 @@
                 else if (place === 2) place = '🥈';
                 else if (place === 3) place = '🥉';
                 
-                tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 text-yellow-600 font-bold">${t.seguimiento}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td></tr>`;
+                tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50 transition">
+                    <td class="py-2.5 px-1 text-lg font-bold">${place}</td>
+                    <td class="py-2.5 px-2 text-left font-bold text-gray-800">${t.name}</td>
+                    <td class="py-2.5 px-1 text-green-600 font-bold">${t.r}</td>
+                    <td class="py-2.5 px-1 text-yellow-600 font-bold">${t.seguimiento}</td>
+                    <td class="py-2.5 px-1 text-red-500 font-bold">${t.bajas || 0}</td>
+                    <td class="py-2.5 px-1 font-bold text-gray-700">${t.total}</td>
+                    <td class="py-2.5 px-1 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td>
+                </tr>`;
             });
         }
 
@@ -9821,10 +9849,10 @@
             chartWeighted = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels.slice(0, 10), // Limit to top 10
+                    labels: labels,
                     datasets: [{
                         label: 'Score Ponderado (%)',
-                        data: dataArr.slice(0, 10),
+                        data: dataArr,
                         backgroundColor: '#a855f7',
                         borderRadius: 4
                     }]
