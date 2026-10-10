@@ -1667,16 +1667,19 @@
                 </div>
 
                 <!-- Ranking Profesores Section (Chart + Table) -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
                     <!-- Chart -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
-                        <div class="relative h-80 w-full flex-grow">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <p class="font-bold text-gray-700 text-lg">🏆 Carrera de Profesores (Meta 100% R)</p>
+                            <p class="text-xs text-gray-500 mt-1">Avance por estatus de reinscripción</p>
+                        </div>
+                        <div class="relative w-full flex-grow min-h-[360px]">
                             <canvas id="chart-teachers"></canvas>
                         </div>
                     </div>
                     <!-- Table -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col justify-between">
                         <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                             <div>
                                 <p class="font-bold text-gray-700 text-lg">🏆 Ranking de Profesores</p>
@@ -1687,20 +1690,22 @@
                                 <select id="select-orden-profesores" onchange="renderRankingProfesores()" class="border border-gray-300 text-sm rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500 text-gray-700">
                                     <option value="percent">% de Reinscripción</option>
                                     <option value="countR">Total Reinscritos (Cantidad)</option>
+                                    <option value="bajas">Cantidad No Continúa</option>
                                     <option value="total">Cantidad Total de Alumnos</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
+                        <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-sm text-center">
-                                <thead class="bg-gray-50 border-b sticky top-0 shadow-sm z-10">
+                                <thead class="bg-gray-50 border-b">
                                     <tr class="text-gray-500 uppercase text-xs">
-                                        <th class="py-3 font-semibold">Lugar</th>
-                                        <th class="py-3 font-semibold text-left pl-2">Teacher</th>
-                                        <th class="py-3 font-semibold text-green-600">Total R</th>
-                                        <th class="py-3 font-semibold text-yellow-600">Seguimiento</th>
-                                        <th class="py-3 font-semibold">Total Alumnos</th>
-                                        <th class="py-3 font-semibold text-blue-600">% R</th>
+                                        <th class="py-2.5 px-1 font-semibold">Lugar</th>
+                                        <th class="py-2.5 px-2 font-semibold text-left">Teacher</th>
+                                        <th class="py-2.5 px-1 font-semibold text-green-600">Total R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-yellow-600">Seguimiento</th>
+                                        <th class="py-2.5 px-1 font-semibold text-red-500">No Continúa</th>
+                                        <th class="py-2.5 px-1 font-semibold">Total Alumnos</th>
+                                        <th class="py-2.5 px-1 font-semibold text-blue-600">% R</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbody-ranking-profesores">
@@ -1712,31 +1717,35 @@
                 </div>
 
                 <!-- Weighted Leaderboard Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-stretch">
                     <!-- Weighted Chart -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col">
-                        <p class="font-bold text-gray-700 mb-4">⚖️ Desempeño Ponderado por Profesor</p>
-                        <div class="relative h-80 w-full flex-grow">
+                    <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-between">
+                        <div class="mb-4">
+                            <p class="font-bold text-gray-700 text-lg">⚖️ Desempeño Ponderado por Profesor</p>
+                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
+                        </div>
+                        <div class="relative w-full flex-grow min-h-[360px]">
                             <canvas id="chart-weighted-leaderboard"></canvas>
                         </div>
                     </div>
                     <!-- Weighted Table -->
-                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                    <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col justify-between">
                         <div class="mb-4">
                             <p class="font-bold text-gray-700 text-lg">📊 Ranking Global Ponderado (% Score)</p>
                             <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
                         </div>
-                        <div class="overflow-x-auto flex-grow max-h-[320px] overflow-y-auto">
+                        <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-sm text-center text-gray-600">
-                                <thead class="bg-gray-50 border-b sticky top-0 shadow-sm z-10">
+                                <thead class="bg-gray-50 border-b">
                                     <tr class="text-gray-500 uppercase text-xs">
-                                        <th class="py-3 font-semibold">Lugar</th>
-                                        <th class="py-3 font-semibold text-left pl-2">Teacher</th>
-                                        <th class="py-3 font-semibold text-green-600">Total R</th>
-                                        <th class="py-3 font-semibold">Total Alumnos</th>
-                                        <th class="py-3 font-semibold text-blue-600">% R</th>
-                                        <th class="py-3 font-semibold text-indigo-500">Factor Vol</th>
-                                        <th class="py-3 font-semibold text-purple-700">Score Final</th>
+                                        <th class="py-2.5 px-1 font-semibold">Lugar</th>
+                                        <th class="py-2.5 px-2 font-semibold text-left">Teacher</th>
+                                        <th class="py-2.5 px-1 font-semibold text-green-600">Total R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-red-500">No Continúa</th>
+                                        <th class="py-2.5 px-1 font-semibold">Total Alumnos</th>
+                                        <th class="py-2.5 px-1 font-semibold text-blue-600">% R</th>
+                                        <th class="py-2.5 px-1 font-semibold text-indigo-500">Factor Vol</th>
+                                        <th class="py-2.5 px-1 font-semibold text-purple-700">Score Final</th>
                                     </tr>
                                 </thead>
                                 <tbody id="weighted-leaderboard-table-body">
@@ -3635,7 +3644,7 @@
 
                 if (alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
                     const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
-                    const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                    const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                     const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                     if (salonObj) {
                         const pisoTexto = obtenerPisoDeSalon(salonObj.salon);
@@ -4594,7 +4603,7 @@
 
                 const idA = a.idOriginal || a.id || '';
                 const esSabado = (a.tipoClaseCal === 'sabado');
-                const esLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                const esLayPasado = (a.esLayPasado === true || a.esPrimerMes === true || a.esHojaVentas === true);
 
                 // 1. Método exacto: la misma función de asignación de salón que usa la ficha del alumno
                 const salonObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabado, null, esLayPasado);
@@ -4679,6 +4688,9 @@
 
             sinAsignarList.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
 
+            const gruposConAlumnos = gruposSaloneo.filter(g => g.total > 0);
+            const totalGruposVacios = gruposSaloneo.length - gruposConAlumnos.length;
+
             const salonesUnicos = [...new Set(gruposSaloneo.map(g => g.salon))].sort();
             const teachersUnicos = [...new Set(gruposSaloneo.map(g => g.teacher))].sort();
 
@@ -4709,6 +4721,7 @@
         .kpi-chip { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; color: #374151; }
         .kpi-chip b { color: #059669; font-size: 12px; }
         .grupo-box { border: 1px solid #e5e7eb; margin-bottom: 14px; border-radius: 8px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .grupo-vacio { display: none; }
         .grupo-header { font-weight: bold; background: #f8fafc; padding: 8px 12px; border-bottom: 1px solid #e2e8f0; font-size: 11px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
         .badge-salon { background: #6d28d9; color: #fff; padding: 2px 7px; border-radius: 5px; font-weight: 800; font-size: 10px; letter-spacing: 0.3px; }
         .badge-horario { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; }
@@ -4728,6 +4741,7 @@
             .no-print { display: none !important; }
             body { margin: 8px; font-size: 10px; }
             .grupo-box { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; }
+            .grupo-box.grupo-vacio, .grupo-box[data-total="0"] { display: none !important; }
             th, td { padding: 4px 8px; font-size: 10px; }
         }
     </style>
@@ -4766,29 +4780,35 @@
                 <option value="teacher">Ordenar: Teacher</option>
                 <option value="alumnos_desc">Ordenar: Mayor a menor alumnos</option>
             </select>
+            <label style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; color:#374151; cursor:pointer; background:#fff; padding:6px 10px; border-radius:6px; border:1px solid #cbd5e1; user-select:none;">
+                <input type="checkbox" id="chk-ver-vacios" onchange="filtrarGrupos()" style="cursor:pointer; accent-color:#059669;">
+                <span>Mostrar salones vacíos (${totalGruposVacios})</span>
+            </label>
         </div>
         <div>
             <span style="font-size: 11px; color: #065f46; font-weight: 600;">
-                Mostrando <span id="cnt-visibles">${totalGrupos}</span> grupos (<span id="cnt-alumnos-vis">${totalAlumnos}</span> alumnos)
+                Mostrando <span id="cnt-visibles">${gruposConAlumnos.length}</span> grupos (<span id="cnt-alumnos-vis">${totalAlumnos}</span> alumnos)
             </span>
         </div>
     </div>
 
     <div class="kpi-bar">
-        <div class="kpi-chip">Total Salones / Grupos: <b>${totalGrupos}</b></div>
+        <div class="kpi-chip">Salones Activos: <b>${gruposConAlumnos.length}</b></div>
         <div class="kpi-chip">Total Alumnos: <b>${totalAlumnos}</b></div>
         <div class="kpi-chip">Pagados (R): <b style="color:#16a34a;" id="cnt-pagados-vis">${totalPagados} (${pctGlobal}%)</b></div>
         <div class="kpi-chip">Pendientes / Seguimiento: <b style="color:#d97706;">${totalPendientes}</b></div>
+        ${totalGruposVacios > 0 ? `<div class="kpi-chip" style="color:#6b7280;">Salones Vacíos en Matriz: <b>${totalGruposVacios}</b></div>` : ''}
     </div>
 
     <div id="contenedor-grupos">`;
 
             gruposSaloneo.forEach(g => {
+                const esVacio = g.total === 0;
                 const pctGrupo = g.total > 0 ? Math.round((g.r / g.total) * 100) : 0;
                 const searchStr = (g.salon + ' ' + g.teacher + ' ' + g.programa + ' ' + g.nivelCodigo + ' ' + g.horario + ' ' + g.dias + ' ' + g.alumnosList.map(a => a.nombre + ' ' + a.id).join(' ')).toLowerCase();
 
                 html += `
-        <div class="grupo-box"
+        <div class="grupo-box ${esVacio ? 'grupo-vacio' : ''}"
              data-dia="${g.esSabado ? 'sabado' : 'entre-semana'}"
              data-salon="${g.salon.toLowerCase()}"
              data-teacher="${g.teacher.toLowerCase()}"
@@ -4887,6 +4907,7 @@
             const dia = document.getElementById('sel-dias').value;
             const sal = norm(document.getElementById('sel-salon').value);
             const teach = norm(document.getElementById('sel-teacher').value);
+            const verVacios = document.getElementById('chk-ver-vacios') ? document.getElementById('chk-ver-vacios').checked : false;
             
             const boxes = document.querySelectorAll('.grupo-box:not(.box-sin-asignar)');
             let visGrupos = 0;
@@ -4902,6 +4923,7 @@
                 const bPag = parseInt(b.getAttribute('data-pagados') || '0', 10);
                 
                 let match = true;
+                if (!verVacios && bTot === 0) match = false;
                 if (dia !== 'todos' && bDia !== dia) match = false;
                 if (sal && bSal !== sal) match = false;
                 if (teach && bTeach !== teach) match = false;
@@ -5486,6 +5508,17 @@
 
             // Buscar en las celdas de TODAS las filas que coincidan en hora
             for (let fila of filasCoincidentes) {
+                // Si es entre semana y la fila tiene días definidos (ej. LyM vs MyJ a las 15:45), verificar coincidencia
+                if (!esSabado && fila.dias) {
+                    const hUp = String(horarioOriginal || '').toUpperCase();
+                    if (fila.dias === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) {
+                        continue;
+                    }
+                    if (fila.dias === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) {
+                        continue;
+                    }
+                }
+
                 for (let i = 1; i < fila.celdas.length; i++) {
                     const celdaRaw = String(fila.celdas[i] || '').toUpperCase();
                     const celdaBase = celdaRaw.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
@@ -5512,7 +5545,7 @@
                             return matchObj;
                         }
 
-                        // Prioridad para curso principal: siempre preferir el que tiene (S)
+                        // Prioridad para curso según si es LayPasado/nuevo ingreso vs Layout regular
                         if (tieneS && !matchS) {
                             matchS = matchObj;
                         }
@@ -5525,8 +5558,19 @@
                     }
                 }
             }
-            // Si hay 2 cursos, siempre tomar el que tiene (S) como curso principal
-            return matchS || matchFallback || matchE;
+
+            // Si se buscaba un teacher específico y no coincidió, no retornar otro
+            if (targetTeacher && targetTeacher !== 'No definido' && targetTeacher !== 'undefined') {
+                return null;
+            }
+
+            // Si el alumno es de LayPasado (o primer mes / nuevo ingreso), priorizar (S)
+            // Si el alumno es del Layout regular, priorizar (E)
+            if (esLayPasado) {
+                return matchS || matchFallback || matchE;
+            } else {
+                return matchE || matchFallback || matchS;
+            }
         }
 
         // ==================== HORARIOS DE RECUPERACIÓN ====================
@@ -8683,7 +8727,7 @@
                 pisoInicial = pisoDeseado;
             } else if (alumnoActual && alumnoActual.modalidad && alumnoActual.modalidad.toUpperCase() === 'PRESENCIAL') {
                 const esSabado = (alumnoActual.tipoClaseCal === 'sabado');
-                const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                const esLayPasado = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                 const salonObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSabado, null, esLayPasado);
                 if (salonObj && salonObj.salon) {
                     const pisoTxt = obtenerPisoDeSalon(salonObj.salon);
@@ -8750,7 +8794,7 @@
             let highlightObj = null;
             if (typeof alumnoActual !== 'undefined' && alumnoActual) {
                 const esSab = (alumnoActual.tipoClaseCal === 'sabado');
-                const esLayP = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true);
+                const esLayP = (alumnoActual.esLayPasado === true || alumnoActual.esPrimerMes === true || alumnoActual.esHojaVentas === true);
                 highlightObj = buscarSalonYTeacher(alumnoActual.horario, alumnoActual.programaNombre, alumnoActual.nivelActual, esSab, null, esLayP);
             }
 
@@ -8860,13 +8904,14 @@
         }
 
         function esGrupoPresencialValido(progAlumnos, codigoClase) {
-            if (!codigoClase) return false;
+            if (!codigoClase) return true;
             const cod = codigoClase.toUpperCase();
+            if (cod.endsWith('L') || cod.includes('LINEA') || cod.includes('ONL')) return false;
             if (progAlumnos === 'ADULTO' && cod.includes('ADUP')) return true;
             if (progAlumnos === 'PTEEN' && cod.includes('PTEP')) return true;
             if (progAlumnos === 'KIDS' && cod.includes('KIDP')) return true;
             if (progAlumnos === 'TEENS' && cod.includes('TEEP')) return true;
-            return false;
+            return true;
         }
 
         function bgActualizarHorarios() {
@@ -9048,7 +9093,7 @@
             const esSabado = diasTarget === 'Sábados';
             const esLayPasadoBuscado = esSoloS ? true : (esSoloE ? false : false);
             
-            const salonInfo = buscarSalonYTeacher(horaTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
+            const salonInfo = buscarSalonYTeacher(horaTarget + ' ' + diasTarget, progReal, nivelVal, esSabado, targetTeacher, esLayPasadoBuscado);
 
             const finalTeacher = salonInfo && salonInfo.teacher !== 'No definido' ? salonInfo.teacher : (clase ? clase.docente : 'No asignado');
             const finalSalon = salonInfo && salonInfo.salon !== 'No definido' ? salonInfo.salon : 'No asignado';
@@ -9143,26 +9188,50 @@
 
             // CARGAR ALUMNOS
             const estudiantesList = Object.values(baseAlumnos).filter(a => {
-                if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
-                const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
-                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
+                const modUp = (a.modalidad || '').toUpperCase();
+                if (!modUp.includes('PRESENCIAL')) return false;
 
-                if (esSoloS && !esAlumnoLayPasado && !a.esHojaVentas) return false;
-                if (esSoloE && (esAlumnoLayPasado || a.esHojaVentas)) return false;
-                if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloS && !esSoloE && !(progAlumnos === 'ADULTO' && parseInt(nivelVal) === 24)) return false;
+                const progUp = (a.programaRaw || '').toUpperCase();
+                if (progUp.includes('TEACHER') || progUp.includes('TKT')) return false;
 
-                if (!esSabado) {
-                    const hUp = (a.horario || '').toUpperCase();
-                    if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
-                    if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                const esSabadoAlumno = (a.tipoClaseCal === 'sabado');
+                if (esSabado !== esSabadoAlumno) return false;
+
+                // 1. Coincidencia directa con la misma función oficial que asigna salón/teacher (la misma de Saloneo y Ficha)
+                const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true || a.esHojaVentas === true);
+                const sObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabadoAlumno, null, esAlumnoLayPasado);
+
+                if (sObj) {
+                    if (sObj.isSabado === esSabado && sObj.horaFmt === horaTarget) {
+                        if (salonInfo && salonInfo.colIdx !== undefined && sObj.colIdx === salonInfo.colIdx) {
+                            return true;
+                        }
+                        if (sObj.salon.toUpperCase() === finalSalon.toUpperCase() &&
+                            (finalTeacher === 'No asignado' || sObj.teacher.toUpperCase() === finalTeacher.toUpperCase())) {
+                            return true;
+                        }
+                    }
                 }
 
-                return a.programaNombre === progAlumnos &&
-                       a.nivelActual === parseInt(nivelVal) &&
-                       a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL' &&
-                       esPresencialValido &&
-                       a.tipoClaseCal === (esSabado ? 'sabado' : 'entre-semana') &&
-                       horCoincide(a.horario, horaTarget, progReal, esSabado);
+                // 2. Coincidencia por CRN si la clase lo define
+                if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
+
+                // 3. Coincidencia por programa, nivel y horario (respaldo)
+                if (a.programaNombre === progReal && parseInt(a.nivelActual) === parseInt(nivelVal)) {
+                    if (esSoloS && !esAlumnoLayPasado) return false;
+                    if (esSoloE && esAlumnoLayPasado) return false;
+
+                    if (!esSabado) {
+                        const hUp = (a.horario || '').toUpperCase();
+                        if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
+                        if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                    }
+                    if (horCoincide(a.horario, horaTarget, progReal, esSabado)) {
+                        return true;
+                    }
+                }
+
+                return false;
             });
 
             estudiantesList.sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -9496,7 +9565,7 @@
                 let pctSeg = d.total > 0 ? (d.seguimiento / d.total) * 100 : 0;
                 let pctProm = d.total > 0 ? (d.promesas / d.total) * 100 : 0;
                 let pctBaj = d.total > 0 ? (d.bajas / d.total) * 100 : 0;
-                return { name: t, r: d.r, seguimiento: d.seguimiento, total: d.total, pct: pctR, pctSeg: pctSeg, pctProm: pctProm, pctBaj: pctBaj };
+                return { name: t, r: d.r, seguimiento: d.seguimiento, promesas: d.promesas || 0, bajas: d.bajas || 0, total: d.total, pct: pctR, pctSeg: pctSeg, pctProm: pctProm, pctBaj: pctBaj };
             });
             
             // Remove 'Sin Profesor' or dummy entries if any exist, but it's fine to keep them for transparency
@@ -9504,7 +9573,7 @@
 
             dashboardTeachersData = [...teachersArr];
             renderRankingProfesores(); // Handles the first table and sorting
-            renderChartTeachers(dashboardTeachersData.sort((a, b) => b.pct - a.pct)); // Chart always shows top %R
+            renderChartTeachers([...dashboardTeachersData].sort((a, b) => b.pct - a.pct)); // Chart always shows top %R
 
             // ---------------- WEIGHTED LEADERBOARD ----------------
             let maxTotalAlumnos = 0;
@@ -9529,7 +9598,16 @@
                 else if (place === 2) place = '🥈';
                 else if (place === 3) place = '🥉';
 
-                wTbody.innerHTML += `<tr class="border-b hover:bg-purple-50 transition"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td><td class="py-2 text-indigo-500 font-bold">${(t.factorVolumen * 100).toFixed(1)}%</td><td class="py-2 text-purple-700 font-black">${t.scoreFinal.toFixed(1)}%</td></tr>`;
+                wTbody.innerHTML += `<tr class="border-b hover:bg-purple-50 transition">
+                    <td class="py-2.5 px-1 text-lg font-bold">${place}</td>
+                    <td class="py-2.5 px-2 text-left font-bold text-gray-800">${t.name}</td>
+                    <td class="py-2.5 px-1 text-green-600 font-bold">${t.r}</td>
+                    <td class="py-2.5 px-1 text-red-500 font-bold">${t.bajas || 0}</td>
+                    <td class="py-2.5 px-1 font-bold text-gray-700">${t.total}</td>
+                    <td class="py-2.5 px-1 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td>
+                    <td class="py-2.5 px-1 text-indigo-500 font-bold">${(t.factorVolumen * 100).toFixed(1)}%</td>
+                    <td class="py-2.5 px-1 text-purple-700 font-black text-sm">${t.scoreFinal.toFixed(1)}%</td>
+                </tr>`;
                 
                 wLabels.push(t.name);
                 wScoreData.push(t.scoreFinal.toFixed(1));
@@ -9618,7 +9696,7 @@
             const ctx = document.getElementById('chart-teachers').getContext('2d');
             if (chartTeachers) chartTeachers.destroy();
             
-            let topT = teachers.slice(0, 10);
+            let topT = teachers;
             
             chartTeachers = new Chart(ctx, {
                 type: 'bar',
@@ -9740,6 +9818,8 @@
                 arr.sort((a, b) => b.r - a.r);
             } else if (sortBy === 'total') {
                 arr.sort((a, b) => b.total - a.total);
+            } else if (sortBy === 'bajas') {
+                arr.sort((a, b) => b.bajas - a.bajas);
             }
 
             let tbodyT = document.getElementById('tbody-ranking-profesores');
@@ -9750,7 +9830,15 @@
                 else if (place === 2) place = '🥈';
                 else if (place === 3) place = '🥉';
                 
-                tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50"><td class="py-2 text-xl">${place}</td><td class="py-2 text-left pl-2 font-bold">${t.name}</td><td class="py-2 text-green-600 font-bold">${t.r}</td><td class="py-2 text-yellow-600 font-bold">${t.seguimiento}</td><td class="py-2 font-bold">${t.total}</td><td class="py-2 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td></tr>`;
+                tbodyT.innerHTML += `<tr class="border-b hover:bg-gray-50 transition">
+                    <td class="py-2.5 px-1 text-lg font-bold">${place}</td>
+                    <td class="py-2.5 px-2 text-left font-bold text-gray-800">${t.name}</td>
+                    <td class="py-2.5 px-1 text-green-600 font-bold">${t.r}</td>
+                    <td class="py-2.5 px-1 text-yellow-600 font-bold">${t.seguimiento}</td>
+                    <td class="py-2.5 px-1 text-red-500 font-bold">${t.bajas || 0}</td>
+                    <td class="py-2.5 px-1 font-bold text-gray-700">${t.total}</td>
+                    <td class="py-2.5 px-1 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td>
+                </tr>`;
             });
         }
 
@@ -9761,10 +9849,10 @@
             chartWeighted = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels.slice(0, 10), // Limit to top 10
+                    labels: labels,
                     datasets: [{
                         label: 'Score Ponderado (%)',
-                        data: dataArr.slice(0, 10),
+                        data: dataArr,
                         backgroundColor: '#a855f7',
                         borderRadius: 4
                     }]
