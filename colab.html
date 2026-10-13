@@ -2903,13 +2903,14 @@
 
             if (alumno.esPrimerMes || alumno.esLayPasado) {
                 const targetDatos = obtenerDatosPeriodo(periodoSig);
-                const limites = obtenerFechasLimitePago(targetDatos, '08');
+                const modStr = (periodoSig && periodoSig.length >= 4) ? periodoSig.substring(2, 4) : (alumno.programa || '04');
+                const limites = obtenerFechasLimitePago(targetDatos, modStr);
                 return {
                     periodo: periodoSig,
-                    mod: '08',
+                    mod: modStr,
                     datos: targetDatos,
                     limites: limites,
-                    textoRango: obtenerRangoPago(targetDatos, '08')
+                    textoRango: obtenerRangoPago(targetDatos, modStr)
                 };
             }
 
@@ -3187,6 +3188,58 @@
             } catch (e) { console.warn("Error cargando precios:", e); tablaPrecios = {}; }
         }
 
+        function obtenerModalidadClaveAlumno(alumno = null) {
+            const al = alumno || (typeof alumnoActual !== 'undefined' ? alumnoActual : null);
+            if (!al) return null;
+
+            // 1. Clave de período del alumno (ej. 260408 -> '4', 260802 -> '8')
+            let clave = al.periodoSiguiente ? String(al.periodoSiguiente).trim() : '';
+            if (clave.length >= 4) {
+                const sub = clave.substring(2, 4);
+                if (sub === '04') return '4';
+                if (sub === '08') return '8';
+            }
+            if (clave.includes('04')) return '4';
+            if (clave.includes('08')) return '8';
+
+            // 2. Por duración de cursos del programa (4 = 4 semanas / Adultos, 8 = 8 semanas / Kids, Preteens, Teens):
+            if (al.programa === '04' || al.programa === '4') return '4';
+            if (al.programa === '08' || al.programa === '8') return '8';
+
+            const prog = (al.programaTexto || al.programaNombre || al.programaRaw || '').toString().toUpperCase();
+            if (prog.includes('KID') || prog.includes('TEEN') || prog.includes('PTEEN')) return '8';
+            if (prog.includes('ADULT')) return '4';
+
+            return '4';
+        }
+
+        function obtenerFechaLimiteMaximaVolumen(alumno = null) {
+            const mod = obtenerModalidadClaveAlumno(alumno);
+            let maxFecha = null;
+            if (promosVolumen && promosVolumen.length) {
+                for (let p of promosVolumen) {
+                    if (p.fechaFin && (p.modalidad === 'T' || !mod || p.modalidad === mod)) {
+                        if (!maxFecha || p.fechaFin > maxFecha) {
+                            maxFecha = p.fechaFin;
+                        }
+                    }
+                }
+            }
+            return maxFecha || fechaLimiteMaximaVolumen;
+        }
+
+        function obtenerFechaVigenciaBecaBase(alumno = null) {
+            const mod = obtenerModalidadClaveAlumno(alumno);
+            if (promosVolumen && promosVolumen.length) {
+                const aplicables = promosVolumen.filter(p => p.fechaFin && (p.modalidad === 'T' || !mod || p.modalidad === mod));
+                const promoSemana = aplicables.find(p => p.motivo && p.motivo.toUpperCase().includes("SEMANA"));
+                if (promoSemana) return promoSemana.fechaFin;
+                const promoUno = aplicables.find(p => p.cantidadMinima === 1);
+                if (promoUno) return promoUno.fechaFin;
+            }
+            return fechaVigenciaBecaBase;
+        }
+
         async function cargarPromosVolumen() {
             try {
                 const res = await fetch(URL_VOLUMEN);
@@ -3206,6 +3259,19 @@
                     if (descuento > 1) descuento = descuento / 100;
                     let fechaFin = parseFecha(fechaRaw);
                     if (fechaRaw !== null && fechaFin === null) continue;
+
+                    // Columna E (índice 4): modalidad '4', '8', o 'T' (por defecto 'T' si no especificada o vacía)
+                    let modRaw = 'T';
+                    if (fila.c.length > 4 && fila.c[4]) {
+                        const cellVal = (fila.c[4].v !== null && fila.c[4].v !== undefined) ? fila.c[4].v : fila.c[4].f;
+                        if (cellVal !== null && cellVal !== undefined) {
+                            const strVal = String(cellVal).trim().toUpperCase();
+                            if (strVal === '4' || strVal === '04') modRaw = '4';
+                            else if (strVal === '8' || strVal === '08') modRaw = '8';
+                            else if (strVal === 'T' || strVal === '') modRaw = 'T';
+                        }
+                    }
+
                     if (fechaFin) {
                         if (!fechaLimiteMaximaVolumen || fechaFin > fechaLimiteMaximaVolumen) {
                             fechaLimiteMaximaVolumen = fechaFin;
@@ -3217,7 +3283,7 @@
                             fechaVigenciaBecaBase = fechaFin;
                         }
                     }
-                    promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
+                    promosVolumen.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin, modalidad: modRaw });
                 }
                 if (!fechaVigenciaBecaBase) {
                     const promoUno = promosVolumen.find(p => p.cantidadMinima === 1);
@@ -3269,10 +3335,15 @@
             } catch (e) { console.warn("Error cargando libros:", e); }
         }
 
-        function obtenerMejorPromoVigente(cantidadCursos) {
+        function obtenerMejorPromoVigente(cantidadCursos, alumno = null) {
             if (!promosVolumen || !promosVolumen.length) return null;
+            const al = alumno || (typeof alumnoActual !== 'undefined' ? alumnoActual : null);
+            const modAlumno = obtenerModalidadClaveAlumno(al);
             const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
             const aplicables = promosVolumen.filter(p => {
+                if (modAlumno && p.modalidad && p.modalidad !== 'T') {
+                    if (p.modalidad !== modAlumno) return false;
+                }
                 if (cantidadCursos < p.cantidadMinima) return false;
                 if (p.fechaFin) {
                     const f = new Date(p.fechaFin);
@@ -3284,7 +3355,11 @@
             if (!aplicables.length) return null;
 
             // 1. Si existe una regla exacta para esta cantidad de cursos:
-            const exacta = aplicables.find(p => p.cantidadMinima === cantidadCursos);
+            const exactas = aplicables.filter(p => p.cantidadMinima === cantidadCursos);
+            let exacta = null;
+            if (exactas.length > 0) {
+                exacta = exactas.find(p => p.modalidad === modAlumno) || exactas[0];
+            }
             const maxDesc = Math.max(...aplicables.map(p => p.descuento));
 
             // Si la regla exacta tiene el descuento máximo disponible, es la preferente
@@ -3295,7 +3370,11 @@
             // 2. Si no hay exacta o hay un escalón con mayor descuento:
             return aplicables.reduce((prev, curr) => {
                 if (curr.descuento > prev.descuento) return curr;
-                if (curr.descuento === prev.descuento && curr.cantidadMinima > prev.cantidadMinima) return curr;
+                if (curr.descuento === prev.descuento) {
+                    if (modAlumno && curr.modalidad === modAlumno && prev.modalidad !== modAlumno) return curr;
+                    if (modAlumno && prev.modalidad === modAlumno && curr.modalidad !== modAlumno) return prev;
+                    if (curr.cantidadMinima > prev.cantidadMinima) return curr;
+                }
                 return prev;
             });
         }
@@ -4056,7 +4135,7 @@
             }
 
             // 2. Obtener la mejor promoción vigente de la hoja VOLUMEN para la cantidad de cursos solicitada
-            const promoVolumen = obtenerMejorPromoVigente(cantCursos);
+            const promoVolumen = obtenerMejorPromoVigente(cantCursos, alumnoActual);
             const promoVolumenDesc = (promoVolumen && promoVolumen.descuento > 0) ? promoVolumen.descuento : 0;
 
             // 3. Regla: siempre se aplica el descuento más alto disponible y vigente (no se suman)
@@ -4081,8 +4160,9 @@
                 etiquetaPromo = "Beca asignada";
                 // Su beca base topada por la fecha límite del layout de volumen para nunca mostrar años lejanos (ej. 2027)
                 let fBase = fechaVigenciaBeca;
-                if (fechaLimiteMaximaVolumen && fBase && fBase > fechaLimiteMaximaVolumen) {
-                    fBase = fechaLimiteMaximaVolumen;
+                const fMaxVolumen = obtenerFechaLimiteMaximaVolumen(alumnoActual);
+                if (fMaxVolumen && fBase && fBase > fMaxVolumen) {
+                    fBase = fMaxVolumen;
                 }
                 fechaFinPromoAplicada = fBase;
             } else if (promoVolumenDesc > 0) {
@@ -5070,7 +5150,7 @@
             const subtotal = totalConDescuentoSinServicio + totalListaLibrosFinal + totalExtras;
             const totalFinal = extraServicio > 0 ? subtotal + (extraServicio * cantCursos) : subtotal;
             let stringDescuento = `${porcentajeDescuentoActual}%`;
-            let promo = obtenerMejorPromoVigente(cantCursos);
+            let promo = obtenerMejorPromoVigente(cantCursos, alumnoActual);
             if (descuentoManualPorcentaje !== null && !isNaN(descuentoManualPorcentaje)) {
                 stringDescuento += " (Personalizado)";
             } else if (promo && promo.descuento > 0 && Math.round(promo.descuento * 100) === porcentajeDescuentoActual) {
@@ -7435,11 +7515,12 @@
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
             
             let promoMotivo = '';
-            const promoInfo = obtenerMejorPromoVigente(cantCursos);
+            const promoInfo = obtenerMejorPromoVigente(cantCursos, alumnoActual);
             const adelantoRecibo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
+            const vigenciaBeca = obtenerFechaVigenciaBecaBase(alumnoActual);
             if (promoInfo && promoInfo.descuento > alumnoActual.beca) {
                 promoMotivo = ` - ${promoInfo.motivo}`;
-            } else if (alumnoActual.beca > 0 && ((fechaVigenciaBecaBase && new Date(fechaVigenciaBecaBase) >= new Date()) || (adelantoRecibo && adelantoRecibo.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) {
+            } else if (alumnoActual.beca > 0 && ((vigenciaBeca && new Date(vigenciaBeca) >= new Date()) || (adelantoRecibo && adelantoRecibo.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) {
                 promoMotivo = ' - Beca base';
             }
             
