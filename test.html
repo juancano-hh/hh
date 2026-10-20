@@ -9886,13 +9886,25 @@
                 });
 
                 if (grupoAlumnos.length > 0) {
-                    let r = 0, seg = 0, prom = 0, bajas = 0;
+                    let r = 0, seg = 0, prom = 0, bajas = 0, totalReinscripcion = 0;
                     let alumnosList = [];
                     
                     grupoAlumnos.forEach(a => {
                         let st = (a.estatusPago || '').trim().toUpperCase();
                         alumnosList.push({ id: a.idOriginal, nombre: a.nombre, estatus: st });
 
+                        // Excluir REC, Transf. Llega y Transf. Sale del total de alumnado de profesores (no pagan reinscripción)
+                        const esExcluidoReinscripcion = (
+                            st === 'REC' ||
+                            st.includes('TRANSFERENCIA LLEGA') ||
+                            st.includes('TRANSFERENCIA SALE') ||
+                            st.includes('TRANSF. LLEGA') ||
+                            st.includes('TRANSF. SALE') ||
+                            st.includes('TRANSFERENCIA')
+                        );
+                        if (esExcluidoReinscripcion) return;
+
+                        totalReinscripcion++;
                         if (st === 'R') r++;
                         else if (st.includes('SEGUIMIENTO')) seg++;
                         else if (st.includes('PROMESA')) prom++;
@@ -9906,7 +9918,7 @@
                         r: r,
                         seguimiento: seg,
                         bajas: bajas,
-                        total: grupoAlumnos.length,
+                        total: totalReinscripcion,
                         alumnosList: alumnosList,
                         isPresencial: true
                     });
@@ -9916,7 +9928,7 @@
                     teachersMap[teacher].seguimiento += seg;
                     teachersMap[teacher].promesas += prom;
                     teachersMap[teacher].bajas += bajas;
-                    teachersMap[teacher].total += grupoAlumnos.length;
+                    teachersMap[teacher].total += totalReinscripcion;
                     
                     grupoAlumnos.forEach(a => a._procesadoDashboard = true);
                 }
