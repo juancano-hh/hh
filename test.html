@@ -4439,21 +4439,53 @@
             if (precioBaseAlto === 0) console.warn(`Precio no encontrado para ${llaveAlta}`);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             
-            // 1. Determinar si el alumno tiene Beca Base vigente según la Semana de Descuentos del Calendario
+            // 1. Determinar si el alumno tiene Beca Base vigente
             let becaBaseVigente = 0;
             let fechaVigenciaBeca = null;
             let estaEnFechaDePago = false;
-            const tieneCursoPagado = alumnoTieneCursoPagado(alumnoActual);
+            let esAdelantoPago = false;
 
+            const tieneCursoPagado = alumnoTieneCursoPagado(alumnoActual);
             const semanaDescCal = obtenerSemanaDescuentoCalendario(alumnoActual);
-            if (semanaDescCal) {
-                fechaVigenciaBeca = semanaDescCal.fin;
-                // La beca del alumno SOLO aplica si:
-                // a) Hoy está dentro de la Semana de Descuentos del Calendario (semanaDescCal.estaVigente)
-                // b) Su curso actual/anterior está pagado (tieneCursoPagado = estatus 'R' o 'PAGADO', sin adeudo)
-                if (alumnoActual.beca > 0 && semanaDescCal.estaVigente && tieneCursoPagado) {
+
+            if (alumnoActual.beca > 0) {
+                if (tieneCursoPagado) {
+                    // CASO A: Alumno con curso actual PAGADO (estatus R / PAGADO)
+                    // No debe nada; está adelantando pago de su próximo curso y SÍ conserva su beca base
+                    esAdelantoPago = true;
                     estaEnFechaDePago = true;
                     becaBaseVigente = alumnoActual.beca;
+
+                    // Vigencia de su adelanto de pago: fecha límite de pago del próximo curso
+                    const infoPago = obtenerInfoProximaFechaPago(alumnoActual);
+                    if (infoPago && infoPago.limites && infoPago.limites.finPago) {
+                        fechaVigenciaBeca = new Date(infoPago.limites.finPago);
+                        fechaVigenciaBeca.setHours(23, 59, 59, 999);
+                    } else if (semanaDescCal) {
+                        fechaVigenciaBeca = semanaDescCal.fin;
+                    }
+                    // Topar con la fecha límite máxima de la hoja volumen (ej. 31 de octubre) para no mostrar años lejanos
+                    const fMaxVol = obtenerFechaLimiteMaximaVolumen(alumnoActual);
+                    if (fMaxVol && fechaVigenciaBeca && fechaVigenciaBeca > fMaxVol) {
+                        fechaVigenciaBeca = fMaxVol;
+                    }
+                } else {
+                    // CASO B: Alumno que NO ha pagado su curso (estatus EN SEGUIMIENTO / pendiente / adeudo)
+                    // Solo tiene derecho a su beca si HOY está dentro de la Semana de Descuentos del Calendario
+                    // y el curso no ha terminado ya (no arrastra adeudo de curso pasado)
+                    const yaInicioProx = proximoCursoYaInicio(alumnoActual);
+
+                    if (semanaDescCal && semanaDescCal.estaVigente && !yaInicioProx) {
+                        // Está a tiempo dentro de la semana de descuentos para pagar su curso
+                        estaEnFechaDePago = true;
+                        becaBaseVigente = alumnoActual.beca;
+                        fechaVigenciaBeca = semanaDescCal.fin;
+                    } else {
+                        // Ya pasó la semana de descuentos o el curso ya terminó y empezó el siguiente:
+                        // Pierde el descuento de su beca (becaBaseVigente = 0)
+                        becaBaseVigente = 0;
+                        fechaVigenciaBeca = null;
+                    }
                 }
             }
 
@@ -4477,10 +4509,10 @@
                 etiquetaPromo = promoVolumen.motivo;
                 fechaFinPromoAplicada = promoVolumen.fechaFin || null;
             } else if (becaBaseVigente > 0 && becaBaseVigente >= promoVolumenDesc) {
-                // Gana la beca base del alumno (vigente en semana de descuento y sin adeudo)
+                // Gana la beca base del alumno (vigente por adelanto de pago o dentro de su semana de descuento)
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
-                etiquetaPromo = "Beca asignada";
+                etiquetaPromo = esAdelantoPago ? "Beca (Pago adelantado)" : "Beca asignada";
                 fechaFinPromoAplicada = fechaVigenciaBeca;
             } else {
                 descuentoAplicar = 0;
@@ -7851,8 +7883,8 @@
             }
             
             let descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%${promoMotivo})` : '';
-            const montoBajos = (precioBaseBajo * (1 - porcentajeDescuentoActual/100)) + extraServicio;
-            const montoAltos = (precioBaseAlto * (1 - porcentajeDescuentoActual/100)) + extraServicio;
+            const montoBajos = Math.round(precioBaseBajo * (1 - porcentajeDescuentoActual/100)) + extraServicio;
+            const montoAltos = Math.round(precioBaseAlto * (1 - porcentajeDescuentoActual/100)) + extraServicio;
             
             let totalGeneral = 0;
             
@@ -7882,10 +7914,11 @@
             
             // Libros
             if (librosSeleccionadosIndices.length > 0 && infoLibros.libros) {
-                infoLibros.libros.forEach((l, idx) => {
-                    if (librosSeleccionadosIndices.includes(idx)) {
-                        let promoText = (l.esGratis) ? ` (Promo: ${l.motivoPromo})` : '';
-                        let precioLibro = l.esGratis ? 0 : l.precio;
+                const resLibros = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
+                resLibros.librosConPrecio.forEach((l) => {
+                    if (l.activo) {
+                        let promoText = l.tieneDescuento ? ` (Promo: ${l.motivoPromo})` : '';
+                        let precioLibro = l.precioFinal;
                         totalGeneral += precioLibro;
                         tbodyHtml += `
                             <tr>
@@ -8198,9 +8231,11 @@
             const precioBaseBajo = tablaPrecios[llaveBaja] || 0;
             const precioBaseAlto = tablaPrecios[llaveAlta] || 0;
             
-            const montoCursosOriginal = cantCursos > 0 ? ((precioBaseBajo * cursosBajos) + (precioBaseAlto * cursosAltos) + (extraServicio * cantCursos)) : 0;
-            const montoDescuento = montoCursosOriginal * (porcentajeDescuentoActual / 100);
-            const montoCursosFinal = montoCursosOriginal - montoDescuento;
+            const unitarioDescBajoSinServ = Math.round(precioBaseBajo * (1 - porcentajeDescuentoActual / 100));
+            const unitarioDescAltoSinServ = Math.round(precioBaseAlto * (1 - porcentajeDescuentoActual / 100));
+            const montoCursosOriginal = cantCursos > 0 ? (((precioBaseBajo + extraServicio) * cursosBajos) + ((precioBaseAlto + extraServicio) * cursosAltos)) : 0;
+            const montoCursosFinal = cantCursos > 0 ? (((unitarioDescBajoSinServ + extraServicio) * cursosBajos) + ((unitarioDescAltoSinServ + extraServicio) * cursosAltos)) : 0;
+            const montoDescuento = montoCursosOriginal - montoCursosFinal;
             
             let montoMateriales = 0;
             let conceptosHtml = '';
@@ -8218,10 +8253,10 @@
             }
 
             if (librosSeleccionadosIndices.length > 0 && infoLibros.libros) {
-                infoLibros.libros.forEach((l, idx) => {
-                    if (librosSeleccionadosIndices.includes(idx)) {
-                        let precioLibro = l.esGratis ? 0 : l.precio;
-                        montoMateriales += precioLibro;
+                const resLibros = aplicarDescuentoLibrosDetallado(cantCursos, infoLibros.libros, librosSeleccionadosIndices);
+                resLibros.librosConPrecio.forEach((l) => {
+                    if (l.activo) {
+                        montoMateriales += l.precioFinal;
                         conceptosHtml += `
                             <tr>
                                 <td style="border: 1px solid black; padding: 2px; text-align: right;">1.00</td>
