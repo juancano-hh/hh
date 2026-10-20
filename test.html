@@ -2888,16 +2888,60 @@
             const ini = new Date(datos.inicio); // Usamos inicio original del CSV
             let inicioPago = new Date(ini);
             let finPago = new Date(ini);
-            if (mod === '04') {
-                inicioPago.setDate(inicioPago.getDate() + 0);
-                finPago.setDate(finPago.getDate() + 12);
-            } else {
-                inicioPago.setDate(inicioPago.getDate() + 28);
-                finPago.setDate(finPago.getDate() + 40);
-            }
+            // La Semana de Descuentos del calendario son los primeros 12 días del periodo (ej. 5 al 17 de octubre)
+            inicioPago.setDate(inicioPago.getDate() + 0);
+            finPago.setDate(finPago.getDate() + 12);
             inicioPago.setHours(0, 0, 0, 0);
             finPago.setHours(23, 59, 59, 999);
             return { inicioPago, finPago };
+        }
+
+        // Determina las fechas de la Semana de Descuentos del periodo actual según el Calendario
+        function obtenerSemanaDescuentoCalendario(alumno = null) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+
+            if (periodosCalendario && periodosCalendario.length > 0) {
+                // 1. Buscar el periodo actual donde cae la fecha de hoy
+                let periodoAct = periodosCalendario.find(p => p.inicio && p.fin && hoy >= p.inicio && hoy <= p.fin);
+                
+                // Fallback: si hoy está entre periodos, buscar el periodo más reciente iniciado
+                if (!periodoAct) {
+                    const pasados = periodosCalendario.filter(p => p.inicio && p.inicio <= hoy);
+                    if (pasados.length > 0) {
+                        pasados.sort((a, b) => b.inicio - a.inicio);
+                        periodoAct = pasados[0];
+                    }
+                }
+
+                if (periodoAct && periodoAct.inicio) {
+                    const limites = obtenerFechasLimitePago(periodoAct, alumno ? (alumno.programa || '04') : '04');
+                    if (limites) {
+                        const estaVigente = (hoy >= limites.inicioPago && hoy <= limites.finPago);
+                        return {
+                            inicio: limites.inicioPago,
+                            fin: limites.finPago,
+                            estaVigente: estaVigente,
+                            periodo: periodoAct.periodo
+                        };
+                    }
+                }
+            }
+
+            // Fallback secundario si no hay periodos cargados
+            const infoPago = alumno ? obtenerInfoProximaFechaPago(alumno) : null;
+            if (infoPago && infoPago.limites && infoPago.limites.finPago) {
+                const finDesc = new Date(infoPago.limites.finPago);
+                finDesc.setHours(23, 59, 59, 999);
+                return {
+                    inicio: infoPago.limites.inicioPago || new Date(),
+                    fin: finDesc,
+                    estaVigente: (hoy <= finDesc),
+                    periodo: infoPago.periodo
+                };
+            }
+
+            return null;
         }
 
         function obtenerRangoPago(datos, mod) {
@@ -3283,14 +3327,8 @@
         }
 
         function obtenerFechaVigenciaBecaBase(alumno = null) {
-            const mod = obtenerModalidadClaveAlumno(alumno);
-            if (promosVolumen && promosVolumen.length) {
-                const aplicables = promosVolumen.filter(p => p.fechaFin && (p.modalidad === 'T' || !mod || p.modalidad === mod));
-                const promoSemana = aplicables.find(p => p.motivo && p.motivo.toUpperCase().includes("SEMANA"));
-                if (promoSemana) return promoSemana.fechaFin;
-                const promoUno = aplicables.find(p => p.cantidadMinima === 1);
-                if (promoUno) return promoUno.fechaFin;
-            }
+            const semCal = obtenerSemanaDescuentoCalendario(alumno);
+            if (semCal && semCal.fin) return semCal.fin;
             return fechaVigenciaBecaBase;
         }
 
@@ -3330,10 +3368,9 @@
                         if (!fechaLimiteMaximaVolumen || fechaFin > fechaLimiteMaximaVolumen) {
                             fechaLimiteMaximaVolumen = fechaFin;
                         }
-                        if (!fechaVigenciaBecaBase && motivoRaw.toUpperCase().includes("SEMANA")) {
+                        if (cantidad === 1 && motivoRaw.toUpperCase().includes("SEMANA DE DESCUENTO")) {
                             fechaVigenciaBecaBase = fechaFin;
-                        }
-                        if (cantidad === 1 && !fechaVigenciaBecaBase) {
+                        } else if (cantidad === 1 && !fechaVigenciaBecaBase) {
                             fechaVigenciaBecaBase = fechaFin;
                         }
                     }
@@ -4402,22 +4439,21 @@
             if (precioBaseAlto === 0) console.warn(`Precio no encontrado para ${llaveAlta}`);
             const hoy = new Date(); hoy.setHours(0,0,0,0);
             
-            // 1. Determinar si el alumno tiene Beca Base vigente según su semana de descuento del calendario
+            // 1. Determinar si el alumno tiene Beca Base vigente según la Semana de Descuentos del Calendario
             let becaBaseVigente = 0;
             let fechaVigenciaBeca = null;
             let estaEnFechaDePago = false;
+            const tieneCursoPagado = alumnoTieneCursoPagado(alumnoActual);
 
-            if (alumnoActual.beca > 0) {
-                const infoPago = obtenerInfoProximaFechaPago(alumnoActual);
-                if (infoPago && infoPago.limites && infoPago.limites.finPago) {
-                    const finSemanaDesc = new Date(infoPago.limites.finPago);
-                    finSemanaDesc.setHours(23, 59, 59, 999);
-                    fechaVigenciaBeca = finSemanaDesc;
-                    // Aplica beca base si hoy está dentro o antes del límite de su semana de descuento
-                    if (hoy <= finSemanaDesc) {
-                        estaEnFechaDePago = true;
-                        becaBaseVigente = alumnoActual.beca;
-                    }
+            const semanaDescCal = obtenerSemanaDescuentoCalendario(alumnoActual);
+            if (semanaDescCal) {
+                fechaVigenciaBeca = semanaDescCal.fin;
+                // La beca del alumno SOLO aplica si:
+                // a) Hoy está dentro de la Semana de Descuentos del Calendario (semanaDescCal.estaVigente)
+                // b) Su curso actual/anterior está pagado (tieneCursoPagado = estatus 'R' o 'PAGADO', sin adeudo)
+                if (alumnoActual.beca > 0 && semanaDescCal.estaVigente && tieneCursoPagado) {
+                    estaEnFechaDePago = true;
+                    becaBaseVigente = alumnoActual.beca;
                 }
             }
 
@@ -4434,30 +4470,23 @@
                 nombreDescuento = `Total con Descuento Personalizado (${Math.round(descuentoManualPorcentaje)}%)`;
                 etiquetaPromo = `Descuento ${Math.round(descuentoManualPorcentaje)}%`;
                 fechaFinPromoAplicada = null; // Descuento personalizado no tiene fecha de vigencia
-            } else if (promoVolumenDesc > 0 && promoVolumenDesc > becaBaseVigente) {
-                // Gana la promo de volumen: TOMA LA VIGENCIA DE LA PROMO ESPECÍFICA DE LA HOJA VOLUMEN
+            } else if (promoVolumenDesc > becaBaseVigente) {
+                // Gana la promo de la hoja VOLUMEN (ej. si promo por 2 cursos es 25% y beca es 20%, o si la beca venció / con adeudo)
                 descuentoAplicar = promoVolumenDesc;
                 nombreDescuento = `Total con ${promoVolumen.motivo}`;
                 etiquetaPromo = promoVolumen.motivo;
                 fechaFinPromoAplicada = promoVolumen.fechaFin || null;
             } else if (becaBaseVigente > 0 && becaBaseVigente >= promoVolumenDesc) {
-                // Gana la beca base del alumno
+                // Gana la beca base del alumno (vigente en semana de descuento y sin adeudo)
                 descuentoAplicar = becaBaseVigente;
                 nombreDescuento = `Total con Beca (${Math.round(becaBaseVigente * 100)}%)`;
                 etiquetaPromo = "Beca asignada";
-                // Su beca base topada por la fecha límite del layout de volumen para nunca mostrar años lejanos (ej. 2027)
-                let fBase = fechaVigenciaBeca;
-                const fMaxVolumen = obtenerFechaLimiteMaximaVolumen(alumnoActual);
-                if (fMaxVolumen && fBase && fBase > fMaxVolumen) {
-                    fBase = fMaxVolumen;
-                }
-                fechaFinPromoAplicada = fBase;
-            } else if (promoVolumenDesc > 0) {
-                // Si la beca base ya venció pero hay promo de volumen disponible
-                descuentoAplicar = promoVolumenDesc;
-                nombreDescuento = `Total con ${promoVolumen.motivo}`;
-                etiquetaPromo = promoVolumen.motivo;
-                fechaFinPromoAplicada = promoVolumen.fechaFin || null;
+                fechaFinPromoAplicada = fechaVigenciaBeca;
+            } else {
+                descuentoAplicar = 0;
+                nombreDescuento = "Total Precio de Lista";
+                etiquetaPromo = "Sin promoción";
+                fechaFinPromoAplicada = null;
             }
 
             // Solo mostrar fecha de vigencia si la promo/beca aplicada tiene fecha y NO ha vencido
@@ -4600,11 +4629,19 @@
                 const unitarioBecaSin = Math.round(pBecaSinServ);
                 const unitarioBecaCon = unitarioBecaSin + 90;
                 const becaPct = Math.round(alumnoActual.beca * 100);
+                let textoVencida = "";
+                if (!becaBaseVigente) {
+                    if (!tieneCursoPagado) {
+                        textoVencida = " (Con adeudo)";
+                    } else {
+                        textoVencida = " (Vencida)";
+                    }
+                }
                 
-                document.getElementById('lbl-uni-beca-sin').innerText = `Precio de beca (${becaPct}%) sin servicio:`;
+                document.getElementById('lbl-uni-beca-sin').innerText = `Precio de beca (${becaPct}%) sin servicio${textoVencida}:`;
                 document.getElementById('uni-beca-sin').innerText     = fmt.format(unitarioBecaSin);
                 
-                document.getElementById('lbl-uni-beca-con').innerText = `Precio de beca (${becaPct}%) con servicio:`;
+                document.getElementById('lbl-uni-beca-con').innerText = `Precio de beca (${becaPct}%) con servicio${textoVencida}:`;
                 document.getElementById('uni-beca-con').innerText     = fmt.format(unitarioBecaCon);
             } else {
                 filaBeca.classList.add('hidden');
@@ -7805,10 +7842,12 @@
             const promoInfo = obtenerMejorPromoVigente(cantCursos, alumnoActual);
             const adelantoRecibo = verificarAlumnoPagoAdelantadoConDescuento(alumnoActual);
             const vigenciaBeca = obtenerFechaVigenciaBecaBase(alumnoActual);
-            if (promoInfo && promoInfo.descuento > alumnoActual.beca) {
+            if (promoInfo && promoInfo.descuento > 0 && Math.round(promoInfo.descuento * 100) === porcentajeDescuentoActual) {
                 promoMotivo = ` - ${promoInfo.motivo}`;
-            } else if (alumnoActual.beca > 0 && ((vigenciaBeca && new Date(vigenciaBeca) >= new Date()) || (adelantoRecibo && adelantoRecibo.aplica) || (porcentajeDescuentoActual > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual))) {
+            } else if (porcentajeDescuentoActual > 0 && alumnoActual.beca > 0 && Math.round(alumnoActual.beca * 100) === porcentajeDescuentoActual) {
                 promoMotivo = ' - Beca base';
+            } else if (descuentoManualPorcentaje !== null && Math.round(descuentoManualPorcentaje) === porcentajeDescuentoActual) {
+                promoMotivo = ' - Descuento personalizado';
             }
             
             let descStr = (porcentajeDescuentoActual > 0) ? ` (Dto. ${porcentajeDescuentoActual}%${promoMotivo})` : '';
