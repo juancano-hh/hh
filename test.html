@@ -1579,7 +1579,7 @@
                 <p class="font-bold text-xl text-indigo-700">🔒 Acceso Restringido</p>
                 <p class="text-sm text-gray-500 mt-2">Ingresa la contraseña para ver el Dashboard.</p>
             </div>
-            <input type="password" id="input-pwd-dashboard" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Contraseña">
+            <input type="password" id="input-pwd-dashboard" onkeydown="if(event.key==='Enter') validarPasswordDashboard()" class="w-full p-2 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Contraseña">
             <p id="error-pwd-dashboard" class="text-red-500 text-sm hidden mb-4 font-bold text-center">Contraseña incorrecta</p>
             <div class="flex gap-4">
                 <button onclick="document.getElementById('modal-pwd-dashboard').classList.add('hidden')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">Cancelar</button>
@@ -7441,12 +7441,12 @@
                 opt.dataset.docente = s.docente || '';
                 opt.dataset.lleno = s.lleno ? 'true' : 'false';
 
-                const docTxt = s.docente ? ` - Prof. ${s.docente}` : '';
-                if (s.lleno) {
+                const lugaresTxt = s.disponibles === 1 ? '1 lugar disponible' : `${s.disponibles} lugares disponibles`;
+                if (s.lleno || s.disponibles <= 0) {
                     opt.disabled = true;
-                    opt.textContent = `❌ [LLENO (0/${s.totalLugares})] ${s.fecha} - ${s.horario}${docTxt}`;
+                    opt.textContent = `${s.fecha} - ${s.horario} (Sin lugares disponibles)`;
                 } else {
-                    opt.textContent = `🟢 ${s.fecha} - ${s.horario} (Cupo: ${s.disponibles}/${s.totalLugares} disp.)${docTxt}`;
+                    opt.textContent = `${s.fecha} - ${s.horario} (${lugaresTxt})`;
                 }
                 sesionSel.appendChild(opt);
             });
@@ -7669,8 +7669,9 @@
                 const opt = sesionSel.options[sesionSel.selectedIndex];
                 if (opt && opt.value) {
                     sesionTxt = opt.textContent;
-                    if (opt.dataset.disponibles) {
-                        cupoTxt = `${opt.dataset.disponibles}/${opt.dataset.total} disp.`;
+                    if (opt.dataset.disponibles !== undefined) {
+                        const dispNum = parseInt(opt.dataset.disponibles, 10);
+                        cupoTxt = isNaN(dispNum) ? '' : (dispNum === 1 ? '1 lugar disponible' : (dispNum <= 0 ? 'Sin lugares disponibles' : `${dispNum} lugares disponibles`));
                     }
                 }
             }
@@ -7713,9 +7714,10 @@
                 const opt = sesionSel.options[sesionSel.selectedIndex];
                 if (opt && opt.value) {
                     const disp = opt.dataset.disponibles;
-                    const tot = opt.dataset.total;
-                    badgeCupo.textContent = `Cupo: ${disp}/${tot} disp.`;
-                    badgeCupo.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${parseInt(disp, 10) > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`;
+                    const dispNum = parseInt(disp, 10);
+                    const dispBadge = isNaN(dispNum) ? '' : (dispNum === 1 ? '1 lugar disponible' : (dispNum <= 0 ? 'Sin lugares disponibles' : `${dispNum} lugares disponibles`));
+                    badgeCupo.textContent = dispBadge;
+                    badgeCupo.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${dispNum > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`;
                     badgeCupo.classList.remove('hidden');
                 } else {
                     badgeCupo.classList.add('hidden');
@@ -9803,22 +9805,39 @@
         let dashboardGruposData = [];
         let dashboardSinProfesorData = [];
 
+        function mostrarDashboard() {
+            generarDatosDashboard();
+            document.getElementById('main-container').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+            document.getElementById('dashboard-container').classList.add('flex');
+            document.body.classList.remove('items-center'); // Para que use el espacio superior
+            document.body.classList.add('items-start');
+        }
+
         function abrirModalPasswordDashboard() {
+            try {
+                if (localStorage.getItem('dashboard_auth_hh') === 'true') {
+                    mostrarDashboard();
+                    return;
+                }
+            } catch(e) {}
             document.getElementById('input-pwd-dashboard').value = '';
             document.getElementById('error-pwd-dashboard').classList.add('hidden');
             document.getElementById('modal-pwd-dashboard').classList.remove('hidden');
+            setTimeout(() => {
+                const inp = document.getElementById('input-pwd-dashboard');
+                if (inp) inp.focus();
+            }, 100);
         }
 
         function validarPasswordDashboard() {
-            const pwd = document.getElementById('input-pwd-dashboard').value;
+            const pwd = (document.getElementById('input-pwd-dashboard').value || '').trim();
             if (pwd === 'HH2026' || pwd === 'HH26') {
+                try {
+                    localStorage.setItem('dashboard_auth_hh', 'true');
+                } catch(e) {}
                 document.getElementById('modal-pwd-dashboard').classList.add('hidden');
-                generarDatosDashboard();
-                document.getElementById('main-container').classList.add('hidden');
-                document.getElementById('dashboard-container').classList.remove('hidden');
-                document.getElementById('dashboard-container').classList.add('flex');
-                document.body.classList.remove('items-center'); // Para que use el espacio superior
-                document.body.classList.add('items-start');
+                mostrarDashboard();
             } else {
                 document.getElementById('error-pwd-dashboard').classList.remove('hidden');
             }
