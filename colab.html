@@ -1579,7 +1579,7 @@
                 <p class="font-bold text-xl text-indigo-700">🔒 Acceso Restringido</p>
                 <p class="text-sm text-gray-500 mt-2">Ingresa la contraseña para ver el Dashboard.</p>
             </div>
-            <input type="password" id="input-pwd-dashboard" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Contraseña">
+            <input type="password" id="input-pwd-dashboard" onkeydown="if(event.key==='Enter') validarPasswordDashboard()" class="w-full p-2 border border-gray-300 rounded mb-4 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Contraseña">
             <p id="error-pwd-dashboard" class="text-red-500 text-sm hidden mb-4 font-bold text-center">Contraseña incorrecta</p>
             <div class="flex gap-4">
                 <button onclick="document.getElementById('modal-pwd-dashboard').classList.add('hidden')" class="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">Cancelar</button>
@@ -1614,10 +1614,14 @@
         <div class="p-6 overflow-y-auto flex-grow" style="background-color: #f3f4f6;">
                 
                 <!-- KPIs -->
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 mb-6">
+                    <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-slate-700 flex flex-col justify-between">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">Gran Total</p>
+                        <p class="text-2xl font-black text-gray-800 mt-1" id="kpi-gran-total">0</p>
+                    </div>
                     <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-500 flex flex-col justify-between">
                         <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">Total Alumnos</p>
-                        <p class="text-2xl font-black text-gray-800 mt-1" id="kpi-total">0</p>
+                        <p class="text-2xl font-black text-blue-600 mt-1" id="kpi-total">0</p>
                     </div>
                     <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-green-500 flex flex-col justify-between">
                         <p class="text-[10px] font-bold text-gray-500 uppercase leading-tight">Reinscritos (R)</p>
@@ -1694,6 +1698,7 @@
                                 <select id="select-orden-profesores" onchange="renderRankingProfesores()" class="border border-gray-300 text-sm rounded p-1 outline-none focus:ring-1 focus:ring-indigo-500 text-gray-700">
                                     <option value="percent">% de Reinscripción</option>
                                     <option value="countR">Total Reinscritos (Cantidad)</option>
+                                    <option value="promesas">Cantidad Promesas</option>
                                     <option value="bajas">Cantidad No Continúa</option>
                                     <option value="total">Cantidad Total de Alumnos</option>
                                 </select>
@@ -1707,6 +1712,7 @@
                                         <th class="py-2.5 px-2 font-semibold text-left">Teacher</th>
                                         <th class="py-2.5 px-1 font-semibold text-green-600">Total R</th>
                                         <th class="py-2.5 px-1 font-semibold text-yellow-600">Seguimiento</th>
+                                        <th class="py-2.5 px-1 font-semibold text-orange-500">Promesas</th>
                                         <th class="py-2.5 px-1 font-semibold text-red-500">No Continúa</th>
                                         <th class="py-2.5 px-1 font-semibold">Total Alumnos</th>
                                         <th class="py-2.5 px-1 font-semibold text-blue-600">% R</th>
@@ -1726,7 +1732,7 @@
                     <div class="bg-white p-5 rounded-lg shadow-sm flex flex-col justify-between">
                         <div class="mb-4">
                             <p class="font-bold text-gray-700 text-lg">⚖️ Desempeño Ponderado por Profesor</p>
-                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
+                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (80%) y Volumen de Alumnos (20%)</p>
                         </div>
                         <div class="relative w-full flex-grow min-h-[360px]">
                             <canvas id="chart-weighted-leaderboard"></canvas>
@@ -1736,7 +1742,7 @@
                     <div class="bg-white p-5 rounded-lg shadow-sm overflow-hidden flex flex-col justify-between">
                         <div class="mb-4">
                             <p class="font-bold text-gray-700 text-lg">📊 Ranking Global Ponderado (% Score)</p>
-                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (60%) y Volumen de Alumnos (40%)</p>
+                            <p class="text-xs text-gray-500 mt-1">Equilibra % Reinscripción (80%) y Volumen de Alumnos (20%)</p>
                         </div>
                         <div class="overflow-x-auto flex-grow">
                             <table class="w-full text-sm text-center text-gray-600">
@@ -7434,12 +7440,12 @@
                 opt.dataset.docente = s.docente || '';
                 opt.dataset.lleno = s.lleno ? 'true' : 'false';
 
-                const docTxt = s.docente ? ` - Prof. ${s.docente}` : '';
-                if (s.lleno) {
+                const lugaresTxt = s.disponibles === 1 ? '1 lugar disponible' : `${s.disponibles} lugares disponibles`;
+                if (s.lleno || s.disponibles <= 0) {
                     opt.disabled = true;
-                    opt.textContent = `❌ [LLENO (0/${s.totalLugares})] ${s.fecha} - ${s.horario}${docTxt}`;
+                    opt.textContent = `${s.fecha} - ${s.horario} (Sin lugares disponibles)`;
                 } else {
-                    opt.textContent = `🟢 ${s.fecha} - ${s.horario} (Cupo: ${s.disponibles}/${s.totalLugares} disp.)${docTxt}`;
+                    opt.textContent = `${s.fecha} - ${s.horario} (${lugaresTxt})`;
                 }
                 sesionSel.appendChild(opt);
             });
@@ -7662,8 +7668,9 @@
                 const opt = sesionSel.options[sesionSel.selectedIndex];
                 if (opt && opt.value) {
                     sesionTxt = opt.textContent;
-                    if (opt.dataset.disponibles) {
-                        cupoTxt = `${opt.dataset.disponibles}/${opt.dataset.total} disp.`;
+                    if (opt.dataset.disponibles !== undefined) {
+                        const dispNum = parseInt(opt.dataset.disponibles, 10);
+                        cupoTxt = isNaN(dispNum) ? '' : (dispNum === 1 ? '1 lugar disponible' : (dispNum <= 0 ? 'Sin lugares disponibles' : `${dispNum} lugares disponibles`));
                     }
                 }
             }
@@ -7706,9 +7713,10 @@
                 const opt = sesionSel.options[sesionSel.selectedIndex];
                 if (opt && opt.value) {
                     const disp = opt.dataset.disponibles;
-                    const tot = opt.dataset.total;
-                    badgeCupo.textContent = `Cupo: ${disp}/${tot} disp.`;
-                    badgeCupo.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${parseInt(disp, 10) > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`;
+                    const dispNum = parseInt(disp, 10);
+                    const dispBadge = isNaN(dispNum) ? '' : (dispNum === 1 ? '1 lugar disponible' : (dispNum <= 0 ? 'Sin lugares disponibles' : `${dispNum} lugares disponibles`));
+                    badgeCupo.textContent = dispBadge;
+                    badgeCupo.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${dispNum > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}`;
                     badgeCupo.classList.remove('hidden');
                 } else {
                     badgeCupo.classList.add('hidden');
@@ -9796,22 +9804,39 @@
         let dashboardGruposData = [];
         let dashboardSinProfesorData = [];
 
+        function mostrarDashboard() {
+            generarDatosDashboard();
+            document.getElementById('main-container').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+            document.getElementById('dashboard-container').classList.add('flex');
+            document.body.classList.remove('items-center'); // Para que use el espacio superior
+            document.body.classList.add('items-start');
+        }
+
         function abrirModalPasswordDashboard() {
+            try {
+                if (localStorage.getItem('dashboard_auth_hh') === 'true') {
+                    mostrarDashboard();
+                    return;
+                }
+            } catch(e) {}
             document.getElementById('input-pwd-dashboard').value = '';
             document.getElementById('error-pwd-dashboard').classList.add('hidden');
             document.getElementById('modal-pwd-dashboard').classList.remove('hidden');
+            setTimeout(() => {
+                const inp = document.getElementById('input-pwd-dashboard');
+                if (inp) inp.focus();
+            }, 100);
         }
 
         function validarPasswordDashboard() {
-            const pwd = document.getElementById('input-pwd-dashboard').value;
+            const pwd = (document.getElementById('input-pwd-dashboard').value || '').trim();
             if (pwd === 'HH2026' || pwd === 'HH26') {
+                try {
+                    localStorage.setItem('dashboard_auth_hh', 'true');
+                } catch(e) {}
                 document.getElementById('modal-pwd-dashboard').classList.add('hidden');
-                generarDatosDashboard();
-                document.getElementById('main-container').classList.add('hidden');
-                document.getElementById('dashboard-container').classList.remove('hidden');
-                document.getElementById('dashboard-container').classList.add('flex');
-                document.body.classList.remove('items-center'); // Para que use el espacio superior
-                document.body.classList.add('items-start');
+                mostrarDashboard();
             } else {
                 document.getElementById('error-pwd-dashboard').classList.remove('hidden');
             }
@@ -9826,7 +9851,7 @@
         }
 
         function agruparAlumnosDashboard() {
-            let kpis = { total: 0, r: 0, seguimiento: 0, promesas: 0, bajas: 0, transLlega: 0, transSale: 0, rec: 0 };
+            let kpis = { granTotal: 0, total: 0, r: 0, seguimiento: 0, promesas: 0, bajas: 0, transLlega: 0, transSale: 0, rec: 0 };
             let modalidad = { presencialR: 0, lineaR: 0 };
             let teachersMap = {};
             let gruposArr = [];
@@ -9837,16 +9862,20 @@
             // 1. KPIs and Estatus (Solo alumnos del Layout actual)
             Object.values(baseAlumnos).forEach(a => {
                 if (a.esLayPasado || a.esPrimerMes) return;
-                kpis.total++;
+                kpis.granTotal++;
                 let estatus = (a.estatusPago || '').trim().toUpperCase();
                 
-                if (estatus === 'R') kpis.r++;
-                else if (estatus.includes('SEGUIMIENTO')) kpis.seguimiento++;
-                else if (estatus.includes('PROMESA')) kpis.promesas++;
-                else if (estatus.includes('NO CONTINUA') || estatus.includes('BAJA')) kpis.bajas++;
-                else if (estatus.includes('TRANSFERENCIA LLEGA')) kpis.transLlega++;
-                else if (estatus.includes('TRANSFERENCIA SALE')) kpis.transSale++;
-                else if (estatus === 'REC') kpis.rec++;
+                if (estatus === 'REC') {
+                    kpis.rec++;
+                } else {
+                    kpis.total++;
+                    if (estatus === 'R') kpis.r++;
+                    else if (estatus.includes('SEGUIMIENTO')) kpis.seguimiento++;
+                    else if (estatus.includes('PROMESA')) kpis.promesas++;
+                    else if (estatus.includes('NO CONTINUA') || estatus.includes('BAJA')) kpis.bajas++;
+                    else if (estatus.includes('TRANSFERENCIA LLEGA') || estatus.includes('TRANSF. LLEGA')) kpis.transLlega++;
+                    else if (estatus.includes('TRANSFERENCIA SALE') || estatus.includes('TRANSF. SALE')) kpis.transSale++;
+                }
 
                 // Modality for ALL students del layout actual
                 if (a.modalidad && a.modalidad.toUpperCase() === 'PRESENCIAL') modalidad.presencialR++;
@@ -9893,19 +9922,18 @@
                         let st = (a.estatusPago || '').trim().toUpperCase();
                         alumnosList.push({ id: a.idOriginal, nombre: a.nombre, estatus: st });
 
-                        // Excluir REC, Transf. Llega y Transf. Sale del total de alumnado de profesores (no pagan reinscripción)
+                        const esTransfSale = st.includes('TRANSFERENCIA SALE') || st.includes('TRANSF. SALE');
+                        // Excluir REC y Transf. Llega del total de alumnado de profesores (no pagan reinscripción aquí)
+                        // Transf. Sale sí cuenta como pagado/reinscrito porque pagó antes de salir del instituto
                         const esExcluidoReinscripcion = (
                             st === 'REC' ||
                             st.includes('TRANSFERENCIA LLEGA') ||
-                            st.includes('TRANSFERENCIA SALE') ||
-                            st.includes('TRANSF. LLEGA') ||
-                            st.includes('TRANSF. SALE') ||
-                            st.includes('TRANSFERENCIA')
+                            st.includes('TRANSF. LLEGA')
                         );
                         if (esExcluidoReinscripcion) return;
 
                         totalReinscripcion++;
-                        if (st === 'R') r++;
+                        if (st === 'R' || esTransfSale) r++;
                         else if (st.includes('SEGUIMIENTO')) seg++;
                         else if (st.includes('PROMESA')) prom++;
                         else if (st.includes('NO CONTINUA') || st.includes('BAJA')) bajas++;
@@ -9984,7 +10012,7 @@
                 } else {
                     list.forEach(a => {
                         let colorClass = 'text-gray-700';
-                        if (a.estatus === 'R') colorClass = 'text-green-600 font-bold';
+                        if (a.estatus === 'R' || a.estatus.includes('TRANSFERENCIA SALE') || a.estatus.includes('TRANSF. SALE')) colorClass = 'text-green-600 font-bold';
                         else if (a.estatus.includes('SEGUIMIENTO')) colorClass = 'text-yellow-600 font-bold';
                         else if (a.estatus.includes('PROMESA')) colorClass = 'text-orange-500 font-bold';
                         else if (a.estatus.includes('NO CONTINUA') || a.estatus.includes('BAJA')) colorClass = 'text-red-600 font-bold';
@@ -10001,6 +10029,9 @@
         function generarDatosDashboard() {
             const data = agruparAlumnosDashboard();
 
+            if (document.getElementById('kpi-gran-total')) {
+                document.getElementById('kpi-gran-total').textContent = data.kpis.granTotal;
+            }
             document.getElementById('kpi-total').textContent = data.kpis.total;
             document.getElementById('kpi-r').textContent = data.kpis.r;
             document.getElementById('kpi-seguimiento').textContent = data.kpis.seguimiento;
@@ -10036,7 +10067,7 @@
             });
             dashboardTeachersData.forEach(t => {
                 t.factorVolumen = maxTotalAlumnos > 0 ? (t.total / maxTotalAlumnos) : 0;
-                t.scoreFinal = (t.pct * 0.60) + (t.factorVolumen * 100 * 0.40);
+                t.scoreFinal = (t.pct * 0.80) + (t.factorVolumen * 100 * 0.20);
             });
             
             let weightedArr = [...dashboardTeachersData].sort((a, b) => b.scoreFinal - a.scoreFinal);
@@ -10077,14 +10108,14 @@
         }
 
         function renderChartEstatus(kpis) {
-            let total = kpis.r + kpis.seguimiento + kpis.promesas + kpis.bajas + kpis.transLlega + kpis.transSale + kpis.rec;
-            let pR = total > 0 ? ((kpis.r / total) * 100).toFixed(1) : 0;
-            let pSeg = total > 0 ? ((kpis.seguimiento / total) * 100).toFixed(1) : 0;
-            let pProm = total > 0 ? ((kpis.promesas / total) * 100).toFixed(1) : 0;
-            let pBaj = total > 0 ? ((kpis.bajas / total) * 100).toFixed(1) : 0;
-            let pTransLlega = total > 0 ? ((kpis.transLlega / total) * 100).toFixed(1) : 0;
-            let pTransSale = total > 0 ? ((kpis.transSale / total) * 100).toFixed(1) : 0;
-            let pRec = total > 0 ? ((kpis.rec / total) * 100).toFixed(1) : 0;
+            let total = kpis.total > 0 ? kpis.total : (kpis.granTotal || 1);
+            let rEfectivo = kpis.r + (kpis.rec || 0) + (kpis.transSale || 0);
+
+            let pR = ((rEfectivo / total) * 100).toFixed(1);
+            let pSeg = ((kpis.seguimiento / total) * 100).toFixed(1);
+            let pProm = ((kpis.promesas / total) * 100).toFixed(1);
+            let pBaj = ((kpis.bajas / total) * 100).toFixed(1);
+            let pTransLlega = ((kpis.transLlega / total) * 100).toFixed(1);
 
             let barContainer = document.getElementById('estatus-stacked-bar');
             let legendContainer = document.getElementById('estatus-stacked-legend');
@@ -10092,14 +10123,20 @@
             barContainer.innerHTML = '';
             legendContainer.innerHTML = '';
             
+            let tooltipR = 'Reinscritos: ' + rEfectivo + ' (' + pR + '%)';
+            let extras = [];
+            if (kpis.rec > 0) extras.push(kpis.rec + ' REC');
+            if (kpis.transSale > 0) extras.push(kpis.transSale + ' Transf. Sale');
+            if (extras.length > 0) {
+                tooltipR += ' [' + kpis.r + ' R + ' + extras.join(' + ') + ']';
+            }
+
             const segments = [
-                { label: 'Reinscritos', pct: pR, val: kpis.r, color: '#22c55e' },
+                { label: 'Reinscritos', pct: pR, val: rEfectivo, color: '#22c55e', tooltip: tooltipR },
                 { label: 'En Seguimiento', pct: pSeg, val: kpis.seguimiento, color: '#eab308' },
                 { label: 'Promesas', pct: pProm, val: kpis.promesas, color: '#f97316' },
                 { label: 'Bajas', pct: pBaj, val: kpis.bajas, color: '#ef4444' },
-                { label: 'Transf. Llega', pct: pTransLlega, val: kpis.transLlega, color: '#a855f7' },
-                { label: 'Transf. Sale', pct: pTransSale, val: kpis.transSale, color: '#ec4899' },
-                { label: 'REC', pct: pRec, val: kpis.rec, color: '#14b8a6' }
+                { label: 'Transf. Llega', pct: pTransLlega, val: kpis.transLlega, color: '#a855f7' }
             ];
 
             segments.forEach(seg => {
@@ -10107,8 +10144,8 @@
                     let div = document.createElement('div');
                     div.style.width = seg.pct + '%';
                     div.style.backgroundColor = seg.color;
-                    div.className = 'h-full flex items-center justify-center text-white font-bold text-sm hover:opacity-90 transition';
-                    div.title = seg.label + ': ' + seg.val + ' (' + seg.pct + '%)';
+                    div.className = 'h-full flex items-center justify-center text-white font-bold text-sm hover:opacity-90 transition shrink min-w-0';
+                    div.title = seg.tooltip || (seg.label + ': ' + seg.val + ' (' + seg.pct + '%)');
                     if (parseFloat(seg.pct) > 5) {
                         div.textContent = seg.pct + '%';
                     }
@@ -10116,7 +10153,7 @@
 
                     let legDiv = document.createElement('div');
                     legDiv.className = 'flex items-center gap-1 cursor-pointer';
-                    legDiv.title = seg.label + ': ' + seg.val + ' alumnos';
+                    legDiv.title = seg.tooltip || (seg.label + ': ' + seg.val + ' alumnos');
                     legDiv.innerHTML = `<span class="w-3 h-3 rounded-full" style="background-color: ${seg.color}"></span><span>${seg.label}</span>`;
                     legendContainer.appendChild(legDiv);
                 }
@@ -10270,6 +10307,8 @@
                 arr.sort((a, b) => b.pct - a.pct);
             } else if (sortBy === 'countR') {
                 arr.sort((a, b) => b.r - a.r);
+            } else if (sortBy === 'promesas') {
+                arr.sort((a, b) => (b.promesas || 0) - (a.promesas || 0));
             } else if (sortBy === 'total') {
                 arr.sort((a, b) => b.total - a.total);
             } else if (sortBy === 'bajas') {
@@ -10289,6 +10328,7 @@
                     <td class="py-2.5 px-2 text-left font-bold text-gray-800">${t.name}</td>
                     <td class="py-2.5 px-1 text-green-600 font-bold">${t.r}</td>
                     <td class="py-2.5 px-1 text-yellow-600 font-bold">${t.seguimiento}</td>
+                    <td class="py-2.5 px-1 text-orange-500 font-bold">${t.promesas || 0}</td>
                     <td class="py-2.5 px-1 text-red-500 font-bold">${t.bajas || 0}</td>
                     <td class="py-2.5 px-1 font-bold text-gray-700">${t.total}</td>
                     <td class="py-2.5 px-1 text-blue-600 font-bold">${t.pct.toFixed(1)}%</td>
