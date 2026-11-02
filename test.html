@@ -1067,11 +1067,6 @@
                             Enviar Solicitud
                         </button>
                     </div>
-                    <div class="mt-2">
-                        <button id="rec-btn-copiar-paso3" type="button" onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-paso3')" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold py-2 px-3 rounded-xl text-xs transition duration-200 flex items-center justify-center gap-2">
-                            <span class="text-base">📋</span> Copiar fila para Excel
-                        </button>
-                    </div>
                 </div>
 
                 <!-- MENSAJE EXITO -->
@@ -1091,23 +1086,44 @@
                         </div>
                     </div>
 
-                    <!-- BLOQUE FORMATO PARA EXCEL EN RECUPERACIÓN -->
-                    <div id="rec-bloque-excel-exito" class="mt-4 p-3.5 bg-white border border-purple-300 rounded-2xl space-y-2.5 shadow-sm text-left">
-                        <div onclick="copiarFilaExcelRecuperacion()" class="cursor-pointer group relative p-3 bg-purple-50/50 rounded-xl border border-dashed border-purple-400 hover:border-purple-600 hover:bg-purple-100/50 transition-all text-xs font-mono select-all" title="Click aquí para copiar directamente">
-                            <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
-                                <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
-                                <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">
-                                    📋 Click para copiar
-                                </span>
-                            </div>
-                            <div id="rec-texto-fila-excel" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
-                                <!-- Texto tabulado generado por JS -->
-                            </div>
+                    <!-- BLOQUE FORMATO PARA EXCEL EN RECUPERACIÓN (2 PARTES) -->
+                    <div id="rec-bloque-excel-exito" class="mt-4 p-4 bg-white border border-purple-300 rounded-2xl space-y-4 shadow-sm text-left">
+                        <div class="border-b pb-2">
+                            <p class="font-bold text-gray-800 text-sm flex items-center gap-1.5">
+                                <span>📋</span> Copiar para Excel en 2 partes
+                            </p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Primero copia y pega la Parte 1; luego copia y pega la Parte 2 en tu hoja de Excel.</p>
                         </div>
 
-                        <div>
-                            <button id="rec-btn-copiar-excel" type="button" onclick="copiarFilaExcelRecuperacion()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
-                                <span class="text-base">📋</span> Copiar para Excel
+                        <!-- PARTE 1 -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-bold text-purple-900">🔹 Parte 1 (Datos del Alumno + CRN):</span>
+                                <span class="text-gray-400 font-mono text-[10px]">8 columnas</span>
+                            </div>
+                            <div onclick="copiarParte1ExcelRecuperacion('rec-btn-copiar-p1')" class="cursor-pointer group relative p-2.5 bg-purple-50/50 rounded-xl border border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-100/50 transition-all text-xs font-mono select-all" title="Click para copiar Parte 1">
+                                <div id="rec-texto-fila-excel-p1" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-1.5 px-2 bg-white rounded-lg border border-gray-200">
+                                    <!-- Parte 1 generada por JS -->
+                                </div>
+                            </div>
+                            <button id="rec-btn-copiar-p1" type="button" onclick="copiarParte1ExcelRecuperacion('rec-btn-copiar-p1')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                                <span class="text-sm">📋</span> Copiar Parte 1
+                            </button>
+                        </div>
+
+                        <!-- PARTE 2 -->
+                        <div class="space-y-1.5 pt-2 border-t border-gray-100">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-bold text-purple-900">🔹 Parte 2 (Fechas + NO):</span>
+                                <span class="text-gray-400 font-mono text-[10px]">3 columnas</span>
+                            </div>
+                            <div onclick="copiarParte2ExcelRecuperacion('rec-btn-copiar-p2')" class="cursor-pointer group relative p-2.5 bg-purple-50/50 rounded-xl border border-dashed border-purple-300 hover:border-purple-500 hover:bg-purple-100/50 transition-all text-xs font-mono select-all" title="Click para copiar Parte 2">
+                                <div id="rec-texto-fila-excel-p2" class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-1.5 px-2 bg-white rounded-lg border border-gray-200">
+                                    <!-- Parte 2 generada por JS -->
+                                </div>
+                            </div>
+                            <button id="rec-btn-copiar-p2" type="button" onclick="copiarParte2ExcelRecuperacion('rec-btn-copiar-p2')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
+                                <span class="text-sm">📋</span> Copiar Parte 2
                             </button>
                         </div>
                     </div>
@@ -3854,9 +3870,28 @@
             const recLinkCont = document.getElementById('rec-link-container');
             if (recLinkCont) recLinkCont.classList.add('hidden');
 
+            const recTextoExcelP1 = document.getElementById('rec-texto-fila-excel-p1');
+            if (recTextoExcelP1) recTextoExcelP1.textContent = '';
+            const recTextoExcelP2 = document.getElementById('rec-texto-fila-excel-p2');
+            if (recTextoExcelP2) recTextoExcelP2.textContent = '';
             const recTextoExcel = document.getElementById('rec-texto-fila-excel');
             if (recTextoExcel) recTextoExcel.textContent = '';
+            if (typeof ultimaParte1ExcelRecuperacion !== 'undefined') ultimaParte1ExcelRecuperacion = '';
+            if (typeof ultimaParte2ExcelRecuperacion !== 'undefined') ultimaParte2ExcelRecuperacion = '';
             if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = '';
+
+            const recBtnP1 = document.getElementById('rec-btn-copiar-p1');
+            if (recBtnP1) {
+                recBtnP1.innerHTML = '<span class="text-sm">📋</span> Copiar Parte 1';
+                recBtnP1.classList.remove('bg-green-600', 'hover:bg-green-700');
+                recBtnP1.classList.add('bg-purple-600', 'hover:bg-purple-700');
+            }
+            const recBtnP2 = document.getElementById('rec-btn-copiar-p2');
+            if (recBtnP2) {
+                recBtnP2.innerHTML = '<span class="text-sm">📋</span> Copiar Parte 2';
+                recBtnP2.classList.remove('bg-green-600', 'hover:bg-green-700');
+                recBtnP2.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            }
             const recBtnCopiar = document.getElementById('rec-btn-copiar-excel');
             if (recBtnCopiar) {
                 recBtnCopiar.innerHTML = '<span class="text-base">📋</span> Copiar para Excel';
@@ -6655,6 +6690,16 @@
             `;
             document.getElementById('rec-resumen-container').innerHTML = html;
 
+            if (typeof generarParte1ExcelRecuperacion === 'function') {
+                const p1 = generarParte1ExcelRecuperacion();
+                const p2 = generarParte2ExcelRecuperacion();
+                if (typeof ultimaParte1ExcelRecuperacion !== 'undefined') ultimaParte1ExcelRecuperacion = p1;
+                if (typeof ultimaParte2ExcelRecuperacion !== 'undefined') ultimaParte2ExcelRecuperacion = p2;
+                const div1 = document.getElementById('rec-texto-fila-excel-p1');
+                if (div1) div1.textContent = p1;
+                const div2 = document.getElementById('rec-texto-fila-excel-p2');
+                if (div2) div2.textContent = p2;
+            }
             if (typeof generarFilaExcelRecuperacionTexto === 'function') {
                 const fila = generarFilaExcelRecuperacionTexto();
                 if (typeof ultimaFilaExcelRecuperacion !== 'undefined') ultimaFilaExcelRecuperacion = fila;
@@ -6797,16 +6842,18 @@
             document.getElementById('seccion-recuperacion').classList.add('hidden');
         }
 
+        let ultimaParte1ExcelRecuperacion = '';
+        let ultimaParte2ExcelRecuperacion = '';
         let ultimaFilaExcelRecuperacion = '';
 
-        function generarFilaExcelRecuperacionTexto() {
-            if (!alumnoActual) return '';
+        function obtenerDatosExcelRecuperacion() {
+            if (!alumnoActual) return null;
             const correoInput = document.getElementById('rec-correo');
             const correo = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
             const horarioSel = document.getElementById('rec-horario') ? document.getElementById('rec-horario').value : '';
             const optSel = horarioSel ? document.querySelector(`#rec-horario option[value="${horarioSel}"]`) : null;
             const crn = (optSel && optSel.dataset.crn) ? optSel.dataset.crn : (horarioSel && !horarioSel.startsWith('MULTIPLE_') ? horarioSel : '');
-            const modalidadEnvio = alumnoActual.modalidad || '';
+            const modalidadEnvio = alumnoActual.modalidad || 'PRESENCIAL';
 
             const hoy = new Date();
             const pad = n => String(n).padStart(2,'0');
@@ -6841,41 +6888,80 @@
             const fechaInicio = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[0]) : '';
             const fechaFin = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[fechas.length - 1]) : '';
 
-            return [
+            return {
                 fechaHoy,
                 idSinCeros,
-                alumnoActual.nombre || '',
+                nombre: alumnoActual.nombre || '',
                 correo,
-                'PUEBLA ANZURES',
+                campus: 'PUEBLA ANZURES',
                 tipoAlumno,
                 modalidadEnvio,
                 crn,
-                "",
-                "",
-                "",
-                "",
-                "",
                 fechaInicio,
-                fechaFin,
-                "no"
+                fechaFin
+            };
+        }
+
+        // PARTE 1 (8 columnas): Fecha Solicitud, ID, Nombre, Correo, Campus, Tipo, Modalidad, CRN
+        function generarParte1ExcelRecuperacion() {
+            const d = obtenerDatosExcelRecuperacion();
+            if (!d) return '';
+            return [
+                d.fechaHoy,
+                d.idSinCeros,
+                d.nombre,
+                d.correo,
+                d.campus,
+                d.tipoAlumno,
+                d.modalidadEnvio,
+                d.crn
             ].join('\t');
         }
 
-        function copiarFilaExcelRecuperacion(btnId = 'rec-btn-copiar-excel') {
-            const el = document.getElementById('rec-texto-fila-excel');
-            let texto = el ? (el.textContent || el.innerText) : '';
-            if (!texto || !texto.trim()) texto = ultimaFilaExcelRecuperacion || generarFilaExcelRecuperacionTexto();
+        // PARTE 2 (3 columnas): Fecha Inicio, Fecha Fin, NO
+        function generarParte2ExcelRecuperacion() {
+            const d = obtenerDatosExcelRecuperacion();
+            if (!d) return '';
+            return [
+                d.fechaInicio,
+                d.fechaFin,
+                "NO"
+            ].join('\t');
+        }
+
+        function generarFilaExcelRecuperacionTexto() {
+            const d = obtenerDatosExcelRecuperacion();
+            if (!d) return '';
+            return [
+                d.fechaHoy,
+                d.idSinCeros,
+                d.nombre,
+                d.correo,
+                d.campus,
+                d.tipoAlumno,
+                d.modalidadEnvio,
+                d.crn,
+                "", "", "", "", "",
+                d.fechaInicio,
+                d.fechaFin,
+                "NO"
+            ].join('\t');
+        }
+
+        function copiarTextoRecuperacionClip(texto, btnId) {
             if (!texto || !texto.trim()) return;
 
             const onCopiadoExitoso = () => {
-                const btn = document.getElementById(btnId) || document.getElementById('rec-btn-copiar-excel');
+                const btn = document.getElementById(btnId);
                 if (btn) {
-                    const original = btn.innerHTML;
-                    btn.innerHTML = '<span class="text-base">✅</span> ¡Copiado!';
-                    btn.classList.add('bg-green-600', 'text-white');
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<span class="text-sm">✅</span> ¡Copiado!';
+                    const origClass = btn.className;
+                    btn.classList.remove('bg-purple-600', 'bg-indigo-600', 'hover:bg-purple-700', 'hover:bg-indigo-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
                     setTimeout(() => {
-                        btn.innerHTML = original;
-                        btn.classList.remove('bg-green-600', 'text-white');
+                        btn.innerHTML = originalHTML;
+                        btn.className = origClass;
                     }, 2000);
                 }
             };
@@ -6887,6 +6973,27 @@
             } else {
                 copiarFallback(texto, onCopiadoExitoso);
             }
+        }
+
+        function copiarParte1ExcelRecuperacion(btnId = 'rec-btn-copiar-p1') {
+            const el = document.getElementById('rec-texto-fila-excel-p1');
+            let texto = el ? (el.textContent || el.innerText) : '';
+            if (!texto || !texto.trim()) texto = ultimaParte1ExcelRecuperacion || generarParte1ExcelRecuperacion();
+            copiarTextoRecuperacionClip(texto, btnId);
+        }
+
+        function copiarParte2ExcelRecuperacion(btnId = 'rec-btn-copiar-p2') {
+            const el = document.getElementById('rec-texto-fila-excel-p2');
+            let texto = el ? (el.textContent || el.innerText) : '';
+            if (!texto || !texto.trim()) texto = ultimaParte2ExcelRecuperacion || generarParte2ExcelRecuperacion();
+            copiarTextoRecuperacionClip(texto, btnId);
+        }
+
+        function copiarFilaExcelRecuperacion(btnId = 'rec-btn-copiar-excel') {
+            const el = document.getElementById('rec-texto-fila-excel');
+            let texto = el ? (el.textContent || el.innerText) : '';
+            if (!texto || !texto.trim()) texto = ultimaFilaExcelRecuperacion || generarFilaExcelRecuperacionTexto();
+            copiarTextoRecuperacionClip(texto, btnId);
         }
 
         async function enviarFormRecuperacion() {
@@ -6980,13 +7087,20 @@
                 tipoOperacion: "RECUPERACION"
             };
 
+            const parte1Texto = generarParte1ExcelRecuperacion();
+            const parte2Texto = generarParte2ExcelRecuperacion();
             const filaExcelTexto = generarFilaExcelRecuperacionTexto();
 
+            ultimaParte1ExcelRecuperacion = parte1Texto;
+            ultimaParte2ExcelRecuperacion = parte2Texto;
             ultimaFilaExcelRecuperacion = filaExcelTexto;
+
+            const filaDiv1 = document.getElementById('rec-texto-fila-excel-p1');
+            if (filaDiv1) filaDiv1.textContent = parte1Texto;
+            const filaDiv2 = document.getElementById('rec-texto-fila-excel-p2');
+            if (filaDiv2) filaDiv2.textContent = parte2Texto;
             const filaDiv = document.getElementById('rec-texto-fila-excel');
-            if (filaDiv) {
-                filaDiv.textContent = filaExcelTexto;
-            }
+            if (filaDiv) filaDiv.textContent = filaExcelTexto;
 
             btnEnviar.disabled = true;
             btnEnviar.textContent = 'Enviando...';
@@ -7022,20 +7136,30 @@
                     <div class="mb-2">
                         <span class="font-bold">⚠️ No se pudo enviar por Apps Script:</span> ${err.message || 'Error de conexión'}
                     </div>
-                    <p class="text-xs text-gray-700 mb-2 font-medium">Puedes copiar la fila de la solicitud directamente para Excel:</p>
-                    <div onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="cursor-pointer group relative p-3 bg-white rounded-xl border border-dashed border-red-300 hover:border-red-500 transition-all text-xs font-mono text-left select-all" title="Click aquí para copiar directamente">
-                        <div class="flex items-center justify-between text-[11px] text-gray-500 mb-1.5 font-sans">
-                            <span class="font-semibold text-gray-700">Formato para Excel (separado por columnas):</span>
-                            <span class="text-purple-700 font-bold group-hover:underline flex items-center gap-1">📋 Click para copiar</span>
+                    <p class="text-xs text-gray-700 mb-2 font-medium">Puedes copiar los datos en 2 partes para pegarlos en Excel:</p>
+                    <div class="space-y-3 bg-white p-3 rounded-xl border border-red-200">
+                        <div>
+                            <div class="flex items-center justify-between text-[11px] mb-1">
+                                <span class="font-bold text-gray-800">🔹 Parte 1 (Datos del Alumno + CRN - 8 col.):</span>
+                            </div>
+                            <div onclick="copiarParte1ExcelRecuperacion('rec-btn-copiar-err-p1')" class="cursor-pointer p-2 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto whitespace-pre text-xs font-mono text-gray-900 select-all" title="Click para copiar Parte 1">
+                                ${parte1Texto}
+                            </div>
+                            <button id="rec-btn-copiar-err-p1" type="button" onclick="copiarParte1ExcelRecuperacion('rec-btn-copiar-err-p1')" class="mt-1.5 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-1.5 px-3 rounded-lg shadow text-xs flex items-center justify-center gap-1.5">
+                                <span>📋</span> Copiar Parte 1
+                            </button>
                         </div>
-                        <div class="overflow-x-auto whitespace-pre text-xs text-gray-900 font-mono py-2 px-2.5 bg-gray-50 rounded-lg border border-gray-200">
-                            ${filaExcelTexto}
+                        <div class="pt-2 border-t border-gray-100">
+                            <div class="flex items-center justify-between text-[11px] mb-1">
+                                <span class="font-bold text-gray-800">🔹 Parte 2 (Fechas + NO - 3 col.):</span>
+                            </div>
+                            <div onclick="copiarParte2ExcelRecuperacion('rec-btn-copiar-err-p2')" class="cursor-pointer p-2 bg-gray-50 rounded-lg border border-gray-200 overflow-x-auto whitespace-pre text-xs font-mono text-gray-900 select-all" title="Click para copiar Parte 2">
+                                ${parte2Texto}
+                            </div>
+                            <button id="rec-btn-copiar-err-p2" type="button" onclick="copiarParte2ExcelRecuperacion('rec-btn-copiar-err-p2')" class="mt-1.5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-3 rounded-lg shadow text-xs flex items-center justify-center gap-1.5">
+                                <span>📋</span> Copiar Parte 2
+                            </button>
                         </div>
-                    </div>
-                    <div class="mt-2 text-left">
-                        <button id="rec-btn-copiar-excel-err" type="button" onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-excel-err')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2 text-xs">
-                            <span class="text-base">📋</span> Copiar para Excel
-                        </button>
                     </div>
                 `;
                 errorDiv.classList.remove('hidden');
