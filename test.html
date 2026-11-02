@@ -1067,6 +1067,11 @@
                             Enviar Solicitud
                         </button>
                     </div>
+                    <div class="mt-2">
+                        <button id="rec-btn-copiar-paso3" type="button" onclick="copiarFilaExcelRecuperacion('rec-btn-copiar-paso3')" class="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold py-2 px-3 rounded-xl text-xs transition duration-200 flex items-center justify-center gap-2">
+                            <span class="text-base">📋</span> Copiar fila para Excel
+                        </button>
+                    </div>
                 </div>
 
                 <!-- MENSAJE EXITO -->
@@ -6800,21 +6805,41 @@
             const correo = correoInput ? correoInput.value.trim() : (alumnoActual.correo || '');
             const horarioSel = document.getElementById('rec-horario') ? document.getElementById('rec-horario').value : '';
             const optSel = horarioSel ? document.querySelector(`#rec-horario option[value="${horarioSel}"]`) : null;
-            const frecuencia = optSel ? (optSel.dataset.frecuencia || '') : '';
+            const crn = (optSel && optSel.dataset.crn) ? optSel.dataset.crn : (horarioSel && !horarioSel.startsWith('MULTIPLE_') ? horarioSel : '');
             const modalidadEnvio = alumnoActual.modalidad || '';
-            const docente = optSel ? (optSel.dataset.docente || '') : '';
-            const horafmt = optSel ? (optSel.dataset.horafmt || '') : '';
-            const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
 
             const hoy = new Date();
             const pad = n => String(n).padStart(2,'0');
             const fechaHoy = `${pad(hoy.getDate())}/${pad(hoy.getMonth()+1)}/${hoy.getFullYear()}`;
             const idSinCeros = String(alumnoActual.idOriginal || '').replace(/^0+/,'');
-            const cursoNum = String(alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : (alumnoActual.cursoVisual || '')).replace(/\D+/g, '') || String(alumnoActual.nivelActual || '');
 
-            const diasLabels = (typeof formatearTextoDiasRecuperacion === 'function' && typeof diasSeleccionadosRec !== 'undefined')
-                ? formatearTextoDiasRecuperacion(diasSeleccionadosRec)
-                : '';
+            // Determinar tipo: 'R', 'N' o 'Rec'
+            let tipoAlumno = 'R';
+            const est = (alumnoActual && alumnoActual.estatusPago ? String(alumnoActual.estatusPago).trim().toUpperCase() : '');
+            if (est === 'REC' || est.startsWith('REC')) {
+                tipoAlumno = 'Rec';
+            } else if ((alumnoActual && (alumnoActual.esNuevoLayout || alumnoActual.esHojaVentas)) || est === 'N' || est === 'NI') {
+                tipoAlumno = 'N';
+            } else {
+                tipoAlumno = 'R';
+            }
+
+            // Fechas de inicio y fin (DD/MM/YYYY) según los días seleccionados
+            const formatearFechaDDMMYYYY = (fechaStr) => {
+                if (!fechaStr) return '';
+                const partes = String(fechaStr).trim().split('-');
+                if (partes.length === 3) {
+                    return `${pad(Number(partes[2]))}/${pad(Number(partes[1]))}/${partes[0]}`;
+                }
+                return fechaStr;
+            };
+
+            const fechas = (typeof diasSeleccionadosRec !== 'undefined' && diasSeleccionadosRec.size > 0)
+                ? [...diasSeleccionadosRec].sort()
+                : [];
+            
+            const fechaInicio = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[0]) : '';
+            const fechaFin = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[fechas.length - 1]) : '';
 
             return [
                 fechaHoy,
@@ -6822,16 +6847,17 @@
                 alumnoActual.nombre || '',
                 correo,
                 'PUEBLA ANZURES',
-                'RI',
+                tipoAlumno,
                 modalidadEnvio,
-                alumnoActual.codigoClase || '',
-                cursoNum,
-                frecuencia,
-                horafmtLimpio,
-                horarioSel,
-                docente,
-                diasLabels,
-                "RECUPERACION"
+                crn,
+                "",
+                "",
+                "",
+                "",
+                "",
+                fechaInicio,
+                fechaFin,
+                "no"
             ].join('\t');
         }
 
@@ -6841,25 +6867,26 @@
             if (!texto || !texto.trim()) texto = ultimaFilaExcelRecuperacion || generarFilaExcelRecuperacionTexto();
             if (!texto || !texto.trim()) return;
 
-            navigator.clipboard.writeText(texto).then(() => {
-                if (typeof mostrarTooltipCopiado === 'function') {
-                    mostrarTooltipCopiado('Fila copiada para Excel');
-                }
+            const onCopiadoExitoso = () => {
                 const btn = document.getElementById(btnId) || document.getElementById('rec-btn-copiar-excel');
                 if (btn) {
                     const original = btn.innerHTML;
                     btn.innerHTML = '<span class="text-base">✅</span> ¡Copiado!';
-                    btn.classList.remove('bg-purple-600', 'hover:bg-purple-700');
-                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-green-600', 'text-white');
                     setTimeout(() => {
                         btn.innerHTML = original;
-                        btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                        btn.classList.add('bg-purple-600', 'hover:bg-purple-700');
+                        btn.classList.remove('bg-green-600', 'text-white');
                     }, 2000);
                 }
-            }).catch(err => {
-                console.error("Error al copiar:", err);
-            });
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(texto).then(onCopiadoExitoso).catch(() => {
+                    copiarFallback(texto, onCopiadoExitoso);
+                });
+            } else {
+                copiarFallback(texto, onCopiadoExitoso);
+            }
         }
 
         async function enviarFormRecuperacion() {
@@ -6898,6 +6925,7 @@
             const docente = optSel ? optSel.dataset.docente : '';
             const horafmt = optSel ? optSel.dataset.horafmt : '';
             const horafmtLimpio = horafmt ? horafmt.replace(/^0/, '') : '';
+            const crn = (optSel && optSel.dataset.crn) ? optSel.dataset.crn : (horarioSel && !horarioSel.startsWith('MULTIPLE_') ? horarioSel : '');
 
             const hoy = new Date();
             const pad = n => String(n).padStart(2,'0');
@@ -6905,41 +6933,54 @@
             const idSinCeros = String((alumnoActual && alumnoActual.idOriginal) || '').replace(/^0+/,'');
             const cursoNum = String(alumnoActual && alumnoActual.nivelActual !== undefined && alumnoActual.nivelActual !== null ? alumnoActual.nivelActual : ((alumnoActual && alumnoActual.cursoVisual) || '')).replace(/\D+/g, '') || String((alumnoActual && alumnoActual.nivelActual) || '');
 
+            // Determinar tipo de alumno: 'R', 'N' o 'Rec'
+            let tipoAlumno = 'R';
+            const est = (alumnoActual && alumnoActual.estatusPago ? String(alumnoActual.estatusPago).trim().toUpperCase() : '');
+            if (est === 'REC' || est.startsWith('REC')) {
+                tipoAlumno = 'Rec';
+            } else if ((alumnoActual && (alumnoActual.esNuevoLayout || alumnoActual.esHojaVentas)) || est === 'N' || est === 'NI') {
+                tipoAlumno = 'N';
+            } else {
+                tipoAlumno = 'R';
+            }
+
+            const formatearFechaDDMMYYYY = (fechaStr) => {
+                if (!fechaStr) return '';
+                const partes = String(fechaStr).trim().split('-');
+                if (partes.length === 3) {
+                    return `${pad(Number(partes[2]))}/${pad(Number(partes[1]))}/${partes[0]}`;
+                }
+                return fechaStr;
+            };
+
+            const fechas = (typeof diasSeleccionadosRec !== 'undefined' && diasSeleccionadosRec.size > 0)
+                ? [...diasSeleccionadosRec].sort()
+                : [];
+            
+            const fechaInicio = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[0]) : '';
+            const fechaFin = fechas.length > 0 ? formatearFechaDDMMYYYY(fechas[fechas.length - 1]) : '';
+
             const payload = {
                 fechaSolicitud: fechaHoy,
                 idAlumno: idSinCeros,
                 nombre: (alumnoActual && alumnoActual.nombre) || '',
                 correo: correo,
                 campus: 'PUEBLA ANZURES',
-                tipo: 'RI',
+                tipo: tipoAlumno,
                 modalidad: modalidadEnvio,
                 codigoClase: (alumnoActual && alumnoActual.codigoClase) || '',
                 nivel: cursoNum,
                 frecuenciaReq: frecuencia,
                 horarioReq: horafmtLimpio,
-                crnReq: horarioSel, // El value del select es el crn
+                crnReq: crn, // El value del select es el crn
                 docenteReq: docente,
                 diasRecuperacion: diasLabels,
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin,
                 tipoOperacion: "RECUPERACION"
             };
 
-            const filaExcelTexto = [
-                fechaHoy,
-                idSinCeros,
-                (alumnoActual && alumnoActual.nombre) || '',
-                correo,
-                'PUEBLA ANZURES',
-                'RI',
-                modalidadEnvio,
-                (alumnoActual && alumnoActual.codigoClase) || '',
-                cursoNum,
-                frecuencia,
-                horafmtLimpio,
-                horarioSel,
-                docente,
-                diasLabels,
-                "RECUPERACION"
-            ].join('\t');
+            const filaExcelTexto = generarFilaExcelRecuperacionTexto();
 
             ultimaFilaExcelRecuperacion = filaExcelTexto;
             const filaDiv = document.getElementById('rec-texto-fila-excel');
@@ -9647,8 +9688,23 @@
                 const esSabadoAlumno = (a.tipoClaseCal === 'sabado');
                 if (esSabado !== esSabadoAlumno) return false;
 
-                // 1. Coincidencia directa con la misma función oficial que asigna salón/teacher (la misma de Saloneo y Ficha)
+                // Debe coincidir el programa y el nivel del grupo consultado
+                if (a.programaNombre !== progReal || parseInt(a.nivelActual) !== parseInt(nivelVal)) {
+                    return false;
+                }
+
                 const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true || a.esHojaVentas === true);
+                if (esSoloS && !esAlumnoLayPasado) return false;
+                if (esSoloE && esAlumnoLayPasado) return false;
+
+                // Validar coincidencia de días entre semana (ej. Lunes y Miércoles vs Martes y Jueves)
+                if (!esSabado && diasTarget) {
+                    const hUp = (a.horario || '').toUpperCase();
+                    if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
+                    if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
+                }
+
+                // 1. Coincidencia directa con la misma función oficial que asigna salón/teacher (la misma de Saloneo y Ficha)
                 const sObj = buscarSalonYTeacher(a.horario, a.programaNombre, a.nivelActual, esSabadoAlumno, null, esAlumnoLayPasado);
 
                 if (sObj) {
@@ -9667,18 +9723,8 @@
                 if (clase && clase.crn && a.codigoClase && String(a.codigoClase) === String(clase.crn)) return true;
 
                 // 3. Coincidencia por programa, nivel y horario (respaldo)
-                if (a.programaNombre === progReal && parseInt(a.nivelActual) === parseInt(nivelVal)) {
-                    if (esSoloS && !esAlumnoLayPasado) return false;
-                    if (esSoloE && esAlumnoLayPasado) return false;
-
-                    if (!esSabado) {
-                        const hUp = (a.horario || '').toUpperCase();
-                        if (diasTarget === 'Lunes y Miércoles' && (hUp.includes('MYJ') || hUp.includes('M-J') || hUp.includes('MARTES'))) return false;
-                        if (diasTarget === 'Martes y Jueves' && (hUp.includes('LYM') || hUp.includes('L-M') || hUp.includes('LUNES'))) return false;
-                    }
-                    if (horCoincide(a.horario, horaTarget, progReal, esSabado)) {
-                        return true;
-                    }
+                if (horCoincide(a.horario, horaTarget, progReal, esSabado)) {
+                    return true;
                 }
 
                 return false;
