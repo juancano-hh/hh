@@ -2679,6 +2679,13 @@
                         const idRaw = fila[0] ? String(fila[0]).trim().toUpperCase() : '';
                         // Si no tiene matrícula, generamos un identificador único con su celular o índice
                         const id = idRaw || ('NV-' + (celRaw ? celRaw.replace(/\D/g, '') : ('00' + idx)));
+                        const idNorm = String(id).replace(/^0+/, '');
+
+                        // Si el alumno ya existe en el Layout principal o en LayPasado, NO sobrescribirlo,
+                        // ya que el Layout principal contiene su nivel actual real, periodo vigente y estatus de pago.
+                        if (baseAlumnos[id] || alumnosPorIdNormalizado.has(idNorm)) {
+                            continue;
+                        }
 
                         const correoAlumno = fila[4] ? String(fila[4]).trim() : 'No registrado';
                         let celularAlumno = 'No registrado';
@@ -2795,7 +2802,6 @@
                         };
 
                         baseAlumnos[id] = alumno;
-                        const idNorm = String(id).replace(/^0+/, '');
                         if (!alumnosPorIdNormalizado.has(idNorm)) alumnosPorIdNormalizado.set(idNorm, alumno);
                     }
                     console.log("Alumnos de Hoja de Ventas (Nuevos) incorporados.");
@@ -3435,21 +3441,46 @@
                             if (!isNaN(precio)) librosMap.set(`${programaRaw}_${nivel}`, { nombre: libroRaw, precio });
                         }
                     }
-                    const cantRaw = fila.c[6] ? fila.c[6].v : null, dctoRaw = fila.c[7] ? fila.c[7].v : null;
-                    const motivoRaw = fila.c[8] ? String(fila.c[8].v).trim() : "", fechaRaw = fila.c[9] ? fila.c[9].v : null;
+                    const cantLibrosRaw = fila.c[5] ? (fila.c[5].v !== null && fila.c[5].v !== undefined ? fila.c[5].v : fila.c[5].f) : null;
+                    const cantRaw = fila.c[6] ? (fila.c[6].v !== null && fila.c[6].v !== undefined ? fila.c[6].v : fila.c[6].f) : null;
+                    const dctoRaw = fila.c[7] ? (fila.c[7].v !== null && fila.c[7].v !== undefined ? fila.c[7].v : fila.c[7].f) : null;
+                    const motivoRaw = fila.c[8] ? String(fila.c[8].v || fila.c[8].f || "").trim() : "";
+                    const fechaRaw = fila.c[9] ? (fila.c[9].v !== null && fila.c[9].v !== undefined ? fila.c[9].v : fila.c[9].f) : null;
                     if (cantRaw !== null && dctoRaw !== null) {
                         let cantidad = parseInt(cantRaw);
                         if (!isNaN(cantidad)) {
+                            let cantidadLibros = parseInt(cantLibrosRaw);
+                            if (isNaN(cantidadLibros) || cantidadLibros <= 0) cantidadLibros = 1;
                             let descuento = parseFloat(dctoRaw); if (isNaN(descuento)) continue;
                             if (descuento > 1) descuento = descuento / 100;
                             let fechaFin = parseFecha(fechaRaw);
                             if (fechaRaw !== null && fechaFin === null) continue;
-                            promosLibros.push({ cantidadMinima: cantidad, descuento, motivo: motivoRaw, fechaFin });
+
+                            // Columna K (índice 10): Periodo '4' (Adultos 4 sem), '8' (Kids/Preteens/Teens 8 sem), o 'T' (Todos)
+                            let modRaw = 'T';
+                            if (fila.c.length > 10 && fila.c[10]) {
+                                const cellVal = (fila.c[10].v !== null && fila.c[10].v !== undefined) ? fila.c[10].v : fila.c[10].f;
+                                if (cellVal !== null && cellVal !== undefined) {
+                                    const strVal = String(cellVal).trim().toUpperCase();
+                                    if (strVal === '4' || strVal === '04') modRaw = '4';
+                                    else if (strVal === '8' || strVal === '08') modRaw = '8';
+                                    else if (strVal === 'T' || strVal === 'TODOS' || strVal === '') modRaw = 'T';
+                                }
+                            }
+
+                            promosLibros.push({
+                                cantidadLibros,
+                                cantidadMinima: cantidad,
+                                descuento,
+                                motivo: motivoRaw,
+                                fechaFin,
+                                modalidad: modRaw
+                            });
                         }
                     }
                 }
                 promosLibros.sort((a, b) => b.cantidadMinima - a.cantidadMinima);
-                console.log("Libros cargados:", librosMap.size);
+                console.log("Libros cargados:", librosMap.size, "Promos libros:", promosLibros.length);
             } catch (e) { console.warn("Error cargando libros:", e); }
         }
 
@@ -3730,18 +3761,50 @@
             contenedor.innerHTML = htmlFinal;
         }
 
-        function aplicarDescuentoLibrosDetallado(cantidadCursos, libros, indicesActivos) {
-            if (!libros.length || indicesActivos.length === 0) return { totalOriginal: 0, totalFinal: 0, librosConPrecio: [] };
-            const hoy = new Date(); hoy.setHours(0,0,0,0);
-            let mejorPromo = null;
-            for (let promo of promosLibros) {
-                if (cantidadCursos >= promo.cantidadMinima) {
-                    if (promo.fechaFin) { const f = new Date(promo.fechaFin); f.setHours(23,59,59,999); if (f < hoy) continue; }
-                    mejorPromo = promo; break;
+        function obtenerMejorPromoLibroVigente(cantidadCursos, alumno = null) {
+            if (!promosLibros || !promosLibros.length) return null;
+            const al = alumno || (typeof alumnoActual !== 'undefined' ? alumnoActual : null);
+            const modAlumno = obtenerModalidadClaveAlumno(al);
+            const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+
+            const aplicables = promosLibros.filter(promo => {
+                if (modAlumno && promo.modalidad && promo.modalidad !== 'T') {
+                    if (promo.modalidad !== modAlumno) return false;
                 }
-            }
+                if (cantidadCursos < promo.cantidadMinima) return false;
+                if (promo.fechaFin) {
+                    const f = new Date(promo.fechaFin);
+                    f.setHours(23, 59, 59, 999);
+                    if (f < hoy) return false;
+                }
+                return true;
+            });
+
+            if (!aplicables.length) return null;
+
+            // Seleccionar el escalón alcanzado más alto (ej. 3, 4 o 5 cursos usa la regla de 3; 6 o más usa la regla de 6 sin sumar la de 3)
+            return aplicables.reduce((prev, curr) => {
+                if (curr.cantidadMinima > prev.cantidadMinima) return curr;
+                if (curr.cantidadMinima < prev.cantidadMinima) return prev;
+
+                // A igual cantidad de cursos, priorizar la regla específica del periodo del alumno ('4' u '8') sobre 'T'
+                if (modAlumno && curr.modalidad === modAlumno && prev.modalidad !== modAlumno) return curr;
+                if (modAlumno && prev.modalidad === modAlumno && curr.modalidad !== modAlumno) return prev;
+
+                // Desempate por mayor cantidad de libros o mayor descuento
+                if ((curr.cantidadLibros || 1) > (prev.cantidadLibros || 1)) return curr;
+                if ((curr.cantidadLibros || 1) === (prev.cantidadLibros || 1) && curr.descuento > prev.descuento) return curr;
+
+                return prev;
+            });
+        }
+
+        function aplicarDescuentoLibrosDetallado(cantidadCursos, libros, indicesActivos, alumno = null) {
+            if (!libros.length || indicesActivos.length === 0) return { totalOriginal: 0, totalFinal: 0, librosConPrecio: [] };
+            const mejorPromo = obtenerMejorPromoLibroVigente(cantidadCursos, alumno);
             let descuento = mejorPromo ? mejorPromo.descuento : 0;
-            let maxConDescuento = mejorPromo ? Math.floor(mejorPromo.cantidadMinima / 4) : 0;
+            let maxConDescuento = mejorPromo ? (mejorPromo.cantidadLibros || 1) : 0;
+            let motivoPromo = mejorPromo ? (mejorPromo.motivo || '') : '';
             let totalOriginal = 0, totalFinal = 0, contador = 0;
             const librosConPrecio = [];
             for (let i = 0; i < libros.length; i++) {
@@ -3753,7 +3816,7 @@
                     if (contador < maxConDescuento && descuento > 0) { precioFinal = Math.round(precio * (1 - descuento)); tieneDescuento = true; contador++; }
                     totalFinal += precioFinal;
                 } else { precioFinal = 0; }
-                librosConPrecio.push({ ...libros[i], activo, precioOriginal: precio, precioFinal, tieneDescuento });
+                librosConPrecio.push({ ...libros[i], activo, precioOriginal: precio, precioFinal, tieneDescuento, motivoPromo });
             }
             return { totalOriginal, totalFinal, librosConPrecio };
         }
@@ -9131,9 +9194,9 @@
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
                 const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
 
-                if (esSoloStarting && !esAlumnoLayPasado) return false;
-                if (esSoloEnding && esAlumnoLayPasado) return false;
-                if (esAlumnoLayPasado && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
+                if (esSoloStarting && !esAlumnoLayPasado && !a.esHojaVentas) return false;
+                if (esSoloEnding && (esAlumnoLayPasado || a.esHojaVentas)) return false;
+                if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
@@ -9169,9 +9232,9 @@
                 const esPresencialValido = esGrupoPresencialValido(progAlumnos, a.codigoClase);
                 const esAlumnoLayPasado = (a.esLayPasado === true || a.esPrimerMes === true);
 
-                if (esSoloStarting && !esAlumnoLayPasado) return false;
-                if (esSoloEnding && esAlumnoLayPasado) return false;
-                if (esAlumnoLayPasado && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
+                if (esSoloStarting && !esAlumnoLayPasado && !a.esHojaVentas) return false;
+                if (esSoloEnding && (esAlumnoLayPasado || a.esHojaVentas)) return false;
+                if (esAlumnoLayPasado && !a.esHojaVentas && !esSoloStarting && !esSoloEnding && !(progAlumnos === 'ADULTO' && a.nivelActual === 24)) return false;
 
                 return a.programaNombre === progAlumnos &&
                        a.nivelActual === nivelVal &&
