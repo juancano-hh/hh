@@ -2458,7 +2458,7 @@
                     const id = fila[3] ? String(fila[3]).trim().toUpperCase() : "";
                     if (!id) continue;
                     let tieneServicio = false;
-                    const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
+                    const condicionTexto = fila[44] ? String(fila[44]).trim().toUpperCase() : "";
                     if (condicionTexto === "SERVICIO") tieneServicio = true;
                     const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
                     const notaAlumno = fila[7] ? String(fila[7]).trim() : '';
@@ -2496,14 +2496,14 @@
                     }
                     else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) modalidadCalculada = "DO";
                     let becaVal = 0;
-                    if (fila[40]) {
-                        becaVal = parseFloat(fila[40]);
+                    if (fila[41]) {
+                        becaVal = parseFloat(fila[41]);
                         if (isNaN(becaVal)) becaVal = 0;
                         if (becaVal > 1) becaVal = becaVal / 100;
                     }
                     const periodoSiguiente = fila[1] ? String(fila[1]).trim() : '';
                     const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
-                    const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
+                    const volumenInfo = fila[30] ? String(fila[30]).trim().toUpperCase() : '';
                     const estatusPagoRaw = fila[2] ? String(fila[2]).trim() : '';
                     const tieneR = estatusPagoRaw.toUpperCase() === 'R';
                     const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
@@ -2578,7 +2578,7 @@
                         if (!esCurso24 && !esValido) continue;
 
                         let tieneServicio = false;
-                        const condicionTexto = fila[43] ? String(fila[43]).trim().toUpperCase() : "";
+                        const condicionTexto = fila[44] ? String(fila[44]).trim().toUpperCase() : "";
                         if (condicionTexto === "SERVICIO") tieneServicio = true;
 
                         const nombreAlumno = fila[6] ? String(fila[6]).trim() : 'Sin nombre';
@@ -2620,14 +2620,14 @@
                         else if (horarioUpper.includes("DO") || horarioUpper.includes("DOM") || horarioUpper.includes("DM")) modalidadCalculada = "DO";
 
                         let becaVal = 0;
-                        if (fila[40]) {
-                            becaVal = parseFloat(fila[40]);
+                        if (fila[41]) {
+                            becaVal = parseFloat(fila[41]);
                             if (isNaN(becaVal)) becaVal = 0;
                             if (becaVal > 1) becaVal = becaVal / 100;
                         }
 
                         const tipoClaseCal = (modalidadCalculada === 'SA' || modalidadCalculada === 'DO') ? 'sabado' : 'entre-semana';
-                        const volumenInfo = fila[29] ? String(fila[29]).trim().toUpperCase() : '';
+                        const volumenInfo = fila[30] ? String(fila[30]).trim().toUpperCase() : '';
                         const codigoClaseLayout = fila[12] ? String(fila[12]).trim() : '';
                         const crnLayout = fila[17] ? String(fila[17]).trim() : '';
 
