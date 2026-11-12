@@ -241,6 +241,12 @@
                 color: #000;
             }
 
+            .cotizacion-print-wrapper {
+                width: 100%;
+                padding: 14mm 18mm;
+                box-sizing: border-box !important;
+            }
+
             .factura-header {
                 display: flex;
                 justify-content: space-between;
@@ -3025,6 +3031,18 @@
             return false;
         }
 
+        // Nivel base para la barra y cálculo de cotización: si el alumno es de LAYOUT y ya tiene estatus PAGADO (R),
+        // ya pagó su siguiente nivel, por lo que para cotizar cuenta como nivelActual + 1.
+        // Para Ns (esHojaVentas) y LAYPASADO (esLayPasado / esPrimerMes) se mantiene su nivelActual normal.
+        function obtenerNivelBaseCotizacion(alumno) {
+            if (!alumno) return 1;
+            const nivel = Number(alumno.nivelActual) || 0;
+            if (!alumno.esLayPasado && !alumno.esPrimerMes && !alumno.esHojaVentas && alumnoTieneCursoPagado(alumno)) {
+                return Math.min(24, nivel + 1);
+            }
+            return nivel;
+        }
+
         // Obtiene la información del próximo período y fechas de pago para un alumno
         function obtenerInfoProximaFechaPago(alumno) {
             if (!alumno || !alumno.periodoSiguiente) return null;
@@ -4457,7 +4475,8 @@
                 document.getElementById('info-promo-adicional').classList.remove('hidden');
             } else { document.getElementById('info-promo-adicional').classList.add('hidden'); }
             const slider = document.getElementById('cursos-slider');
-            const maxCursos = Math.max(1, 24 - alumnoActual.nivelActual);
+            const nivelBaseCotiz = obtenerNivelBaseCotizacion(alumnoActual);
+            const maxCursos = Math.max(1, 24 - nivelBaseCotiz);
             slider.min = 0;
             slider.max = maxCursos;
             slider.value = 1;
@@ -4512,7 +4531,7 @@
             const fechaVigenciaSpan = document.getElementById('fecha-vigencia-promo');
             const libroContainer = document.getElementById('libro-container');
             const ahorroContainer = document.getElementById('ahorro-container');
-            const nivelActual = alumnoActual.nivelActual;
+            const nivelActual = obtenerNivelBaseCotizacion(alumnoActual);
             const primerNivel = nivelActual + 1, ultimoNivel = primerNivel + cantCursos - 1;
             
             // Indicador de hasta qué nivel estaría pagando
@@ -8090,7 +8109,7 @@
             const toggleServicio = document.getElementById('servicio-toggle');
             const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             
-            const nivelActual = alumnoActual.nivelActual;
+            const nivelActual = obtenerNivelBaseCotizacion(alumnoActual);
             const primerNivel = nivelActual + 1;
             const ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
@@ -8192,6 +8211,7 @@
             const lblCotizacionFecha = document.getElementById('lbl-cotizacion-fecha').innerText || '';
 
             const facturaHtml = `
+                <div class="cotizacion-print-wrapper">
                 <div class="factura-header">
                     <div class="factura-info">
                         <div class="factura-title">Cotización de Cursos</div>
@@ -8239,6 +8259,7 @@
                     <p style="margin-top: 5px;">* Precios sujetos a cambios sin previo aviso. Esta cotización no es un comprobante de pago.</p>
                     <p style="font-size: 9px; margin-top: 20px; color: #999;">Contamos con 3 y 6 MSI</p>
                 </div>
+                </div>
             `;
             
             const printConst = document.getElementById('print-constancia');
@@ -8246,14 +8267,14 @@
             if (printConst) printConst.innerHTML = '';
             if (printFact) printFact.innerHTML = facturaHtml;
             
-            // Margen de 10 mm a cada lado (superior, inferior, izquierda y derecha) para la cotización
+            // Margen seguro para la cotización
             let cotizStyle = document.getElementById('cotizacion-print-style');
             if (!cotizStyle) {
                 cotizStyle = document.createElement('style');
                 cotizStyle.id = 'cotizacion-print-style';
                 document.head.appendChild(cotizStyle);
             }
-            cotizStyle.textContent = `@media print { @page { size: letter portrait !important; margin: 10mm !important; } }`;
+            cotizStyle.textContent = `@page { size: letter portrait !important; margin: 0 !important; }`;
 
             setTimeout(() => {
                 window.print();
@@ -8451,7 +8472,7 @@
             const toggleServicio = document.getElementById('servicio-toggle');
             const extraServicio = (toggleServicio && toggleServicio.checked) ? 90 : 0;
             
-            const nivelActual = alumnoActual.nivelActual;
+            const nivelActual = obtenerNivelBaseCotizacion(alumnoActual);
             const primerNivel = nivelActual + 1;
             const ultimoNivel = primerNivel + cantCursos - 1;
             let cursosBajos = 0, cursosAltos = 0;
@@ -8529,7 +8550,7 @@
             const formatMoney = (val) => '$' + val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 
             const reciboHtml = `
-                <div style="font-family: Arial, sans-serif; font-size: 11px; max-width: 760px; margin: 0 auto; color: black; padding: 20px 30px; box-sizing: border-box;">
+                <div style="font-family: Arial, sans-serif; font-size: 11px; max-width: 800px; margin: 0 auto; color: black; padding-top: 10px;">
                     <div style="text-align: right; margin-bottom: 20px;">
                         Fecha de impresión: ${hoyFormat} Página 1 de 1
                     </div>
@@ -8651,7 +8672,7 @@
                 cotizStyle.id = 'cotizacion-print-style';
                 document.head.appendChild(cotizStyle);
             }
-            cotizStyle.textContent = `@media print { @page { size: letter portrait !important; margin: 12mm !important; } }`;
+            cotizStyle.textContent = `@media print { @page { size: letter portrait !important; margin: 8mm !important; } }`;
             
             setTimeout(() => {
                 window.print();
